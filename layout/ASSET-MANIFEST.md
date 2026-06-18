@@ -15,6 +15,7 @@
 | assets/icons/new-school.svg | Establishment of schools/campuses/programs icon | Service card | SVG |
 | assets/icons/change.svg | Change of school name/ownership/location icon | Service card | SVG |
 | assets/icons/shs.svg | Senior High School permit icon | Service card | SVG |
+| assets/icons/school-calendar.svg | School Calendar review icon | Service card | SVG |
 | assets/icons/document.svg | Issuances and documents icon | Quick links and document cards | SVG |
 | assets/icons/folder.svg | Reports and templates icon | Quick links | SVG |
 | assets/icons/book.svg | Guidelines and references icon | Quick links | SVG |

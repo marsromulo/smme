@@ -1,12 +1,34 @@
 import { PageShell } from "../components/PageShell";
 
 const services = [
-  "Government Permit to Operate",
-  "Recognition of schools and academic programs",
-  "Tuition and Other School Fees Increase applications",
-  "Establishment of new schools, branch campuses, and additional programs",
-  "Change of school name, ownership, or location",
-  "Senior High School permit applications",
+  {
+    title: "Government Permit to Operate",
+    text: "Prepare the required documents, submit the application, and coordinate with the unit for review, validation, and next steps.",
+  },
+  {
+    title: "Recognition of schools and academic programs",
+    text: "Request recognition for school operations or academic programs that need validation against DepEd standards.",
+  },
+  {
+    title: "Tuition and Other School Fees Increase applications",
+    text: "Submit TOSFI requirements for review, including supporting documents and notices required by applicable guidelines.",
+  },
+  {
+    title: "Establishment of new schools, branch campuses, and additional programs",
+    text: "Apply for approval to establish a new school, open a branch campus, or offer additional academic programs.",
+  },
+  {
+    title: "Change of school name, ownership, or location",
+    text: "Request approval for institutional changes and submit the supporting documents required for validation.",
+  },
+  {
+    title: "Senior High School permit applications",
+    text: "Submit requirements for authority to offer Senior High School programs in compliance with DepEd policies.",
+  },
+  {
+    title: "School Calendar",
+    text: "Submit the school year calendar for review, including class opening, holidays, examinations, breaks, school activities, and school day counts.",
+  },
 ];
 
 const steps = [
@@ -34,12 +56,9 @@ export default function ServicesPage() {
 
         <section className="info-card-grid">
           {services.map((service) => (
-            <article className="info-card" key={service}>
-              <h3>{service}</h3>
-              <p>
-                Prepare the required documents, submit the application, and coordinate with
-                the unit for review, validation, and next steps.
-              </p>
+            <article className="info-card" key={service.title}>
+              <h3>{service.title}</h3>
+              <p>{service.text}</p>
             </article>
           ))}
         </section>

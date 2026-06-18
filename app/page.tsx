@@ -34,6 +34,11 @@ const services = [
     title: "Senior High School Permit Applications",
     text: "Obtain a permit to offer Senior High School programs in compliance with DepEd policies.",
   },
+  {
+    icon: "/assets/icons/school-calendar.svg",
+    title: "School Calendar",
+    text: "Submit the school year calendar for review, including class opening, holidays, examinations, breaks, school activities, and school day counts.",
+  },
 ];
 
 const newsItems = [

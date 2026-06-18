@@ -47,7 +47,7 @@ export function SiteFooter() {
           <p>
             (074) 442-4326
             <br />
-            smme.car@deped.gov.ph
+            quad.depedcar@gmail.com
           </p>
           <p>
             Monday - Friday

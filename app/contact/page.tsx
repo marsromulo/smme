@@ -15,7 +15,7 @@ const contactDetails = [
   },
   {
     label: "Email",
-    value: "smme.car@deped.gov.ph",
+    value: "quad.depedcar@gmail.com",
   },
   {
     label: "Office Hours",

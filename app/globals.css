@@ -1005,10 +1005,6 @@ img {
     grid-template-columns: 1fr;
   }
 
-  .quick-links {
-    grid-template-columns: 1fr;
-  }
-
   .section-head h2,
   .news-head h2 {
     font-size: 30px;

@@ -1,95 +1,220 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { ArrowLeft, Eye, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import {
+  BookOpenCheck,
+  Building2,
+  Eye,
+  FileText,
+  GraduationCap,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+const features = [
+  {
+    icon: ShieldCheck,
+    title: "Secure & Trusted",
+    text: "Enterprise-grade security to keep your data safe and confidential.",
+  },
+  {
+    icon: FileText,
+    title: "Efficient & Transparent",
+    text: "Real-time tracking of submissions, reviews, and approvals.",
+  },
+  {
+    icon: UsersRound,
+    title: "Built for Education",
+    text: "Designed for Schools, School Contacts, and Administrators.",
+  },
+];
+
+const accessNotes = [
+  { icon: ShieldCheck, title: "Secure Access", text: "Your data is protected" },
+  { icon: UsersRound, title: "Role-Based Access", text: "Access what you need" },
+  { icon: FileText, title: "Audit & Compliance", text: "Track every action" },
+];
 
 export default function PlatformLoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setError("");
 
-    const role = username.trim().toLowerCase();
+    const formData = new FormData(event.currentTarget);
+    const password = String(formData.get("password") ?? "");
 
-    if (role !== "admin" && role !== "school") {
-      setError('Use "admin" or "school" as the username.');
-      return;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+
+      router.push("/platform");
+      router.refresh();
+    } catch (signInError) {
+      setError(signInError instanceof Error ? signInError.message : "Unable to sign in.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    window.localStorage.setItem("smme-platform-role", role);
-    router.push("/platform");
   }
 
   return (
-    <main className="platform-auth">
-      <section className="platform-auth-panel">
-        <Link className="platform-back-link" href="/">
-          <ArrowLeft aria-hidden="true" size={16} />
-          Back to SMME site
-        </Link>
-        <div className="platform-auth-brand">
-          <Image
-            src="/assets/logos/sdobc-smme-logo.png"
-            alt="SMME logo"
-            width={78}
-            height={78}
-            priority
-          />
+    <main className="school-login-page">
+      <section className="school-login-intro">
+        <div className="school-register-brand">
+          <span>
+            <GraduationCap aria-hidden="true" size={44} />
+            <BookOpenCheck aria-hidden="true" size={54} />
+          </span>
           <div>
-            <span>Schools Division of Baguio City</span>
-            <strong>M&E Platform</strong>
+            <strong>SMME</strong>
+            <small>
+              School Monitoring &
+              <br />
+              Management Ecosystem
+            </small>
           </div>
         </div>
-        <div className="platform-auth-copy">
-          <span className="platform-kicker">Secure access</span>
-          <h1>Login</h1>
-          <p>Access school applications, document reviews, and monitoring records.</p>
+
+        <div className="school-register-copy school-login-copy">
+          <h1>
+            Smart Monitoring.
+            <br />
+            Secure Management.
+            <br />
+            <span>Stronger Schools.</span>
+          </h1>
+          <span className="school-register-line" />
+          <p>
+            SMME helps Schools and Administrators streamline permit submissions, track
+            requirements, and ensure compliance in one secure platform.
+          </p>
         </div>
-        <form className="platform-auth-form" onSubmit={handleSubmit}>
-          <label>
-            <span>Username</span>
-            <div>
-              <Mail aria-hidden="true" size={18} />
-              <input
-                type="text"
-                placeholder="admin or school"
-                value={username}
-                onChange={(event) => {
-                  setUsername(event.target.value);
-                  setError("");
-                }}
-              />
-            </div>
-          </label>
-          <label>
-            <span>Password</span>
-            <div>
-              <LockKeyhole aria-hidden="true" size={18} />
-              <input type="password" placeholder="Enter password" />
-              <Eye aria-hidden="true" size={18} />
-            </div>
-          </label>
-          {error ? <p className="platform-auth-error">{error}</p> : null}
-          <button className="platform-btn primary wide" type="submit">
-            <ShieldCheck aria-hidden="true" size={18} />
-            Sign In
-          </button>
-        </form>
-        <div className="platform-auth-footer">
-          <Link href="/platform/register">Request an account</Link>
-          <Link href="/platform">Continue to static preview</Link>
+
+        <div className="school-register-features">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+
+            return (
+              <div key={feature.title}>
+                <span>
+                  <Icon aria-hidden="true" size={26} />
+                </span>
+                <div>
+                  <strong>{feature.title}</strong>
+                  <p>{feature.text}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="school-register-photo-card school-login-photo-card">
+          <UsersRound aria-hidden="true" size={42} />
+          <strong>Together, let&apos;s build a stronger foundation for education.</strong>
         </div>
       </section>
-      <section className="platform-auth-visual" aria-label="SMME platform preview">
-        <div>
-          <span>SY 2026-2027</span>
-          <strong>Review queue and school compliance workspace</strong>
-          <p>Static prototype only. Authentication and database logic will be connected later.</p>
+
+      <section className="school-login-form-wrap">
+        <div className="school-login-card">
+          <div className="school-login-card-head">
+            <span>
+              <Building2 aria-hidden="true" size={44} />
+            </span>
+            <h2>Welcome Back!</h2>
+            <p>Sign in to continue to your SMME account.</p>
+          </div>
+
+          <form className="school-login-form" onSubmit={handleSubmit}>
+            <label>
+              <span>Email Address</span>
+              <div>
+                <Mail aria-hidden="true" size={22} />
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  required
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setError("");
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              <span>Password</span>
+              <div>
+                <LockKeyhole aria-hidden="true" size={22} />
+                <input name="password" type="password" placeholder="Enter your password" required />
+                <Eye aria-hidden="true" size={22} />
+              </div>
+            </label>
+
+            <div className="school-login-options">
+              <label>
+                <input type="checkbox" />
+                <span>Remember me</span>
+              </label>
+              <a href="#">Forgot Password?</a>
+            </div>
+
+            {error ? <p className="school-login-error">{error}</p> : null}
+
+            <button className="school-login-submit" type="submit" disabled={isSubmitting}>
+              <UserRound aria-hidden="true" size={21} />
+              {isSubmitting ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
+
+          <div className="school-login-divider">
+            <span>or</span>
+          </div>
+
+          <button className="school-login-sso" type="button">
+            <ShieldCheck aria-hidden="true" size={23} />
+            Sign in with SSO
+          </button>
+
+          <p className="school-login-register">
+            Don&apos;t have an account? <Link href="/platform/register">Register your school</Link>
+          </p>
+        </div>
+
+        <div className="school-login-assurance">
+          {accessNotes.map((note) => {
+            const Icon = note.icon;
+
+            return (
+              <div key={note.title}>
+                <span>
+                  <Icon aria-hidden="true" size={25} />
+                </span>
+                <div>
+                  <strong>{note.title}</strong>
+                  <p>{note.text}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
     </main>

@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { getSchool, schools } from "../../../data";
+import { getApprovedSchoolRecordBySlug } from "../../../school-records";
 
 export function generateStaticParams() {
   return schools.map((school) => ({ slug: school.slug }));
@@ -24,7 +25,15 @@ export default async function PlatformSchoolDetailsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const school = getSchool(slug);
+  let school = getSchool(slug);
+
+  if (!school) {
+    try {
+      school = (await getApprovedSchoolRecordBySlug(slug)) ?? undefined;
+    } catch {
+      school = undefined;
+    }
+  }
 
   if (!school) {
     notFound();
@@ -43,10 +52,17 @@ export default async function PlatformSchoolDetailsPage({
           <h1>{school.name}</h1>
           <p>{school.type}</p>
           <div className="platform-detail-actions">
-            <Link className="platform-btn primary" href={`/platform/documents/${school.documents[0]?.id}`}>
-              <FileText aria-hidden="true" size={18} />
-              Review Documents
-            </Link>
+            {school.documents[0] ? (
+              <Link className="platform-btn primary" href={`/platform/documents/${school.documents[0].id}`}>
+                <FileText aria-hidden="true" size={18} />
+                Review Documents
+              </Link>
+            ) : (
+              <span className="platform-btn primary disabled">
+                <FileText aria-hidden="true" size={18} />
+                Review Documents
+              </span>
+            )}
             <Link className="platform-btn secondary" href="/platform/applications">
               <Clock3 aria-hidden="true" size={18} />
               View Applications
@@ -88,7 +104,7 @@ export default async function PlatformSchoolDetailsPage({
             <div>
               <dt>
                 <UserRound aria-hidden="true" size={17} />
-                School Head
+                Contact Name
               </dt>
               <dd>{school.principal}</dd>
             </div>
@@ -141,27 +157,31 @@ export default async function PlatformSchoolDetailsPage({
           </span>
         </div>
         <div className="platform-document-list">
-          {school.documents.map((document) => (
-            <Link
-              className="platform-document-row"
-              href={`/platform/documents/${document.id}`}
-              key={document.id}
-            >
-              <span className="platform-document-icon">
-                <FileText aria-hidden="true" size={21} />
-              </span>
-              <div>
-                <strong>{document.title}</strong>
-                <small>
-                  {document.type} · Submitted {document.submitted}
-                </small>
-              </div>
-              <span className={`platform-pill ${document.status.toLowerCase().replaceAll(" ", "-")}`}>
-                {document.status}
-              </span>
-              <ArrowRight aria-hidden="true" size={17} />
-            </Link>
-          ))}
+          {school.documents.length > 0 ? (
+            school.documents.map((document) => (
+              <Link
+                className="platform-document-row"
+                href={`/platform/documents/${document.id}`}
+                key={document.id}
+              >
+                <span className="platform-document-icon">
+                  <FileText aria-hidden="true" size={21} />
+                </span>
+                <div>
+                  <strong>{document.title}</strong>
+                  <small>
+                    {document.type} · Submitted {document.submitted}
+                  </small>
+                </div>
+                <span className={`platform-pill ${document.status.toLowerCase().replaceAll(" ", "-")}`}>
+                  {document.status}
+                </span>
+                <ArrowRight aria-hidden="true" size={17} />
+              </Link>
+            ))
+          ) : (
+            <p className="platform-empty-state">No reviewed documents yet.</p>
+          )}
         </div>
       </section>
     </main>

@@ -1123,7 +1123,7 @@ img {
 }
 
 .platform-nav a:hover,
-.platform-nav a:first-child {
+.platform-nav a.active {
   background: #eef5ff;
   color: #003a8c;
 }
@@ -1341,6 +1341,12 @@ img {
 
 .platform-btn.wide {
   width: 100%;
+}
+
+.platform-btn.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .platform-hero-panel {
@@ -1686,6 +1692,25 @@ img {
   margin: 10px 0 0;
 }
 
+.platform-page-head.registration-review {
+  align-items: flex-start;
+}
+
+.platform-registration-review-title {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.platform-registration-review-title .platform-back-link {
+  margin-bottom: 6px;
+}
+
+.platform-registration-review-title h1,
+.platform-registration-review-title p {
+  margin-top: 0;
+}
+
 .platform-filter-bar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -1982,6 +2007,26 @@ img {
   background: #f8fbff;
 }
 
+.platform-review-status.registration {
+  display: grid;
+  gap: 12px;
+}
+
+.platform-review-status.registration > div {
+  display: grid;
+  gap: 4px;
+}
+
+.platform-review-status.registration span {
+  color: #6b7890;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.platform-review-status.registration strong {
+  margin-top: 0;
+}
+
 .platform-review-meta {
   display: grid;
   gap: 15px;
@@ -2181,6 +2226,24 @@ img {
   font-weight: 850;
 }
 
+.platform-auth-message {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.platform-auth-message.success {
+  background: #dff4e8;
+  color: #087443;
+}
+
+.platform-auth-message.error {
+  background: #ffe1e6;
+  color: #df334c;
+}
+
 .platform-auth-footer {
   justify-content: space-between;
   margin-top: 24px;
@@ -2190,6 +2253,16 @@ img {
   color: #003a8c;
   font-size: 14px;
   font-weight: 900;
+}
+
+.platform-auth-inline-action {
+  border: 0;
+  background: transparent;
+  color: #003a8c;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .platform-auth-visual {
@@ -2462,7 +2535,7 @@ img {
 }
 
 .platform-nav a:hover,
-.platform-nav a:first-child {
+.platform-nav a.active {
   background: #0866ef;
   color: #fff;
   box-shadow: 0 12px 28px rgba(0, 24, 88, 0.22);
@@ -3181,6 +3254,612 @@ img {
   font-size: 11px;
 }
 
+.platform-admin-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px;
+  border: 1px solid #dce6f4;
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.86) 56%, rgba(255, 255, 255, 0.36) 100%),
+    url("/assets/images/hero-school-campus2.jpg") center / cover no-repeat;
+  box-shadow: 0 8px 24px rgba(0, 34, 107, 0.08);
+}
+
+.platform-admin-hero h1 {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: #003087;
+  font-size: 34px;
+  line-height: 1.12;
+}
+
+.platform-admin-hero p {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: #52617f;
+}
+
+.platform-admin-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.platform-admin-action-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #dce6f4;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 34, 107, 0.08);
+}
+
+.platform-admin-action-card > span {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 12px;
+  background: #edf4ff;
+  color: #0a55d4;
+}
+
+.platform-admin-action-card strong {
+  color: #003087;
+  font-size: 17px;
+}
+
+.platform-admin-action-card p {
+  margin: 5px 0 0;
+  color: #52617f;
+  font-size: 14px;
+}
+
+.platform-admin-service-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.platform-admin-service-preview div {
+  padding: 15px;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.platform-admin-service-preview strong,
+.platform-admin-service-preview span {
+  display: block;
+}
+
+.platform-admin-service-preview strong {
+  color: #003087;
+}
+
+.platform-admin-service-preview span {
+  margin-top: 4px;
+  color: #667395;
+  font-size: 13px;
+}
+
+.platform-service-maintenance-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+  gap: 18px;
+}
+
+.platform-service-editor {
+  scroll-margin-top: 108px;
+}
+
+.platform-maintenance-form {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.platform-maintenance-form label {
+  display: grid;
+  grid-column: span 5;
+  gap: 8px;
+}
+
+.platform-maintenance-service-name {
+  grid-column: span 7 !important;
+}
+
+.platform-maintenance-service-code {
+  grid-column: span 3 !important;
+}
+
+.platform-maintenance-description {
+  grid-column: 1 / -1 !important;
+}
+
+.platform-maintenance-target-schools {
+  grid-column: span 4 !important;
+}
+
+.platform-maintenance-sort-order,
+.platform-maintenance-status {
+  grid-column: span 3 !important;
+}
+
+.platform-maintenance-status {
+  align-self: start;
+}
+
+.platform-maintenance-status select {
+  height: 46px;
+}
+
+.platform-maintenance-form label span {
+  color: #003087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-maintenance-form input,
+.platform-maintenance-form textarea,
+.platform-maintenance-form select,
+.platform-document-builder input {
+  width: 100%;
+  border: 1px solid #cdd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #071538;
+  font: inherit;
+  outline: 0;
+}
+
+.platform-maintenance-form input,
+.platform-maintenance-form select,
+.platform-document-builder input {
+  min-height: 46px;
+  padding: 0 13px;
+}
+
+.platform-maintenance-form textarea {
+  resize: vertical;
+  padding: 12px 13px;
+}
+
+.platform-maintenance-wide {
+  grid-column: 1 / -1;
+}
+
+.platform-document-builder {
+  display: grid;
+  gap: 12px;
+}
+
+.platform-document-builder > div {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.platform-document-builder svg {
+  color: #0a55d4;
+}
+
+.platform-document-builder button {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid #cdd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #004bd6;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.platform-document-builder p {
+  margin: 0;
+  color: #667395;
+  font-size: 14px;
+}
+
+.platform-document-crud {
+  display: grid;
+  gap: 10px;
+}
+
+.platform-document-add-button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid #cdd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #004bd6;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.platform-document-add-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.platform-document-entry {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.platform-document-name-field {
+  display: grid !important;
+  gap: 7px !important;
+}
+
+.platform-document-name-field input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #cfd9e8;
+  border-radius: 8px;
+  background: #fff;
+  color: #071538;
+  font: inherit;
+}
+
+.platform-document-row-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.platform-document-row-controls label {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.platform-document-row-controls button {
+  min-height: 38px;
+  padding: 0 12px;
+  color: #004bd6;
+}
+
+.platform-document-row-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #33445f;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.platform-document-row-controls label input[type="checkbox"] {
+  width: 17px;
+  min-height: 17px;
+}
+
+.platform-document-list {
+  display: grid;
+  gap: 8px;
+}
+
+.platform-document-list-item {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.platform-document-list-name {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #17243a;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.platform-document-list-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.platform-document-list-meta button {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b42318;
+  cursor: pointer;
+}
+
+.platform-document-requirement {
+  flex: 0 0 auto;
+  color: #667395;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.platform-document-empty {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed #cdd9eb;
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #667395;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.platform-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.platform-service-help {
+  margin: 12px 0 0;
+  color: #667395;
+  font-size: 14px;
+}
+
+.platform-required-documents-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.platform-required-documents-panel p {
+  margin: 0;
+  color: #52617f;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.platform-required-documents-summary {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.platform-required-documents-summary > span {
+  color: #667395;
+  font-size: 14px;
+}
+
+.platform-required-documents-summary div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #33445f;
+  font-size: 13px;
+}
+
+.platform-required-documents-summary svg {
+  flex: 0 0 auto;
+  color: #087443;
+}
+
+.platform-pill.draft {
+  background: #fff2cf;
+  color: #c27600;
+}
+
+.platform-maintenance-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+}
+
+.platform-maintenance-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.platform-maintenance-table th,
+.platform-maintenance-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf2f8;
+  color: #33445f;
+  font-size: 14px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.platform-maintenance-table th {
+  background: #f4f8fd;
+  color: #003087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-maintenance-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.platform-maintenance-table td:nth-child(2),
+.platform-maintenance-table th:nth-child(2),
+.platform-maintenance-table td:nth-child(3),
+.platform-maintenance-table th:nth-child(3) {
+  width: 180px;
+}
+
+.platform-maintenance-table strong {
+  color: #17243a;
+  font-weight: 900;
+}
+
+.platform-maintenance-table button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #cdd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #004bd6;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.platform-registration-table {
+  overflow-x: auto;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.platform-registration-table-head,
+.platform-registration-table-row {
+  display: grid;
+  min-width: 900px;
+  grid-template-columns: minmax(220px, 1.3fr) minmax(150px, 0.85fr) minmax(220px, 1.1fr) 130px 120px;
+  gap: 14px;
+  align-items: center;
+}
+
+.platform-registration-table-head {
+  padding: 14px 16px;
+  background: #f4f8fd;
+  color: #003087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-registration-table-body {
+  display: grid;
+}
+
+.platform-registration-table-row {
+  min-height: 58px;
+  padding: 12px 16px;
+  border-top: 1px solid #edf2f8;
+  color: #33445f;
+  font-size: 14px;
+}
+
+.platform-registration-table-row:hover {
+  background: #f8fbff;
+}
+
+.platform-registration-table-row strong {
+  color: #17243a;
+  font-weight: 900;
+}
+
+.platform-registration-table-row span,
+.platform-registration-table-row time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.platform-registration-table-row .platform-pill {
+  width: fit-content;
+}
+
+.platform-registration-detail-list {
+  display: grid;
+  gap: 12px;
+}
+
+.platform-registration-detail-list > div {
+  display: grid;
+  grid-template-columns: 24px minmax(140px, 0.42fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 13px 0;
+  border-bottom: 1px solid #edf2f8;
+}
+
+.platform-registration-detail-list svg {
+  color: #0a55d4;
+}
+
+.platform-registration-detail-list span {
+  color: #667395;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-registration-detail-list strong {
+  color: #17243a;
+  line-height: 1.35;
+}
+
+.platform-registration-decision {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.platform-registration-decision label {
+  display: grid;
+  gap: 8px;
+}
+
+.platform-registration-decision label span {
+  color: #003087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-registration-decision textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 12px 13px;
+  border: 1px solid #cdd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #071538;
+  font: inherit;
+  outline: 0;
+}
+
+.platform-approval-actions.detail {
+  flex-wrap: wrap;
+}
+
+.platform-approval-actions.detail button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .platform-filter-bar.school-list {
   grid-template-columns: minmax(260px, 520px);
 }
@@ -3265,6 +3944,87 @@ img {
   color: #df334c;
 }
 
+.platform-registration-approvals {
+  overflow: hidden;
+}
+
+.platform-approval-message,
+.platform-empty-state {
+  margin: 0;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f4f8fd;
+  color: #52617f;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.platform-approval-list {
+  display: grid;
+  gap: 12px;
+}
+
+.platform-approval-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid #dce6f4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.platform-approval-row strong,
+.platform-approval-row span,
+.platform-approval-row small {
+  display: block;
+}
+
+.platform-approval-row strong {
+  color: #003087;
+  font-size: 16px;
+}
+
+.platform-approval-row span:not(.platform-pill) {
+  margin-top: 4px;
+  color: #33445f;
+  font-weight: 850;
+}
+
+.platform-approval-row small {
+  margin-top: 4px;
+  color: #667395;
+}
+
+.platform-approval-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.platform-approval-actions button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #cdd9eb;
+  border-radius: 7px;
+  background: #fff;
+  color: #004bd6;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.platform-approval-actions button:first-child {
+  border-color: #087443;
+  color: #087443;
+}
+
+.platform-approval-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 @media (max-width: 1300px) {
   .platform-stat-grid.contact,
   .platform-dashboard-grid {
@@ -3274,6 +4034,11 @@ img {
   .platform-tracker-card {
     grid-column: 1 / -1;
     overflow-x: auto;
+  }
+
+  .platform-admin-action-grid,
+  .platform-service-maintenance-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -3341,5 +4106,839 @@ img {
   .platform-school-directory-head,
   .platform-school-name-row {
     min-width: 680px;
+  }
+
+  .platform-approval-row {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-registration-detail-list > div {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .platform-registration-detail-list strong {
+    grid-column: 2;
+  }
+
+  .platform-approval-actions {
+    flex-wrap: wrap;
+  }
+
+  .platform-admin-hero,
+  .platform-admin-action-card,
+  .platform-document-builder > div {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-admin-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .platform-maintenance-form,
+  .platform-admin-service-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-maintenance-form label,
+  .platform-maintenance-service-name,
+  .platform-maintenance-service-code,
+  .platform-maintenance-description,
+  .platform-maintenance-target-schools,
+  .platform-maintenance-sort-order,
+  .platform-maintenance-status,
+  .platform-maintenance-wide {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+.school-register-page {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(420px, 0.78fr) minmax(620px, 1.08fr);
+  background: #f8fbff;
+  color: #071538;
+}
+
+.school-register-intro {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  padding: clamp(34px, 5vw, 58px) clamp(30px, 5vw, 72px);
+  background:
+    linear-gradient(180deg, rgba(248, 252, 255, 0.96) 0%, rgba(235, 245, 255, 0.76) 43%, rgba(222, 239, 255, 0.18) 100%),
+    url("/assets/images/registration-campus-generated.png") center bottom / cover no-repeat;
+}
+
+.school-register-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.school-register-brand > span {
+  position: relative;
+  display: grid;
+  width: 76px;
+  height: 66px;
+  place-items: center;
+  color: #0a48b2;
+}
+
+.school-register-brand > span svg:first-child {
+  position: absolute;
+  top: 0;
+  right: 3px;
+  color: #123a80;
+}
+
+.school-register-brand > span svg:last-child {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  color: #145fe3;
+}
+
+.school-register-brand strong,
+.school-register-brand small {
+  display: block;
+}
+
+.school-register-brand strong {
+  color: #0b2c68;
+  font-size: 42px;
+  line-height: 0.92;
+}
+
+.school-register-brand small {
+  margin-top: 6px;
+  color: #071538;
+  font-size: 15px;
+  line-height: 1.18;
+}
+
+.school-register-copy {
+  max-width: 620px;
+  margin-top: clamp(46px, 7vh, 72px);
+}
+
+.school-register-copy h1 {
+  margin: 0;
+  color: #08275d;
+  font-size: clamp(40px, 4.5vw, 58px);
+  line-height: 1.08;
+}
+
+.school-register-copy h1 span {
+  color: #0a55d4;
+}
+
+.school-register-line {
+  display: block;
+  width: 78px;
+  height: 3px;
+  margin: 26px 0;
+  background: #ffd45a;
+}
+
+.school-register-copy p {
+  max-width: 500px;
+  margin: 0;
+  color: #182842;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.school-register-features {
+  display: grid;
+  max-width: 590px;
+  gap: 18px;
+  margin-top: 34px;
+}
+
+.school-register-features > div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.school-register-features > div > span {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #0a55d4;
+  box-shadow: 0 8px 20px rgba(0, 58, 140, 0.12);
+}
+
+.school-register-features strong {
+  display: block;
+  color: #071538;
+  font-size: 16px;
+}
+
+.school-register-features p {
+  margin: 3px 0 0;
+  color: #1d2a42;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.school-register-photo-card {
+  display: flex;
+  max-width: 430px;
+  align-items: center;
+  gap: 18px;
+  margin-top: auto;
+  padding: 24px 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0d3f9d, #06265d);
+  color: #fff;
+  box-shadow: 0 14px 36px rgba(0, 37, 106, 0.26);
+}
+
+.school-register-photo-card svg {
+  flex: 0 0 auto;
+}
+
+.school-register-photo-card strong {
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.school-register-form-wrap {
+  display: grid;
+  place-items: center;
+  padding: clamp(28px, 4vw, 54px);
+  background:
+    radial-gradient(circle at 65% 10%, rgba(6, 85, 212, 0.07), transparent 28%),
+    #ffffff;
+}
+
+.school-register-card {
+  width: min(940px, 100%);
+  padding: clamp(30px, 4vw, 48px);
+  border: 1px solid #edf1f6;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(9, 28, 62, 0.1);
+}
+
+.school-register-card-head {
+  padding-bottom: 26px;
+  border-bottom: 1px solid #e7ecf4;
+  text-align: center;
+}
+
+.school-register-card-head > span {
+  display: grid;
+  width: 94px;
+  height: 94px;
+  margin: 0 auto 14px;
+  place-items: center;
+  border: 1px solid #e1e8f3;
+  border-radius: 50%;
+  background: #f4f7fb;
+  color: #0a55d4;
+}
+
+.school-register-card-head h2 {
+  margin: 0;
+  color: #08275d;
+  font-size: 32px;
+  line-height: 1.12;
+}
+
+.school-register-card-head p {
+  margin: 9px 0 0;
+  color: #646e83;
+  font-size: 16px;
+}
+
+.school-register-form {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.school-register-form fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 30px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.school-register-form legend {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+  color: #0a55d4;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.school-register-form label {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+}
+
+.school-register-form label > span:first-child {
+  color: #071538;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.school-register-form input,
+.school-register-form select,
+.school-register-password {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid #cdd6e4;
+  border-radius: 7px;
+  background: #fff;
+  color: #071538;
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.school-register-form input,
+.school-register-form select {
+  padding: 0 15px;
+}
+
+.school-register-form select {
+  appearance: auto;
+  color: #596579;
+}
+
+.school-register-form input:focus,
+.school-register-form select:focus,
+.school-register-password:focus-within {
+  border-color: #0a55d4;
+  box-shadow: 0 0 0 4px rgba(10, 85, 212, 0.1);
+}
+
+.school-register-wide,
+.school-register-help,
+.school-register-terms,
+.school-register-message,
+.school-register-submit,
+.school-register-login {
+  grid-column: 1 / -1;
+}
+
+.school-register-password {
+  display: flex;
+  align-items: center;
+  padding-right: 13px;
+  color: #687386;
+}
+
+.school-register-password input {
+  min-height: 48px;
+  border: 0;
+  box-shadow: none;
+}
+
+.school-register-offerings {
+  display: grid;
+  gap: 12px;
+}
+
+.school-register-offering-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.school-register-offering-entry button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 50px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 7px;
+  background: #0a55d4;
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.school-register-offering-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.school-register-offering-list div {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 8px 0 13px;
+  border: 1px solid #cdddf4;
+  border-radius: 999px;
+  background: #f4f8ff;
+  color: #071538;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.school-register-offering-list button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #c43737;
+  cursor: pointer;
+}
+
+.school-register-offering-list button:hover {
+  background: #ffecec;
+}
+
+.school-register-help {
+  max-width: 470px;
+  margin: -4px 0 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.school-register-terms {
+  display: flex !important;
+  align-items: center;
+  gap: 10px !important;
+  color: #1b2a44;
+  font-size: 15px;
+}
+
+.school-register-terms input {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+}
+
+.school-register-terms a,
+.school-register-login a {
+  color: #0057e7;
+  font-weight: 850;
+}
+
+.school-register-message {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.school-register-message.success {
+  background: #dff4e8;
+  color: #087443;
+}
+
+.school-register-message.error {
+  background: #ffe1e6;
+  color: #df334c;
+}
+
+.school-register-submit {
+  display: inline-flex;
+  width: min(560px, 78%);
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  justify-self: center;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0d63ef, #0845c6);
+  color: #fff;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(0, 71, 199, 0.22);
+}
+
+.school-register-submit:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.school-register-login {
+  margin: -4px 0 0;
+  color: #313d52;
+  font-size: 15px;
+  text-align: center;
+}
+
+.school-login-page {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(430px, 0.84fr) minmax(620px, 1fr);
+  background: #ffffff;
+  color: #071538;
+}
+
+.school-login-intro {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  padding: clamp(34px, 5vw, 58px) clamp(30px, 5vw, 72px);
+  background:
+    linear-gradient(180deg, rgba(248, 252, 255, 0.96) 0%, rgba(235, 245, 255, 0.78) 45%, rgba(222, 239, 255, 0.12) 100%),
+    url("/assets/images/registration-campus-generated.png") center bottom / cover no-repeat;
+}
+
+.school-login-copy {
+  margin-top: clamp(42px, 7vh, 66px);
+}
+
+.school-login-copy h1 {
+  font-size: clamp(42px, 4.2vw, 58px);
+}
+
+.school-login-photo-card {
+  max-width: 460px;
+}
+
+.school-login-form-wrap {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 34px;
+  padding: clamp(30px, 5vw, 58px);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(7, 93, 230, 0.07), transparent 28%),
+    #fff;
+}
+
+.school-login-card {
+  width: min(820px, 100%);
+  margin-inline: auto;
+  padding: clamp(34px, 5vw, 58px) clamp(34px, 5vw, 66px);
+  border: 1px solid #edf1f6;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 22px 70px rgba(9, 28, 62, 0.1);
+}
+
+.school-login-card-head {
+  padding-bottom: 30px;
+  border-bottom: 1px solid #e7ecf4;
+  text-align: center;
+}
+
+.school-login-card-head > span {
+  display: grid;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border: 1px solid #dfe7f2;
+  border-radius: 50%;
+  background: #f4f7fb;
+  color: #0a55d4;
+}
+
+.school-login-card-head h2 {
+  margin: 0;
+  color: #08275d;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.school-login-card-head p {
+  margin: 12px 0 0;
+  color: #5f697d;
+  font-size: 17px;
+}
+
+.school-login-form {
+  display: grid;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.school-login-form label {
+  display: grid;
+  gap: 10px;
+}
+
+.school-login-form label > span {
+  color: #071538;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.school-login-form label > div {
+  display: flex;
+  min-height: 62px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 18px;
+  border: 1px solid #cdd6e4;
+  border-radius: 9px;
+  background: #fff;
+  color: #667085;
+}
+
+.school-login-form input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #071538;
+  font: inherit;
+  font-size: 17px;
+}
+
+.school-login-form label > div:focus-within {
+  border-color: #0a55d4;
+  box-shadow: 0 0 0 4px rgba(10, 85, 212, 0.1);
+}
+
+.school-login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: -4px;
+}
+
+.school-login-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #071538;
+  font-size: 16px;
+}
+
+.school-login-options input {
+  width: 20px;
+  height: 20px;
+}
+
+.school-login-options a,
+.school-login-register a {
+  color: #0057e7;
+  font-weight: 850;
+}
+
+.school-login-error {
+  margin: -6px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #ffe1e6;
+  color: #df334c;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.school-login-submit,
+.school-login-sso {
+  display: inline-flex;
+  width: 100%;
+  min-height: 62px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.school-login-submit {
+  border: 0;
+  background: linear-gradient(90deg, #0d63ef, #0845c6);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(0, 71, 199, 0.22);
+}
+
+.school-login-submit:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.school-login-divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  margin: 26px 0;
+  color: #667085;
+}
+
+.school-login-divider::before,
+.school-login-divider::after {
+  height: 1px;
+  background: #e2e8f0;
+  content: "";
+}
+
+.school-login-divider span {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 16px;
+}
+
+.school-login-sso {
+  border: 1px solid #cdd6e4;
+  background: #fff;
+  color: #071538;
+}
+
+.school-login-sso svg {
+  color: #0a55d4;
+}
+
+.school-login-register {
+  margin: 30px 0 0;
+  color: #313d52;
+  font-size: 16px;
+  text-align: center;
+}
+
+.school-login-assurance {
+  display: grid;
+  width: min(820px, 100%);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+  margin-inline: auto;
+}
+
+.school-login-assurance > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.school-login-assurance span {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+  background: #edf4ff;
+  color: #0a55d4;
+}
+
+.school-login-assurance strong,
+.school-login-assurance p {
+  display: block;
+  margin: 0;
+}
+
+.school-login-assurance strong {
+  color: #071538;
+  font-size: 15px;
+}
+
+.school-login-assurance p {
+  margin-top: 3px;
+  color: #526076;
+  font-size: 13px;
+}
+
+@media (max-width: 1180px) {
+  .school-register-page,
+  .school-login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .school-register-intro,
+  .school-login-intro {
+    min-height: 760px;
+  }
+}
+
+@media (max-width: 760px) {
+  .school-register-intro,
+  .school-register-form-wrap,
+  .school-login-intro,
+  .school-login-form-wrap {
+    padding: 24px 18px;
+  }
+
+  .school-register-intro,
+  .school-login-intro {
+    min-height: 720px;
+  }
+
+  .school-register-brand strong {
+    font-size: 34px;
+  }
+
+  .school-register-copy h1 {
+    font-size: 34px;
+  }
+
+  .school-register-copy p {
+    font-size: 17px;
+  }
+
+  .school-register-card {
+    padding: 24px 18px;
+  }
+
+  .school-register-form fieldset {
+    grid-template-columns: 1fr;
+  }
+
+  .school-register-offering-entry {
+    grid-template-columns: 1fr;
+  }
+
+  .school-register-submit {
+    width: 100%;
+  }
+
+  .school-login-card {
+    padding: 28px 18px;
+  }
+
+  .school-login-card-head h2 {
+    font-size: 30px;
+  }
+
+  .school-login-options {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .school-login-assurance {
+    grid-template-columns: 1fr;
   }
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowRight,
+  Building2,
   CalendarDays,
   Check,
   CheckCircle2,
@@ -16,7 +17,9 @@ import {
   Search,
   UploadCloud,
   UsersRound,
+  Wrench,
 } from "lucide-react";
+import { getPlatformSession } from "@/lib/platform/auth";
 
 const summaryCards = [
   {
@@ -160,7 +163,111 @@ function statusClass(status: string) {
   return status.toLowerCase().replaceAll(" ", "-").replaceAll("/", "-");
 }
 
-export default function PlatformDashboardPage() {
+const adminStats = [
+  { label: "Registered schools", value: "24", tone: "blue" },
+  { label: "Pending registrations", value: "5", tone: "gold" },
+  { label: "Open applications", value: "18", tone: "green" },
+  { label: "Returned documents", value: "6", tone: "red" },
+];
+
+const adminActions = [
+  {
+    href: "/platform/registrations",
+    icon: Building2,
+    title: "Review School Registrations",
+    text: "Approve, reject, and monitor school account requests.",
+  },
+  {
+    href: "/platform/services",
+    icon: Wrench,
+    title: "Maintain Services",
+    text: "Create application services and manage required document checklists.",
+  },
+  {
+    href: "/platform/applications",
+    icon: ClipboardList,
+    title: "Application Review Queue",
+    text: "Track submitted applications, documents, and evaluator actions.",
+  },
+];
+
+function AdminDashboard() {
+  return (
+    <main className="platform-page">
+      <section className="platform-admin-hero">
+        <div>
+          <span className="platform-kicker">Admin workspace</span>
+          <h1>Manage schools, services, and application reviews.</h1>
+          <p>
+            Configure service requirements, approve school registrations, and monitor
+            submitted applications across the division.
+          </p>
+        </div>
+        <Link className="platform-btn primary" href="/platform/services">
+          <Wrench aria-hidden="true" size={18} />
+          Service Maintenance
+        </Link>
+      </section>
+
+      <section className="platform-stat-grid contact" aria-label="Admin statistics">
+        {adminStats.map((stat) => (
+          <article className={`platform-stat contact ${stat.tone}`} key={stat.label}>
+            <span className="platform-stat-icon">
+              <ClipboardList aria-hidden="true" size={30} />
+            </span>
+            <div>
+              <strong>{stat.value}</strong>
+              <p>{stat.label}</p>
+            </div>
+            <Link href={stat.label.includes("registrations") ? "/platform/registrations" : "/platform/applications"}>
+              View records
+              <ArrowRight aria-hidden="true" size={17} />
+            </Link>
+          </article>
+        ))}
+      </section>
+
+      <section className="platform-admin-action-grid">
+        {adminActions.map((action) => {
+          const Icon = action.icon;
+
+          return (
+            <Link className="platform-admin-action-card" href={action.href} key={action.title}>
+              <span>
+                <Icon aria-hidden="true" size={25} />
+              </span>
+              <div>
+                <strong>{action.title}</strong>
+                <p>{action.text}</p>
+              </div>
+              <ArrowRight aria-hidden="true" size={18} />
+            </Link>
+          );
+        })}
+      </section>
+
+      <section className="platform-section">
+        <div className="platform-section-head">
+          <div>
+            <span className="platform-kicker">Service setup</span>
+            <h2>Initial Application Services</h2>
+          </div>
+          <Link href="/platform/services">Open maintenance</Link>
+        </div>
+        <div className="platform-admin-service-preview">
+          {services.slice(0, 5).map((service) => (
+            <div key={service.title}>
+              <strong>{service.title}</strong>
+              <span>Requirements checklist ready for maintenance</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function SchoolDashboard() {
   return (
     <main className="platform-page platform-contact-dashboard">
       <section className="platform-welcome-banner">
@@ -330,4 +437,14 @@ export default function PlatformDashboardPage() {
       </section>
     </main>
   );
+}
+
+export default async function PlatformDashboardPage() {
+  const session = await getPlatformSession();
+
+  if (session.role === "admin") {
+    return <AdminDashboard />;
+  }
+
+  return <SchoolDashboard />;
 }

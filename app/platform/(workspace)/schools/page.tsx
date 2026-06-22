@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Building2, CheckCircle2, Clock3, Search, XCircle } from "lucide-react";
-import { schools } from "../../data";
+import { type School, schools } from "../../data";
+import { getApprovedSchoolRecords } from "../../school-records";
 
 function statusIcon(status: string) {
   if (status === "Approved") {
@@ -14,7 +15,18 @@ function statusIcon(status: string) {
   return <Clock3 aria-hidden="true" size={15} />;
 }
 
-export default function PlatformSchoolsPage() {
+export default async function PlatformSchoolsPage() {
+  let approvedSchools: School[] = [];
+  let schoolRecordsError: string | null = null;
+
+  try {
+    approvedSchools = await getApprovedSchoolRecords();
+  } catch (error) {
+    schoolRecordsError = error instanceof Error ? error.message : "Unable to load approved schools.";
+  }
+
+  const listedSchools = [...approvedSchools, ...schools];
+
   return (
     <main className="platform-page">
       <section className="platform-page-head">
@@ -43,7 +55,12 @@ export default function PlatformSchoolsPage() {
           <span>Details</span>
         </div>
         <div className="platform-school-name-list">
-          {schools.map((school) => (
+          {schoolRecordsError ? (
+            <p className="platform-empty-state">
+              Approved database schools could not be loaded: {schoolRecordsError}
+            </p>
+          ) : null}
+          {listedSchools.map((school) => (
             <Link
               className="platform-school-name-row"
               href={`/platform/schools/${school.slug}`}

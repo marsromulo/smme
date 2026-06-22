@@ -84,9 +84,9 @@ export default function Home() {
                 <Link className="btn primary" href="/services">
                   Explore Services
                 </Link>
-                <a className="btn secondary" href="#">
+                <Link className="btn secondary" href="/platform">
                   Launch M&E Platform &rarr;
-                </a>
+                </Link>
               </div>
             </div>
             <div className="hero-image" aria-label="School campus image" />
@@ -123,9 +123,9 @@ export default function Home() {
             <Image src="/assets/icons/laptop.svg" alt="" width={64} height={64} />
             <h3>Ready to get started?</h3>
             <p>Log in to the M&E Platform to access all services.</p>
-            <a className="btn light" href="#">
+            <Link className="btn light" href="/platform">
               Launch Platform &rarr;
-            </a>
+            </Link>
           </div>
           <div className="online-features">
             <div>

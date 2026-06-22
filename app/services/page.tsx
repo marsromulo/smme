@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageShell } from "../components/PageShell";
 
 const services = [
@@ -78,9 +79,9 @@ export default function ServicesPage() {
               Submit applications, upload documents, track updates, and receive notices
               through the online platform.
             </p>
-            <a className="btn primary" href="#">
+            <Link className="btn primary" href="/platform">
               Launch Platform
-            </a>
+            </Link>
           </article>
         </section>
       </div>

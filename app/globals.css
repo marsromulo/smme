@@ -1044,3 +1044,2302 @@ img {
     grid-template-columns: 1fr;
   }
 }
+
+.platform-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 292px minmax(0, 1fr);
+  background: #f4f7fb;
+  color: #17243a;
+}
+
+.platform-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+  gap: 28px;
+  padding: 28px 22px;
+  border-right: 1px solid #dce5f2;
+  background: #ffffff;
+}
+
+.platform-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.platform-brand img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+}
+
+.platform-brand strong,
+.platform-brand small,
+.platform-auth-brand strong,
+.platform-auth-brand span {
+  display: block;
+}
+
+.platform-brand strong {
+  color: #003a8c;
+  font-size: 19px;
+  line-height: 1.15;
+}
+
+.platform-brand small {
+  margin-top: 4px;
+  color: #61708a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.platform-nav {
+  display: grid;
+  gap: 7px;
+}
+
+.platform-nav a,
+.platform-icon-link,
+.platform-topbar-actions > a,
+.platform-filter-button,
+.platform-btn,
+.platform-back-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.platform-nav a {
+  min-height: 46px;
+  gap: 11px;
+  padding: 0 13px;
+  border-radius: 8px;
+  color: #33445f;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.platform-nav a:hover,
+.platform-nav a:first-child {
+  background: #eef5ff;
+  color: #003a8c;
+}
+
+.platform-sidebar-card {
+  margin-top: auto;
+  padding: 18px;
+  border: 1px solid #dce8f7;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.platform-sidebar-card span,
+.platform-kicker,
+.platform-stat span,
+.platform-stage-card span,
+.platform-school-meta dt,
+.platform-detail-list dt,
+.platform-review-meta dt {
+  color: #66748b;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.platform-sidebar-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #003a8c;
+}
+
+.platform-sidebar-card p {
+  margin: 9px 0 0;
+  color: #586980;
+  font-size: 13px;
+}
+
+.platform-main {
+  min-width: 0;
+}
+
+.platform-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 32px;
+  border-bottom: 1px solid #dce5f2;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.platform-search,
+.platform-input-like {
+  display: flex;
+  min-width: 280px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d8e3f1;
+  border-radius: 8px;
+  background: #f9fbfe;
+  color: #6b7890;
+  font-size: 14px;
+}
+
+.platform-search {
+  width: min(520px, 52vw);
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+.platform-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.platform-topbar-actions > a,
+.platform-icon-link {
+  min-height: 42px;
+  justify-content: center;
+  border: 1px solid #d8e3f1;
+  border-radius: 8px;
+  background: #fff;
+  color: #33445f;
+}
+
+.platform-topbar-actions > a {
+  width: 42px;
+}
+
+.platform-user {
+  width: auto !important;
+  gap: 10px;
+  padding: 0 12px;
+}
+
+.platform-user span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: #003a8c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.platform-user strong,
+.platform-icon-link span {
+  font-size: 13px;
+}
+
+.platform-icon-link {
+  width: auto;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.platform-page {
+  display: grid;
+  gap: 24px;
+  padding: 30px 32px 46px;
+}
+
+.platform-hero {
+  position: relative;
+  display: grid;
+  min-height: 360px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 28px;
+  align-items: end;
+  overflow: hidden;
+  padding: 42px;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.86) 42%, rgba(255, 255, 255, 0.38) 100%),
+    url("/assets/images/hero-school-campus2.jpg") center / cover no-repeat;
+  box-shadow: 0 18px 40px rgba(20, 35, 60, 0.08);
+}
+
+.platform-hero-copy {
+  max-width: 780px;
+}
+
+.platform-hero h1,
+.platform-page-head h1,
+.platform-detail-hero h1,
+.platform-auth-copy h1 {
+  margin: 7px 0 0;
+  color: #003a8c;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+.platform-hero h1 {
+  max-width: 720px;
+  font-size: 48px;
+}
+
+.platform-hero p,
+.platform-page-head p,
+.platform-detail-hero p,
+.platform-auth-copy p,
+.platform-process-panel p {
+  color: #41536d;
+}
+
+.platform-hero p {
+  max-width: 650px;
+  margin: 18px 0 0;
+  font-size: 17px;
+}
+
+.platform-hero-actions,
+.platform-detail-actions,
+.platform-auth-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.platform-hero-actions {
+  margin-top: 26px;
+}
+
+.platform-btn {
+  min-height: 44px;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid #003a8c;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.platform-btn.primary {
+  background: #003a8c;
+  color: #fff;
+}
+
+.platform-btn.secondary {
+  background: #fff;
+  color: #003a8c;
+}
+
+.platform-btn.wide {
+  width: 100%;
+}
+
+.platform-hero-panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(216, 227, 241, 0.92);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.platform-hero-panel img {
+  width: 82px;
+  height: 82px;
+}
+
+.platform-hero-panel span,
+.platform-review-status small {
+  color: #6b7890;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.platform-hero-panel strong,
+.platform-review-status strong {
+  display: block;
+  margin-top: 3px;
+  color: #17243a;
+}
+
+.platform-hero-panel p {
+  margin: 7px 0 0;
+  color: #52637b;
+  font-size: 13px;
+}
+
+.platform-stat-grid,
+.platform-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.platform-stat,
+.platform-stage-card,
+.platform-section,
+.platform-school-card,
+.platform-process-panel {
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(20, 35, 60, 0.06);
+}
+
+.platform-stat,
+.platform-stage-card {
+  padding: 20px;
+}
+
+.platform-stat strong,
+.platform-stage-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.platform-stat.blue strong,
+.platform-stage-card strong {
+  color: #003a8c;
+}
+
+.platform-stat.gold strong {
+  color: #b87503;
+}
+
+.platform-stat.red strong {
+  color: #b42318;
+}
+
+.platform-stat.green strong {
+  color: #067647;
+}
+
+.platform-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.platform-grid.two {
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.8fr);
+}
+
+.platform-grid.detail,
+.platform-grid.document,
+.platform-grid.applications {
+  grid-template-columns: minmax(0, 1fr) 390px;
+}
+
+.platform-section {
+  min-width: 0;
+  padding: 24px;
+}
+
+.platform-section-head,
+.platform-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.platform-section-head {
+  margin-bottom: 18px;
+}
+
+.platform-section-head.compact {
+  margin-bottom: 14px;
+}
+
+.platform-section-head h2,
+.platform-process-panel h2 {
+  margin: 4px 0 0;
+  color: #003a8c;
+  font-size: 23px;
+  line-height: 1.15;
+}
+
+.platform-section-head a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #003a8c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.platform-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.platform-module-card {
+  display: grid;
+  min-height: 176px;
+  align-content: start;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #f9fbfe;
+}
+
+.platform-module-icon,
+.platform-school-mark,
+.platform-document-icon,
+.platform-application-icon {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #eaf3ff;
+  color: #003a8c;
+}
+
+.platform-module-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.platform-module-card strong,
+.platform-school-card h2,
+.platform-document-row strong,
+.platform-application-row strong {
+  color: #17243a;
+}
+
+.platform-module-card p {
+  margin: 0;
+  color: #51627a;
+  font-size: 14px;
+}
+
+.platform-module-card small {
+  color: #003a8c;
+  font-weight: 900;
+}
+
+.platform-queue-list,
+.platform-application-list,
+.platform-document-list,
+.platform-requirement-list,
+.platform-note-list,
+.platform-timeline {
+  display: grid;
+  gap: 12px;
+}
+
+.platform-queue-item,
+.platform-application-row,
+.platform-document-row {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.platform-queue-item {
+  grid-template-columns: 38px minmax(0, 1fr);
+  padding: 14px;
+}
+
+.platform-queue-item > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 8px;
+  background: #fff7e3;
+  color: #b87503;
+}
+
+.platform-queue-item small,
+.platform-application-row small,
+.platform-document-row small {
+  display: block;
+  margin-top: 2px;
+  color: #66748b;
+  font-size: 12px;
+}
+
+.platform-queue-item em,
+.platform-application-row em {
+  color: #475873;
+  font-size: 13px;
+  font-style: normal;
+}
+
+.platform-queue-item b,
+.platform-application-row b {
+  color: #003a8c;
+  font-size: 12px;
+}
+
+.platform-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+}
+
+.platform-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.platform-table th,
+.platform-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e7eef8;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.platform-table th {
+  background: #f8fbff;
+  color: #5d6b82;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.platform-table td {
+  color: #33445f;
+}
+
+.platform-table td a {
+  display: block;
+  color: #003a8c;
+  font-weight: 900;
+}
+
+.platform-table td span:not(.platform-pill) {
+  display: block;
+  margin-top: 2px;
+  color: #66748b;
+  font-size: 12px;
+}
+
+.platform-pill {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #003a8c;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.platform-pill.active,
+.platform-pill.approved {
+  background: #e7f8ef;
+  color: #067647;
+}
+
+.platform-pill.needs-action,
+.platform-pill.for-revision,
+.platform-pill.returned {
+  background: #fff1f0;
+  color: #b42318;
+}
+
+.platform-pill.for-validation,
+.platform-pill.under-review {
+  background: #fff7e3;
+  color: #b87503;
+}
+
+.platform-page-head {
+  align-items: center;
+  padding: 26px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.platform-page-head h1,
+.platform-detail-hero h1,
+.platform-auth-copy h1 {
+  font-size: 38px;
+}
+
+.platform-page-head p {
+  margin: 10px 0 0;
+}
+
+.platform-filter-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+}
+
+.platform-input-like {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.platform-filter-button {
+  min-height: 48px;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid #d8e3f1;
+  border-radius: 8px;
+  background: #fff;
+  color: #33445f;
+  font: inherit;
+  font-weight: 850;
+}
+
+.platform-school-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.platform-school-card {
+  padding: 22px;
+}
+
+.platform-school-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.platform-school-mark,
+.platform-document-icon,
+.platform-application-icon {
+  width: 44px;
+  height: 44px;
+}
+
+.platform-school-card h2 {
+  margin: 18px 0 8px;
+  font-size: 24px;
+  line-height: 1.18;
+}
+
+.platform-school-card p {
+  margin: 0;
+  color: #52637b;
+}
+
+.platform-school-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.platform-school-meta dd,
+.platform-detail-list dd,
+.platform-review-meta dd {
+  margin: 4px 0 0;
+  color: #263852;
+  font-weight: 850;
+}
+
+.platform-progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8eef6;
+}
+
+.platform-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #003a8c, #17a56b);
+}
+
+.platform-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  color: #003a8c;
+  font-weight: 900;
+}
+
+.platform-back-link {
+  width: fit-content;
+  gap: 7px;
+  color: #003a8c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.platform-detail-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 24px;
+  align-items: end;
+  padding: 30px;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.84) 58%, rgba(255, 255, 255, 0.34) 100%),
+    url("/assets/images/hero-school-campus.png") center / cover no-repeat;
+  box-shadow: 0 14px 34px rgba(20, 35, 60, 0.06);
+}
+
+.platform-detail-hero p {
+  margin: 10px 0 0;
+}
+
+.platform-detail-actions {
+  margin-top: 20px;
+}
+
+.platform-compliance-meter {
+  padding: 22px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.platform-compliance-meter strong {
+  display: block;
+  color: #003a8c;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.platform-compliance-meter > span {
+  display: block;
+  margin: 7px 0 14px;
+  color: #5d6b82;
+  font-weight: 900;
+}
+
+.platform-detail-list {
+  display: grid;
+  gap: 17px;
+  margin: 0;
+}
+
+.platform-detail-list dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platform-tag-list,
+.platform-service-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.platform-tag-list span {
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #003a8c;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-service-list {
+  margin-top: 18px;
+}
+
+.platform-service-list div {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #33445f;
+  font-weight: 850;
+}
+
+.platform-document-row {
+  grid-template-columns: 44px minmax(0, 1fr) auto 20px;
+  padding: 14px;
+}
+
+.platform-page-head.document {
+  align-items: flex-end;
+}
+
+.platform-document-preview {
+  overflow: hidden;
+  padding: 32px;
+  border-radius: 8px;
+  background: #dfe7f2;
+}
+
+.platform-document-paper {
+  min-height: 610px;
+  padding: 42px;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(23, 36, 58, 0.16);
+}
+
+.platform-paper-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e7eef8;
+  color: #003a8c;
+}
+
+.platform-paper-head strong,
+.platform-paper-head span {
+  display: block;
+}
+
+.platform-paper-head span {
+  color: #52637b;
+  font-size: 13px;
+}
+
+.platform-document-paper h2 {
+  margin: 30px 0 24px;
+  color: #17243a;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.platform-document-paper dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+}
+
+.platform-document-paper dt {
+  color: #66748b;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.platform-document-paper dd {
+  margin: 4px 0 0;
+  color: #263852;
+  font-weight: 850;
+}
+
+.platform-paper-block {
+  height: 132px;
+  margin-top: 38px;
+  border-radius: 6px;
+  background: #f0f4fa;
+}
+
+.platform-paper-lines {
+  display: grid;
+  gap: 13px;
+  margin-top: 28px;
+}
+
+.platform-paper-lines span {
+  height: 12px;
+  border-radius: 999px;
+  background: #edf2f8;
+}
+
+.platform-paper-lines span:nth-child(2) {
+  width: 88%;
+}
+
+.platform-paper-lines span:nth-child(3) {
+  width: 94%;
+}
+
+.platform-paper-lines span:nth-child(4) {
+  width: 62%;
+}
+
+.platform-review-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.platform-review-meta {
+  display: grid;
+  gap: 15px;
+  margin: 18px 0 0;
+}
+
+.platform-note {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #f9fbfe;
+}
+
+.platform-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #003a8c;
+}
+
+.platform-note p {
+  margin: 0;
+  color: #33445f;
+}
+
+.platform-timeline div {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding-left: 30px;
+}
+
+.platform-timeline div > span {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  width: 13px;
+  height: 13px;
+  border: 3px solid #003a8c;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.platform-timeline strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #17243a;
+}
+
+.platform-timeline p {
+  margin: 0;
+  color: #5d6b82;
+}
+
+.platform-application-row {
+  grid-template-columns: 44px minmax(0, 1fr) minmax(130px, 0.7fr) auto 20px;
+  padding: 14px;
+}
+
+.platform-requirement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #f9fbfe;
+}
+
+.platform-requirement-item svg,
+.platform-process-panel svg {
+  color: #003a8c;
+}
+
+.platform-requirement-item strong,
+.platform-requirement-item small {
+  display: block;
+}
+
+.platform-requirement-item small {
+  margin-top: 2px;
+  color: #66748b;
+}
+
+.platform-process-panel {
+  padding: 22px;
+}
+
+.platform-process-panel p {
+  margin: 10px 0 0;
+}
+
+.platform-auth {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(420px, 0.56fr) minmax(0, 1fr);
+  background: #f4f7fb;
+}
+
+.platform-auth.register {
+  grid-template-columns: minmax(520px, 0.64fr) minmax(0, 1fr);
+}
+
+.platform-auth-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 42px clamp(28px, 5vw, 72px);
+  background: #fff;
+}
+
+.platform-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 34px;
+}
+
+.platform-auth-brand img {
+  width: 78px;
+  height: 78px;
+}
+
+.platform-auth-brand span {
+  color: #66748b;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-auth-brand strong {
+  color: #003a8c;
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.platform-auth-copy {
+  margin-top: 44px;
+}
+
+.platform-auth-copy p {
+  margin: 12px 0 0;
+}
+
+.platform-auth-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.two-column-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.platform-form-wide {
+  grid-column: 1 / -1;
+}
+
+.platform-auth-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.platform-auth-form label > span {
+  color: #003a8c;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-auth-form label > div {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #d8e3f1;
+  border-radius: 8px;
+  background: #f9fbfe;
+  color: #66748b;
+}
+
+.platform-auth-form input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #17243a;
+  font: inherit;
+}
+
+.platform-auth-error {
+  margin: -4px 0 0;
+  color: #df334c;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.platform-auth-footer {
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+.platform-auth-footer a {
+  color: #003a8c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.platform-auth-visual {
+  display: flex;
+  align-items: end;
+  padding: 48px;
+  background:
+    linear-gradient(180deg, rgba(0, 42, 116, 0.1) 0%, rgba(0, 42, 116, 0.78) 100%),
+    url("/assets/images/hero-school-campus2.jpg") center / cover no-repeat;
+  color: #fff;
+}
+
+.platform-auth-visual div {
+  max-width: 560px;
+}
+
+.platform-auth-visual span {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.platform-auth-visual strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 42px;
+  line-height: 1.08;
+}
+
+.platform-auth-visual p {
+  margin: 14px 0 0;
+  color: #e5eefb;
+  font-size: 16px;
+}
+
+@media (max-width: 1180px) {
+  .platform-shell,
+  .platform-auth,
+  .platform-auth.register {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-sidebar {
+    position: static;
+    height: auto;
+    padding: 18px;
+  }
+
+  .platform-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .platform-nav a {
+    justify-content: center;
+  }
+
+  .platform-sidebar-card {
+    display: none;
+  }
+
+  .platform-grid.two,
+  .platform-grid.detail,
+  .platform-grid.document,
+  .platform-grid.applications,
+  .platform-hero,
+  .platform-detail-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-auth-visual {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 820px) {
+  .platform-topbar,
+  .platform-page-head,
+  .platform-section-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .platform-topbar {
+    position: static;
+    padding: 16px;
+  }
+
+  .platform-search,
+  .platform-input-like {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .platform-topbar-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .platform-page {
+    padding: 18px 16px 34px;
+  }
+
+  .platform-hero,
+  .platform-detail-hero,
+  .platform-page-head,
+  .platform-section {
+    padding: 20px;
+  }
+
+  .platform-hero h1,
+  .platform-page-head h1,
+  .platform-detail-hero h1,
+  .platform-auth-copy h1 {
+    font-size: 31px;
+  }
+
+  .platform-stat-grid,
+  .platform-stage-grid,
+  .platform-module-grid,
+  .platform-school-grid,
+  .platform-filter-bar,
+  .two-column-form {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-nav {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .platform-nav a {
+    min-width: 148px;
+  }
+
+  .platform-school-meta,
+  .platform-document-paper dl {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-document-row,
+  .platform-application-row {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .platform-document-row > svg,
+  .platform-application-row > svg {
+    display: none;
+  }
+
+  .platform-document-preview,
+  .platform-document-paper {
+    padding: 20px;
+  }
+
+  .platform-auth-panel {
+    padding: 28px 20px;
+  }
+
+  .platform-auth-visual {
+    min-height: 360px;
+    padding: 28px 20px;
+  }
+
+  .platform-auth-visual strong {
+    font-size: 32px;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.platform-shell {
+  grid-template-columns: 318px minmax(0, 1fr);
+  background: #f7faff;
+  color: #071538;
+}
+
+.platform-sidebar {
+  gap: 26px;
+  padding: 28px 12px 28px;
+  border-right: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 42, 128, 0.9) 0%, rgba(0, 67, 177, 0.88) 48%, rgba(0, 42, 128, 0.94) 100%),
+    url("/assets/images/hero-school-campus.png") center bottom / auto 42% no-repeat,
+    #003486;
+  color: #fff;
+}
+
+.platform-brand {
+  gap: 12px;
+  padding: 0 12px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.platform-brand img {
+  width: 86px;
+  height: 86px;
+}
+
+.platform-brand small {
+  margin: 0 0 2px;
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.platform-brand strong {
+  color: #ffffff;
+  font-size: 27px;
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 0.98;
+}
+
+.platform-brand b {
+  display: block;
+  margin-top: 4px;
+  color: #ffd45a;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.platform-sidebar-rule {
+  display: block;
+  height: 1px;
+  margin: 16px 14px 4px;
+  background: linear-gradient(90deg, #ffc83d 0 44%, transparent 44% 56%, #ffc83d 56% 100%);
+}
+
+.platform-sidebar-rule::after {
+  display: block;
+  width: 9px;
+  height: 9px;
+  margin: -4px auto 0;
+  transform: rotate(45deg);
+  background: #ffc83d;
+  content: "";
+}
+
+.platform-nav {
+  gap: 10px;
+}
+
+.platform-nav a {
+  min-height: 56px;
+  gap: 16px;
+  padding: 0 22px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.platform-nav a svg:first-child {
+  width: 27px;
+  height: 27px;
+  color: #dbe9ff;
+  fill: rgba(255, 255, 255, 0.18);
+}
+
+.platform-nav a:hover,
+.platform-nav a:first-child {
+  background: #0866ef;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(0, 24, 88, 0.22);
+}
+
+.platform-nav-chevron {
+  margin-left: auto;
+  transform: rotate(-90deg);
+}
+
+.platform-nav a b {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffd45a;
+  color: #03205f;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.platform-sidebar-card {
+  margin: auto 20px 0;
+  padding: 24px 10px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+
+.platform-sidebar-card strong {
+  color: #ffd45a;
+  font-family: "Brush Script MT", "Segoe Script", cursive;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.platform-sidebar-card p {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.platform-topbar {
+  min-height: 88px;
+  padding: 0 32px;
+  border-bottom: 1px solid #d7e2f1;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(0, 36, 115, 0.08);
+}
+
+.platform-title-lockup {
+  display: flex;
+  min-width: 310px;
+  align-items: center;
+  gap: 14px;
+}
+
+.platform-title-lockup > span {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 50%;
+  background: #003a9f;
+  color: #fff;
+}
+
+.platform-title-lockup strong {
+  color: #003087;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.platform-topbar-actions {
+  gap: 22px;
+}
+
+.platform-topbar-actions > a.platform-school-switcher {
+  display: flex;
+  width: clamp(300px, 34vw, 470px);
+  min-height: 56px;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding-left: 28px;
+  border-left: 1px solid #d7e2f1;
+  color: #071538;
+}
+
+.platform-school-logo {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+}
+
+.platform-school-logo img {
+  display: block;
+  flex: 0 0 auto;
+  width: 42px !important;
+  min-width: 42px;
+  max-width: 42px;
+  height: 42px !important;
+  min-height: 42px;
+  max-height: 42px;
+  object-fit: contain;
+}
+
+.platform-school-switcher > span {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.platform-school-switcher strong,
+.platform-school-switcher small,
+.platform-user strong,
+.platform-user small {
+  display: block;
+}
+
+.platform-school-switcher strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.platform-school-switcher > svg {
+  flex: 0 0 auto;
+}
+
+.platform-school-switcher small,
+.platform-user small {
+  margin-top: 3px;
+  color: #667395;
+  font-size: 13px;
+}
+
+.platform-topbar-actions > a.platform-notification-link {
+  position: relative;
+  width: 48px;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: #263959;
+}
+
+.platform-notification-link span {
+  position: absolute;
+  top: 6px;
+  right: 5px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: #ec3447;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.platform-topbar-actions > a.platform-user {
+  width: auto;
+  min-height: 56px;
+  gap: 10px;
+  padding: 0 0 0 22px;
+  border: 0;
+  border-left: 1px solid #d7e2f1;
+  background: transparent;
+}
+
+.platform-user > span {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(145deg, #e9f1ff, #b8d0f7);
+  color: #003087;
+  font-size: 15px;
+}
+
+.platform-user strong {
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.platform-contact-dashboard {
+  gap: 18px;
+  padding: 32px 28px 26px;
+}
+
+.platform-welcome-banner {
+  min-height: 150px;
+  padding: 28px;
+  border: 1px solid #d7e5f8;
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.84) 42%, rgba(255, 255, 255, 0.18) 100%),
+    url("/assets/images/hero-school-campus2.jpg") center / cover no-repeat;
+  box-shadow: 0 8px 26px rgba(0, 45, 132, 0.09);
+}
+
+.platform-welcome-banner h1 {
+  margin: 0;
+  color: #003087;
+  font-size: 30px;
+  line-height: 1.14;
+}
+
+.platform-welcome-banner p {
+  max-width: 520px;
+  margin: 12px 0 0;
+  color: #667395;
+  font-size: 16px;
+}
+
+.platform-stat-grid.contact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.platform-stat.contact {
+  display: grid;
+  min-height: 154px;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 24px 26px;
+  border-color: #dce6f4;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 34, 107, 0.08);
+}
+
+.platform-stat.contact .platform-stat-icon {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border-radius: 16px;
+}
+
+.platform-stat.contact.blue .platform-stat-icon {
+  background: #dce8ff;
+  color: #0b49b7;
+}
+
+.platform-stat.contact.green .platform-stat-icon {
+  background: #d8f4e6;
+  color: #087443;
+}
+
+.platform-stat.contact.gold .platform-stat-icon {
+  background: #fff0c9;
+  color: #d28a00;
+}
+
+.platform-stat.contact.red .platform-stat-icon {
+  background: #ffe0e6;
+  color: #df334c;
+}
+
+.platform-stat.contact strong {
+  margin: 0;
+  color: #071538;
+  font-size: 30px;
+}
+
+.platform-stat.contact p {
+  margin: 4px 0 0;
+  color: #5e6a8e;
+  font-size: 15px;
+}
+
+.platform-stat.contact a {
+  display: inline-flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #0052d9;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.platform-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.15fr) minmax(340px, 1fr);
+  gap: 18px;
+}
+
+.platform-tracker-card,
+.platform-compact-panel {
+  border-color: #dce6f4;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 34, 107, 0.08);
+}
+
+.platform-section-head.tracker {
+  align-items: center;
+  margin: 0 -24px 0;
+  padding: 0 24px 18px;
+  border-bottom: 1px solid #edf2f8;
+}
+
+.platform-section-head.tracker h2,
+.platform-panel-title h2 {
+  margin: 0;
+  color: #003087;
+  font-size: 20px;
+}
+
+.platform-tracker-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.platform-mini-search {
+  display: flex;
+  width: 230px;
+  height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #ccd9eb;
+  border-radius: 8px;
+  color: #5d6b8c;
+}
+
+.platform-mini-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+}
+
+.platform-tracker-tools button {
+  display: inline-flex;
+  height: 42px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid #ccd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #003087;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.platform-tracker-tools .platform-btn {
+  height: 42px;
+  min-height: 42px;
+  border-color: #004bd6;
+  background: linear-gradient(180deg, #0768f4, #0045c6);
+}
+
+.platform-services-table {
+  min-width: 720px;
+  overflow: hidden;
+}
+
+.platform-services-header,
+.platform-service-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.45fr) minmax(170px, 0.9fr) minmax(160px, 0.85fr) minmax(150px, 0.75fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.platform-services-header {
+  margin: 0 -24px;
+  padding: 15px 24px;
+  background: #f4f8fd;
+  color: #003087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-service-row {
+  padding: 20px 0;
+  border-bottom: 1px solid #edf2f8;
+}
+
+.platform-service-name {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.platform-service-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 14px;
+}
+
+.platform-service-icon.blue {
+  background: #dce8ff;
+  color: #0b49b7;
+}
+
+.platform-service-icon.green {
+  background: #d8f4e6;
+  color: #087443;
+}
+
+.platform-service-icon.gold {
+  background: #fff0c9;
+  color: #d28a00;
+}
+
+.platform-service-icon.violet {
+  background: #eadcff;
+  color: #7139cc;
+}
+
+.platform-service-icon.red {
+  background: #ffe0e6;
+  color: #df334c;
+}
+
+.platform-service-name strong {
+  display: block;
+  color: #071538;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.platform-service-name small {
+  display: block;
+  margin-top: 5px;
+  color: #667395;
+  font-size: 13px;
+}
+
+.platform-service-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.platform-service-progress div {
+  width: 150px;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #d8e1f0;
+}
+
+.platform-service-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #0057e7;
+}
+
+.platform-service-progress b {
+  color: #566482;
+  font-size: 14px;
+}
+
+.platform-service-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.platform-service-actions a,
+.platform-service-actions button {
+  display: inline-flex;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #cdd9eb;
+  border-radius: 7px;
+  background: #fff;
+  color: #004bd6;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.platform-service-actions a {
+  min-width: 100px;
+}
+
+.platform-service-actions button {
+  width: 42px;
+}
+
+.platform-pill.approved {
+  background: #dff4e8;
+  color: #087443;
+}
+
+.platform-pill.under-review {
+  background: #fff2cf;
+  color: #c27600;
+}
+
+.platform-pill.in-progress {
+  background: #e7f0ff;
+  color: #004bd6;
+}
+
+.platform-pill.returned-for-resubmission,
+.platform-pill.returned {
+  background: #ffe1e6;
+  color: #df334c;
+}
+
+.platform-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 20px;
+  color: #667395;
+  font-size: 13px;
+}
+
+.platform-pagination div {
+  display: flex;
+  gap: 7px;
+}
+
+.platform-pagination button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #cdd9eb;
+  border-radius: 7px;
+  background: #fff;
+  color: #003087;
+  font: inherit;
+  font-weight: 850;
+}
+
+.platform-pagination button.active {
+  border-color: #0057e7;
+  background: #0057e7;
+  color: #fff;
+}
+
+.platform-dashboard-side {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.platform-compact-panel {
+  padding: 20px;
+}
+
+.platform-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.platform-panel-title a,
+.platform-side-link {
+  color: #0052d9;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.platform-notification-list {
+  display: grid;
+  gap: 0;
+}
+
+.platform-notification-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #edf2f8;
+}
+
+.platform-notification-item > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.platform-notification-item > span.red {
+  background: #ffe1e6;
+  color: #df334c;
+}
+
+.platform-notification-item > span.gold {
+  background: #fff2cf;
+  color: #d28a00;
+}
+
+.platform-notification-item > span.green {
+  background: #dff4e8;
+  color: #087443;
+}
+
+.platform-notification-item > span.blue {
+  background: #e3edff;
+  color: #0057e7;
+}
+
+.platform-notification-item strong {
+  display: block;
+  color: #071538;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.platform-notification-item p {
+  margin: 3px 0 0;
+  color: #667395;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.platform-notification-item time {
+  color: #71809f;
+  font-size: 12px;
+}
+
+.platform-side-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.platform-contact-timeline {
+  display: grid;
+  gap: 13px;
+}
+
+.platform-contact-timeline > div {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.platform-contact-timeline > div::before {
+  position: absolute;
+  top: 17px;
+  bottom: -14px;
+  left: 6px;
+  width: 2px;
+  background: #dbe5f1;
+  content: "";
+}
+
+.platform-contact-timeline > div:last-child::before {
+  display: none;
+}
+
+.platform-contact-timeline > div > span {
+  width: 13px;
+  height: 13px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: #0057e7;
+}
+
+.platform-contact-timeline > div.green > span {
+  background: #10a663;
+}
+
+.platform-contact-timeline > div.gold > span {
+  background: #e39b00;
+}
+
+.platform-contact-timeline > div.red > span {
+  background: #df334c;
+}
+
+.platform-contact-timeline strong {
+  display: block;
+  color: #071538;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.platform-contact-timeline p {
+  margin: 3px 0 0;
+  color: #667395;
+  font-size: 12px;
+}
+
+.platform-contact-timeline .platform-pill {
+  min-height: 24px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.platform-filter-bar.school-list {
+  grid-template-columns: minmax(260px, 520px);
+}
+
+.platform-school-directory {
+  padding: 0;
+  overflow: hidden;
+}
+
+.platform-school-directory-head,
+.platform-school-name-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 210px 180px;
+  align-items: center;
+  gap: 18px;
+}
+
+.platform-school-directory-head {
+  padding: 16px 22px;
+  background: #f4f8fd;
+  color: #003087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-school-name-list {
+  display: grid;
+}
+
+.platform-school-name-row {
+  min-height: 76px;
+  padding: 0 22px;
+  border-top: 1px solid #edf2f8;
+  background: #fff;
+}
+
+.platform-school-name-row:hover {
+  background: #f8fbff;
+}
+
+.platform-school-name {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  color: #003087;
+}
+
+.platform-school-name svg {
+  flex: 0 0 auto;
+}
+
+.platform-school-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+}
+
+.platform-school-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  color: #0052d9;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.platform-pill.registration-approved {
+  background: #dff4e8;
+  color: #087443;
+}
+
+.platform-pill.registration-pending {
+  background: #fff2cf;
+  color: #c27600;
+}
+
+.platform-pill.registration-rejected {
+  background: #ffe1e6;
+  color: #df334c;
+}
+
+@media (max-width: 1300px) {
+  .platform-stat-grid.contact,
+  .platform-dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .platform-tracker-card {
+    grid-column: 1 / -1;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 1180px) {
+  .platform-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-sidebar {
+    background:
+      linear-gradient(90deg, rgba(0, 42, 128, 0.96), rgba(0, 84, 210, 0.92)),
+      #003486;
+  }
+
+  .platform-brand img {
+    width: 66px;
+    height: 66px;
+  }
+
+  .platform-brand strong {
+    font-size: 23px;
+  }
+
+  .platform-brand b {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .platform-topbar-actions,
+  .platform-school-switcher {
+    width: 100%;
+  }
+
+  .platform-school-switcher,
+  .platform-topbar-actions > a.platform-user {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .platform-stat-grid.contact,
+  .platform-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-section-head.tracker,
+  .platform-tracker-tools,
+  .platform-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .platform-mini-search {
+    width: 100%;
+  }
+
+  .platform-services-table {
+    overflow-x: auto;
+  }
+
+  .platform-school-directory {
+    overflow-x: auto;
+  }
+
+  .platform-school-directory-head,
+  .platform-school-name-row {
+    min-width: 680px;
+  }
+}

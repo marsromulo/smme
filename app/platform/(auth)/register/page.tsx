@@ -82,7 +82,6 @@ export default function PlatformRegisterPage() {
 
     const payload = {
       schoolName: String(formData.get("schoolName") ?? ""),
-      schoolType: String(formData.get("schoolType") ?? ""),
       schoolDistrict: String(formData.get("schoolDistrict") ?? ""),
       schoolAddress: String(formData.get("schoolAddress") ?? ""),
       representativeName: String(formData.get("representativeName") ?? ""),
@@ -187,22 +186,9 @@ export default function PlatformRegisterPage() {
           <form className="school-register-form" onSubmit={handleSubmit}>
             <fieldset>
               <legend>School Information</legend>
-              <label>
+              <label className="school-register-wide">
                 <span>School Name *</span>
                 <input name="schoolName" type="text" placeholder="Enter school name" required />
-              </label>
-              <label>
-                <span>School Type *</span>
-                <select name="schoolType" defaultValue="" required>
-                  <option value="" disabled>
-                    Select school type
-                  </option>
-                  <option>Public Elementary</option>
-                  <option>Public Secondary</option>
-                  <option>Private Elementary</option>
-                  <option>Private Secondary</option>
-                  <option>Private Basic Education</option>
-                </select>
               </label>
               <label className="school-register-wide">
                 <span>District *</span>

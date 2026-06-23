@@ -3372,24 +3372,16 @@ img {
 }
 
 .platform-maintenance-service-name {
-  grid-column: span 7 !important;
-}
-
-.platform-maintenance-service-code {
-  grid-column: span 3 !important;
+  grid-column: 1 / -1 !important;
 }
 
 .platform-maintenance-description {
   grid-column: 1 / -1 !important;
 }
 
-.platform-maintenance-target-schools {
-  grid-column: span 4 !important;
-}
-
 .platform-maintenance-sort-order,
 .platform-maintenance-status {
-  grid-column: span 3 !important;
+  grid-column: span 5 !important;
 }
 
 .platform-maintenance-status {
@@ -4142,9 +4134,7 @@ img {
 
   .platform-maintenance-form label,
   .platform-maintenance-service-name,
-  .platform-maintenance-service-code,
   .platform-maintenance-description,
-  .platform-maintenance-target-schools,
   .platform-maintenance-sort-order,
   .platform-maintenance-status,
   .platform-maintenance-wide {

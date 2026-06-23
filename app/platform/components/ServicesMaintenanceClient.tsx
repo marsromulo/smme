@@ -156,10 +156,8 @@ export function ServicesMaintenanceClient() {
 
     const payload = {
       name: form.name,
-      code: form.code,
       description: form.description,
       status: form.status,
-      targetUsers: form.targetUsers,
       sortOrder: form.sortOrder,
       documents: form.documents
         .map((document, index) => ({
@@ -231,16 +229,6 @@ export function ServicesMaintenanceClient() {
                   onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
                 />
               </label>
-              <label className="platform-maintenance-service-code">
-                <span>Service Code</span>
-                <input
-                  type="text"
-                  placeholder="Example: GPO"
-                  value={form.code}
-                  required
-                  onChange={(event) => setForm((current) => ({ ...current, code: event.target.value }))}
-                />
-              </label>
               <label className="platform-maintenance-description">
                 <span>Description</span>
                 <textarea
@@ -251,19 +239,6 @@ export function ServicesMaintenanceClient() {
                     setForm((current) => ({ ...current, description: event.target.value }))
                   }
                 />
-              </label>
-              <label className="platform-maintenance-target-schools">
-                <span>Target Schools</span>
-                <select
-                  value={form.targetUsers}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, targetUsers: event.target.value }))
-                  }
-                >
-                  <option value="public-schools">Public Schools</option>
-                  <option value="private-schools">Private Schools</option>
-                  <option value="all-schools">All Schools</option>
-                </select>
               </label>
               <label className="platform-maintenance-sort-order">
                 <span>Sort Order</span>

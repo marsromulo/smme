@@ -34,7 +34,11 @@ function cleanBoolean(value: unknown, fallback: boolean) {
 }
 
 function normalizeCode(value: string) {
-  return value.toUpperCase().replace(/\s+/g, "-");
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 32);
 }
 
 export function parseServicePayload(body: unknown): {
@@ -47,10 +51,10 @@ export function parseServicePayload(body: unknown): {
 
   const record = body as Record<string, unknown>;
   const name = cleanString(record.name);
-  const code = normalizeCode(cleanString(record.code));
+  const code = normalizeCode(cleanString(record.code) || name);
   const description = cleanString(record.description);
   const status = cleanString(record.status).toLowerCase();
-  const targetUsers = cleanString(record.targetUsers) || "schools";
+  const targetUsers = cleanString(record.targetUsers) || "public-schools";
   const sortOrder = cleanNumber(record.sortOrder, 0);
   const documents = Array.isArray(record.documents) ? record.documents : [];
 
@@ -59,11 +63,11 @@ export function parseServicePayload(body: unknown): {
   }
 
   if (!code) {
-    return { error: "Service code is required." };
+    return { error: "Service name must contain at least two letters or numbers." };
   }
 
   if (!/^[A-Z0-9_-]{2,32}$/.test(code)) {
-    return { error: "Service code must use 2-32 letters, numbers, dashes, or underscores." };
+    return { error: "Service name must contain at least two letters or numbers." };
   }
 
   if (status !== "active" && status !== "draft" && status !== "archived") {
@@ -121,7 +125,7 @@ export function mapServiceRows(
 export function serviceDatabaseErrorMessage(error: DatabaseError) {
   if (error.code === "23505") {
     if (error.message?.includes("services_code_key")) {
-      return "A service with this code already exists. Use a different Service Code or edit the existing service.";
+      return "A service with this name already exists. Use a different Service Name or edit the existing service.";
     }
 
     if (error.message?.includes("service_required_documents_service_id_name_key")) {

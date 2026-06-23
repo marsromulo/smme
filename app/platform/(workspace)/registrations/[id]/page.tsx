@@ -9,7 +9,6 @@ type RegistrationDetail = {
   id: string;
   school_name: string;
   school_id: string | null;
-  school_type: string | null;
   school_district: string | null;
   school_address: string | null;
   school_offerings: string[] | null;
@@ -107,11 +106,6 @@ export default async function RegistrationDetailPage({
               <Building2 aria-hidden="true" size={18} />
               <span>School Name</span>
               <strong>{registration.school_name}</strong>
-            </div>
-            <div>
-              <Building2 aria-hidden="true" size={18} />
-              <span>School Type</span>
-              <strong>{registration.school_type ?? "Not provided"}</strong>
             </div>
             <div>
               <Building2 aria-hidden="true" size={18} />

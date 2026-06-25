@@ -53,6 +53,17 @@ create table if not exists public.service_application_files (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.service_application_file_review_history (
+  id uuid primary key default gen_random_uuid(),
+  service_application_file_id uuid not null references public.service_application_files(id) on delete cascade,
+  reviewer_user_id uuid references auth.users(id) on delete set null,
+  reviewer_name text not null,
+  review_status text not null
+    check (review_status in ('pending', 'approved', 'rejected', 'resubmit')),
+  review_note text,
+  created_at timestamptz not null default now()
+);
+
 alter table public.service_application_files
   add column if not exists service_required_document_id uuid references public.service_required_documents(id) on delete set null,
   add column if not exists review_status text not null default 'pending',
@@ -70,6 +81,35 @@ where review_status not in ('pending', 'approved', 'rejected', 'resubmit');
 alter table public.service_application_files
   add constraint service_application_files_review_status_check
   check (review_status in ('pending', 'approved', 'rejected', 'resubmit'));
+
+insert into public.service_application_file_review_history (
+  service_application_file_id,
+  reviewer_user_id,
+  reviewer_name,
+  review_status,
+  review_note,
+  created_at
+)
+select
+  f.id,
+  f.reviewed_by,
+  coalesce(
+    u.raw_user_meta_data ->> 'name',
+    u.raw_user_meta_data ->> 'full_name',
+    u.email,
+    'Admin'
+  ),
+  f.review_status,
+  f.review_note,
+  coalesce(f.reviewed_at, f.updated_at, f.created_at)
+from public.service_application_files f
+left join auth.users u on u.id = f.reviewed_by
+where f.reviewed_at is not null
+  and not exists (
+    select 1
+    from public.service_application_file_review_history h
+    where h.service_application_file_id = f.id
+  );
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -100,8 +140,12 @@ create index if not exists service_applications_service_idx
 create index if not exists service_application_files_application_idx
   on public.service_application_files(application_id, created_at asc);
 
+create index if not exists service_application_file_review_history_file_idx
+  on public.service_application_file_review_history(service_application_file_id, created_at desc);
+
 alter table public.service_applications enable row level security;
 alter table public.service_application_files enable row level security;
+alter table public.service_application_file_review_history enable row level security;
 
 drop policy if exists "Schools can read own service applications"
   on public.service_applications;
@@ -191,5 +235,38 @@ create policy "Admins can update service application files"
   to authenticated
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
   with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+drop policy if exists "Admins can read service application file review history"
+  on public.service_application_file_review_history;
+create policy "Admins can read service application file review history"
+  on public.service_application_file_review_history
+  for select
+  to authenticated
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+drop policy if exists "Admins can create service application file review history"
+  on public.service_application_file_review_history;
+create policy "Admins can create service application file review history"
+  on public.service_application_file_review_history
+  for insert
+  to authenticated
+  with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+drop policy if exists "Schools can read own service application file review history"
+  on public.service_application_file_review_history;
+create policy "Schools can read own service application file review history"
+  on public.service_application_file_review_history
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.service_application_files f
+      join public.service_applications a on a.id = f.application_id
+      where f.id = service_application_file_review_history.service_application_file_id
+        and a.school_user_id = auth.uid()
+        and (auth.jwt() -> 'app_metadata' ->> 'role') = 'school'
+    )
+  );
 
 notify pgrst, 'reload schema';

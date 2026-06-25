@@ -26,12 +26,21 @@ export type SubmissionFileRow = {
   size_bytes: number;
   upload_status: string;
   uploaded_at: string | null;
+  review_history: SubmissionFileReviewHistory[];
 };
 
 export type SubmissionRequiredDocument = {
   id: string;
   name: string;
   sort_order: number;
+};
+
+export type SubmissionFileReviewHistory = {
+  created_at: string;
+  id: string;
+  review_status: string;
+  reviewer_name: string;
+  service_application_file_id: string;
 };
 
 type ServiceRow = {
@@ -153,8 +162,20 @@ async function getRelatedRows(applications: ApplicationRow[]) {
       .order("created_at", { ascending: true }),
   ]);
 
+  const fileRows = (files ?? []) as Omit<SubmissionFileRow, "review_history">[];
+  const fileIds = fileRows.map((file) => file.id);
+  const { data: reviewHistory } = await supabase
+    .from("service_application_file_review_history")
+    .select("id, service_application_file_id, reviewer_name, review_status, created_at")
+    .in("service_application_file_id", fileIds.length > 0 ? fileIds : ["00000000-0000-0000-0000-000000000000"])
+    .order("created_at", { ascending: false });
+  const historyRows = (reviewHistory ?? []) as SubmissionFileReviewHistory[];
+
   return {
-    files: (files ?? []) as SubmissionFileRow[],
+    files: fileRows.map((file) => ({
+      ...file,
+      review_history: historyRows.filter((history) => history.service_application_file_id === file.id),
+    })),
     requiredDocuments: (requiredDocuments ?? []) as SubmissionRequiredDocument[],
     schools: (schools ?? []) as SchoolRow[],
     services: (services ?? []) as ServiceRow[],

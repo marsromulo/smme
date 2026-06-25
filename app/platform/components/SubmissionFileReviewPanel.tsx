@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { Download, Eye, FileText, Save } from "lucide-react";
+import {
+  SubmissionFileHistoryPopover,
+  type SubmissionFileHistoryEntry,
+} from "@/app/platform/components/SubmissionFileHistoryPopover";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
 
@@ -10,6 +14,7 @@ type ReviewFile = {
   id: string;
   mimeType: string;
   originalName: string;
+  reviewHistory: ReviewHistory[];
   reviewNote: string | null;
   reviewStatus: ReviewStatus;
   serviceRequiredDocumentId: string | null;
@@ -21,6 +26,8 @@ type RequiredDocument = {
   id: string;
   name: string;
 };
+
+type ReviewHistory = SubmissionFileHistoryEntry;
 
 type FileFormState = {
   isSaving: boolean;
@@ -65,6 +72,9 @@ export function SubmissionFileReviewPanel({
   files: ReviewFile[];
   requiredDocuments: RequiredDocument[];
 }) {
+  const [reviewHistory, setReviewHistory] = useState<Record<string, ReviewHistory[]>>(() =>
+    Object.fromEntries(files.map((file) => [file.id, file.reviewHistory])),
+  );
   const [fileState, setFileState] = useState<Record<string, FileFormState>>(() =>
     Object.fromEntries(
       files.map((file) => [
@@ -105,10 +115,34 @@ export function SubmissionFileReviewPanel({
         headers: { "Content-Type": "application/json" },
         method: "PATCH",
       });
-      const result = (await response.json().catch(() => ({}))) as { error?: string };
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        history?: {
+          created_at: string;
+          id: string;
+          review_status: ReviewStatus;
+          reviewer_name: string;
+        } | null;
+      };
 
       if (!response.ok) {
         throw new Error(result.error ?? "Unable to update document review.");
+      }
+
+      if (result.history) {
+        const nextHistory = result.history;
+        setReviewHistory((currentHistory) => ({
+          ...currentHistory,
+          [fileId]: [
+            {
+              createdAt: nextHistory.created_at,
+              id: nextHistory.id,
+              reviewStatus: nextHistory.review_status,
+              reviewerName: nextHistory.reviewer_name,
+            },
+            ...(currentHistory[fileId] ?? []),
+          ],
+        }));
       }
 
       updateFileState(fileId, { message: "Saved.", isSaving: false });
@@ -124,6 +158,7 @@ export function SubmissionFileReviewPanel({
     <div className="platform-submission-file-list">
       {files.map((file) => {
         const current = fileState[file.id];
+        const history = reviewHistory[file.id] ?? [];
 
         return (
           <article className="platform-submission-file review" key={file.id}>
@@ -213,6 +248,7 @@ export function SubmissionFileReviewPanel({
                 <Save aria-hidden="true" size={15} />
                 {current.isSaving ? "Saving..." : `Save ${reviewStatusLabel(current.reviewStatus)}`}
               </button>
+              <SubmissionFileHistoryPopover fileName={file.originalName} history={history} />
             </div>
           </article>
         );

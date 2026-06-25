@@ -8,6 +8,7 @@ import {
   getSubmissionDetail,
   submissionStatusClass,
 } from "@/app/platform/submissions-data";
+import { SubmissionFileHistoryPopover } from "@/app/platform/components/SubmissionFileHistoryPopover";
 import { SubmissionFileReviewPanel } from "@/app/platform/components/SubmissionFileReviewPanel";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
@@ -83,6 +84,12 @@ export default async function PlatformSubmissionDetailPage({
                 id: file.id,
                 mimeType: file.mime_type,
                 originalName: file.original_name,
+                reviewHistory: file.review_history.map((history) => ({
+                  createdAt: history.created_at,
+                  id: history.id,
+                  reviewStatus: normalizeReviewStatus(history.review_status),
+                  reviewerName: history.reviewer_name,
+                })),
                 reviewNote: file.review_note,
                 reviewStatus: normalizeReviewStatus(file.review_status),
                 serviceRequiredDocumentId: file.service_required_document_id,
@@ -131,6 +138,15 @@ export default async function PlatformSubmissionDetailPage({
                       <Download aria-hidden="true" size={15} />
                       Download
                     </a>
+                    <SubmissionFileHistoryPopover
+                      fileName={file.original_name}
+                      history={file.review_history.map((history) => ({
+                        createdAt: history.created_at,
+                        id: history.id,
+                        reviewStatus: normalizeReviewStatus(history.review_status),
+                        reviewerName: history.reviewer_name,
+                      }))}
+                    />
                   </div>
                 </article>
               ))}

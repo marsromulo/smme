@@ -133,6 +133,13 @@ function buildDocumentReviewEmail({
   return { html, subject, text };
 }
 
+function getReviewerName(session: {
+  email: string | null;
+  name: string | null;
+}) {
+  return session.name ?? session.email ?? "Admin";
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ fileId: string }> },
@@ -232,6 +239,30 @@ export async function PATCH(
       return Response.json({ error: updateError.message }, { status: 500 });
     }
 
+    const reviewerName = getReviewerName(session);
+    const { data: history, error: historyError } = await supabase
+      .from("service_application_file_review_history")
+      .insert({
+        review_note: parsed.data.reviewNote,
+        review_status: parsed.data.reviewStatus,
+        reviewer_name: reviewerName,
+        reviewer_user_id: session.userId,
+        service_application_file_id: fileId,
+      })
+      .select("id, service_application_file_id, reviewer_name, review_status, created_at")
+      .single();
+
+    if (historyError) {
+      console.error("Unable to create document review history:", historyError.message);
+      return Response.json(
+        {
+          error:
+            "Document review was saved, but the update history could not be recorded. Please run the latest service applications SQL migration and try again.",
+        },
+        { status: 500 },
+      );
+    }
+
     const statusChanged = file.review_status !== parsed.data.reviewStatus;
     let emailResult: { reason?: string; sent?: boolean } | null = null;
 
@@ -290,7 +321,7 @@ export async function PATCH(
       }
     }
 
-    return Response.json({ email: emailResult, ok: true });
+    return Response.json({ email: emailResult, history: history ?? null, ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to update document review.";
     return Response.json({ error: message }, { status: 500 });

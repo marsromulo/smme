@@ -23,10 +23,10 @@ const navItems = [
   { href: "/platform/schools", label: "Schools", icon: Building2, badge: undefined, adminOnly: true },
   { href: "/platform/registrations", label: "Registrations", icon: UserCheck, badge: undefined, adminOnly: true },
   { href: "/platform/services", label: "Services", icon: Wrench, badge: undefined, adminOnly: true },
-  { href: "/platform/applications", label: "Submissions", icon: ClipboardCheck, badge: undefined, adminOnly: true },
-  { href: "/platform/applications", label: "Apply Services", icon: BriefcaseBusiness, badge: undefined, schoolOnly: true },
-  { href: "/platform/documents/sjh-permit-2026", label: "My Submissions", icon: FileBadge, badge: undefined, schoolOnly: true },
-  { href: "/platform/applications", label: "Notifications", icon: Bell, badge: undefined },
+  { href: "/platform/submissions", label: "Submissions", icon: ClipboardCheck, badge: undefined, adminOnly: true },
+  { href: "/platform/applications", label: "Applications", icon: BriefcaseBusiness, badge: undefined, schoolOnly: true },
+  { href: "/platform/submissions", label: "My Submissions", icon: FileBadge, badge: undefined, schoolOnly: true },
+  { href: "/platform/applications", label: "Notifications", icon: Bell, badge: undefined, neverActive: true },
 ];
 
 export function PlatformWorkspaceShell({
@@ -34,17 +34,19 @@ export function PlatformWorkspaceShell({
   email,
   name,
   role,
+  userId,
 }: Readonly<{
   children: React.ReactNode;
   email: string | null;
   name: string | null;
   role: PlatformRole;
+  userId: string | null;
 }>) {
   const pathname = usePathname();
   const isAdmin = role === "admin";
   const [notificationCount, setNotificationCount] = useState<number | null>(null);
-  const notificationBadge =
-    isAdmin && (notificationCount ?? 0) > 0 ? String(notificationCount) : undefined;
+  const notificationBadge = (notificationCount ?? 0) > 0 ? String(notificationCount) : undefined;
+  const notificationHref = isAdmin ? "/platform/applications" : "/platform";
   const visibleNavItems = navItems.filter((item) => {
     if (item.adminOnly && !isAdmin) {
       return false;
@@ -66,7 +68,7 @@ export function PlatformWorkspaceShell({
     .toUpperCase();
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!userId) {
       return;
     }
 
@@ -90,7 +92,7 @@ export function PlatformWorkspaceShell({
     return () => {
       isCurrent = false;
     };
-  }, [isAdmin]);
+  }, [pathname, userId]);
 
   return (
     <div className="platform-shell">
@@ -114,7 +116,9 @@ export function PlatformWorkspaceShell({
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive =
-              item.href === "/platform"
+              item.neverActive
+                ? false
+                : item.href === "/platform"
                 ? pathname === item.href
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -152,7 +156,7 @@ export function PlatformWorkspaceShell({
             <strong>{isAdmin ? "Admin Dashboard" : "School Contact Dashboard"}</strong>
           </div>
           <div className="platform-topbar-actions">
-            <Link className="platform-notification-link" href="/platform/applications" aria-label="Notifications">
+            <Link className="platform-notification-link" href={notificationHref} aria-label="Notifications">
               <Bell aria-hidden="true" size={22} />
               {notificationBadge ? <span>{notificationBadge}</span> : null}
             </Link>

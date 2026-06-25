@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { approveSchoolAuthUser, rejectSchoolAuthUser, setPendingSchoolAuthUser } from "../auth-users";
 import {
   parseRegistrationDecision,
   requirePlatformAdmin,
@@ -33,6 +34,62 @@ export async function PATCH(
 
   try {
     const supabase = createSupabaseAdminClient();
+    let schoolUserId: string | null = null;
+    const { data: registrationForDecision, error: registrationError } = await supabase
+      .from("school_registration_requests")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (registrationError) {
+      return Response.json({ error: registrationError.message }, { status: 500 });
+    }
+
+    const authProfile = {
+      contactNumber: registrationForDecision.contact_number ?? null,
+      registrationId: registrationForDecision.id,
+      representativeEmail: registrationForDecision.representative_email,
+      representativeName: registrationForDecision.representative_name,
+      schoolId: registrationForDecision.school_id ?? null,
+      schoolName: registrationForDecision.school_name,
+    };
+
+    if (parsed.data.status === "approved") {
+      const authResult = await approveSchoolAuthUser(
+        supabase,
+        authProfile,
+        `${new URL(request.url).origin}/platform/login`,
+      );
+
+      if (authResult.error || !authResult.user) {
+        return Response.json(
+          { error: authResult.error?.message ?? "Unable to enable school login account." },
+          { status: 500 },
+        );
+      }
+
+      schoolUserId = authResult.user.id;
+    } else if (parsed.data.status === "pending") {
+      const authResult = await setPendingSchoolAuthUser(supabase, authProfile);
+
+      if (authResult.error) {
+        return Response.json(
+          { error: authResult.error.message ?? "Unable to keep school login account pending." },
+          { status: 500 },
+        );
+      }
+
+      schoolUserId = "data" in authResult ? (authResult.data.user?.id ?? null) : null;
+    } else {
+      const authResult = await rejectSchoolAuthUser(supabase, authProfile);
+
+      if (authResult.error) {
+        return Response.json({ error: authResult.error.message }, { status: 500 });
+      }
+
+      schoolUserId = "data" in authResult ? (authResult.data.user?.id ?? null) : null;
+    }
+
     const { data: registration, error: updateError } = await supabase
       .from("school_registration_requests")
       .update({
@@ -86,19 +143,55 @@ export async function PATCH(
       }
     }
 
-    const decisionLabel = parsed.data.status === "approved" ? "approved" : "rejected";
+    const decisionLabel = parsed.data.status;
+    const decisionDisplay = decisionLabel.charAt(0).toUpperCase() + decisionLabel.slice(1);
+    const notificationErrors: string[] = [];
     const { error: notificationError } = await supabase.from("admin_notifications").insert({
       type: `school_registration_${decisionLabel}`,
-      title: `School registration ${decisionLabel}`,
-      body: `${registration.school_name} was ${decisionLabel}.`,
+      title: `School registration ${decisionDisplay}`,
+      body:
+        decisionLabel === "pending"
+          ? `${registration.school_name} was marked Pending.`
+          : `${registration.school_name} was ${decisionDisplay}.`,
       school_registration_request_id: registration.id,
     });
 
     if (notificationError) {
+      notificationErrors.push(`admin notification failed: ${notificationError.message}`);
+    }
+
+    if (schoolUserId) {
+      const noteText = parsed.data.adminNotes ? ` Notes: ${parsed.data.adminNotes}` : "";
+      const schoolNotificationTitle =
+        parsed.data.status === "approved"
+          ? "School registration Approved"
+          : parsed.data.status === "pending"
+            ? "School registration Pending"
+          : "School registration Rejected";
+      const schoolNotificationBody =
+        parsed.data.status === "approved"
+          ? `Your school registration has been approved. You can now sign in to the platform.${noteText}`
+          : parsed.data.status === "pending"
+            ? `Your school registration is pending review.${noteText}`
+            : `Your school registration was rejected. Please contact the division office for the next steps.${noteText}`;
+      const { error: schoolNotificationError } = await supabase.from("school_notifications").insert({
+        recipient_user_id: schoolUserId,
+        type: `school_registration_${decisionLabel}`,
+        title: schoolNotificationTitle,
+        body: schoolNotificationBody,
+        school_registration_request_id: registration.id,
+      });
+
+      if (schoolNotificationError) {
+        notificationErrors.push(`school notification failed: ${schoolNotificationError.message}`);
+      }
+    }
+
+    if (notificationErrors.length > 0) {
       return Response.json(
         {
           registration,
-          warning: `Registration updated, but notification logging failed: ${notificationError.message}`,
+          warning: `Registration updated, but ${notificationErrors.join("; ")}.`,
         },
       );
     }

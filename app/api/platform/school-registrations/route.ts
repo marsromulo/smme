@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createPendingSchoolAuthUser } from "./auth-users";
 import {
   parseSchoolRegistrationPayload,
   requirePlatformAdmin,
@@ -54,6 +55,25 @@ export async function POST(request: Request) {
 
   try {
     const supabase = createSupabaseAdminClient();
+    const authResult = await createPendingSchoolAuthUser(
+      supabase,
+      {
+        contactNumber: parsed.data.contactNumber ?? null,
+        representativeEmail: parsed.data.representativeEmail,
+        representativeName: parsed.data.representativeName,
+        schoolId: parsed.data.schoolId ?? null,
+        schoolName: parsed.data.schoolName,
+      },
+      parsed.data.password,
+    );
+
+    if (authResult.error || !authResult.data.user) {
+      return Response.json(
+        { error: authResult.error?.message ?? "Unable to create school login account." },
+        { status: 500 },
+      );
+    }
+
     const { data: registration, error: insertError } = await supabase
       .from("school_registration_requests")
       .insert({
@@ -67,11 +87,13 @@ export async function POST(request: Request) {
         representative_position: parsed.data.representativePosition ?? null,
         representative_email: parsed.data.representativeEmail,
         contact_number: parsed.data.contactNumber ?? null,
+        status: "new",
       })
       .select()
       .single();
 
     if (insertError) {
+      await supabase.auth.admin.deleteUser(authResult.data.user.id).catch(() => null);
       return Response.json({ error: registrationDatabaseErrorMessage(insertError.message) }, { status: 500 });
     }
 

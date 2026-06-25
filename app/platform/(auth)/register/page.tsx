@@ -7,10 +7,8 @@ import {
   Eye,
   FileText,
   GraduationCap,
-  Plus,
   School,
   ShieldCheck,
-  Trash2,
   UserRoundPlus,
   UsersRound,
 } from "lucide-react";
@@ -36,32 +34,21 @@ const features = [
 ];
 
 const defaultOfferings: string[] = [];
+const curriculumOfferings = ["Elementary", "Junior High School", "Senior High School"];
 
 export default function PlatformRegisterPage() {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState("");
   const [offerings, setOfferings] = useState(defaultOfferings);
-  const [offeringInput, setOfferingInput] = useState("");
 
-  function addOffering() {
-    const nextOffering = offeringInput.trim();
-
-    if (!nextOffering) {
-      return;
-    }
-
+  function toggleOffering(selectedOffering: string) {
     setOfferings((current) => {
-      if (current.some((offering) => offering.toLowerCase() === nextOffering.toLowerCase())) {
-        return current;
+      if (current.includes(selectedOffering)) {
+        return current.filter((offering) => offering !== selectedOffering);
       }
 
-      return [...current, nextOffering];
+      return [...current, selectedOffering];
     });
-    setOfferingInput("");
-  }
-
-  function removeOffering(offeringToRemove: string) {
-    setOfferings((current) => current.filter((offering) => offering !== offeringToRemove));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -88,6 +75,7 @@ export default function PlatformRegisterPage() {
       representativePosition: String(formData.get("representativePosition") ?? ""),
       representativeEmail: String(formData.get("representativeEmail") ?? ""),
       contactNumber: String(formData.get("contactNumber") ?? ""),
+      password,
       schoolOfferings: offerings,
     };
 
@@ -107,7 +95,6 @@ export default function PlatformRegisterPage() {
 
       form.reset();
       setOfferings(defaultOfferings);
-      setOfferingInput("");
       setSubmitState("success");
       setMessage("Registration request submitted. The admin has been notified for approval.");
     } catch (error) {
@@ -211,41 +198,18 @@ export default function PlatformRegisterPage() {
             </fieldset>
 
             <fieldset>
-              <legend>Offerings &amp; Services</legend>
-              <div className="school-register-offerings school-register-wide">
-                <div className="school-register-offering-entry">
-                  <input
-                    aria-label="Offering or service"
-                    type="text"
-                    placeholder="Add offering or service"
-                    value={offeringInput}
-                    onChange={(event) => setOfferingInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        addOffering();
-                      }
-                    }}
-                  />
-                  <button type="button" onClick={addOffering}>
-                    <Plus aria-hidden="true" size={18} />
-                    Add
-                  </button>
-                </div>
-                <div className="school-register-offering-list">
-                  {offerings.map((offering) => (
-                    <div key={offering}>
-                      <span>{offering}</span>
-                      <button
-                        type="button"
-                        aria-label={`Remove ${offering}`}
-                        onClick={() => removeOffering(offering)}
-                      >
-                        <Trash2 aria-hidden="true" size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+              <legend>Curriculum Offerings</legend>
+              <div className="school-register-curriculum-options school-register-wide">
+                {curriculumOfferings.map((offering) => (
+                  <label key={offering} className="school-register-checkbox-option">
+                    <input
+                      type="checkbox"
+                      checked={offerings.includes(offering)}
+                      onChange={() => toggleOffering(offering)}
+                    />
+                    <span>{offering}</span>
+                  </label>
+                ))}
               </div>
             </fieldset>
 
@@ -313,8 +277,7 @@ export default function PlatformRegisterPage() {
                 </span>
               </label>
               <p className="school-register-help">
-                Password must be at least 8 characters and include uppercase, lowercase,
-                number, and special character.
+                Password must be at least 8 characters.
               </p>
             </fieldset>
 

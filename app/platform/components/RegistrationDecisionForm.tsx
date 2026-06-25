@@ -2,15 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Clock3, XCircle } from "lucide-react";
 
 type RegistrationDecisionFormProps = {
   registrationId: string;
   initialNotes: string;
-  currentStatus: "pending" | "approved" | "rejected";
+  currentStatus: "new" | "pending" | "approved" | "rejected";
 };
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
+type RegistrationStatus = "pending" | "approved" | "rejected";
+
+function formatRegistrationStatus(status: RegistrationStatus) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
 
 export function RegistrationDecisionForm({
   registrationId,
@@ -22,7 +27,7 @@ export function RegistrationDecisionForm({
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState("");
 
-  async function submitDecision(status: "approved" | "rejected") {
+  async function submitDecision(status: RegistrationStatus) {
     setSubmitState("submitting");
     setMessage("");
 
@@ -41,7 +46,7 @@ export function RegistrationDecisionForm({
       }
 
       setSubmitState("success");
-      setMessage(`Registration ${status}.`);
+      setMessage(`Registration ${formatRegistrationStatus(status)}.`);
       router.refresh();
     } catch (error) {
       setSubmitState("error");
@@ -58,7 +63,7 @@ export function RegistrationDecisionForm({
       <label>
         <span>Admin Notes</span>
         <textarea
-          placeholder="Add review notes or reason for approval/rejection"
+          placeholder="Add review notes or reason for pending, approval, or rejection"
           rows={5}
           value={adminNotes}
           onChange={(event) => setAdminNotes(event.target.value)}
@@ -70,6 +75,14 @@ export function RegistrationDecisionForm({
       ) : null}
 
       <div className="platform-approval-actions detail">
+        <button
+          type="button"
+          onClick={() => submitDecision("pending")}
+          disabled={submitState === "submitting" || currentStatus === "pending"}
+        >
+          <Clock3 aria-hidden="true" size={16} />
+          Pending
+        </button>
         <button
           type="button"
           onClick={() => submitDecision("approved")}

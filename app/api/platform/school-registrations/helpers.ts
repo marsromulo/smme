@@ -11,10 +11,11 @@ export type SchoolRegistrationPayload = {
   representativePosition?: string;
   representativeEmail: string;
   contactNumber?: string;
+  password: string;
 };
 
 export type RegistrationDecision = {
-  status: "approved" | "rejected";
+  status: "pending" | "approved" | "rejected";
   adminNotes?: string;
 };
 
@@ -60,6 +61,7 @@ export function parseSchoolRegistrationPayload(body: unknown): {
   const representativePosition = cleanString(record.representativePosition);
   const representativeEmail = cleanString(record.representativeEmail).toLowerCase();
   const contactNumber = cleanString(record.contactNumber || record.mobileNumber);
+  const password = cleanString(record.password);
 
   if (!schoolName) {
     return { error: "School name is required." };
@@ -71,6 +73,10 @@ export function parseSchoolRegistrationPayload(body: unknown): {
 
   if (!representativeEmail || !isEmail(representativeEmail)) {
     return { error: "A valid representative email is required." };
+  }
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters." };
   }
 
   return {
@@ -85,6 +91,7 @@ export function parseSchoolRegistrationPayload(body: unknown): {
       representativePosition: representativePosition || undefined,
       representativeEmail,
       contactNumber: contactNumber || undefined,
+      password,
     },
   };
 }
@@ -101,8 +108,8 @@ export function parseRegistrationDecision(body: unknown): {
   const status = cleanString(record.status).toLowerCase();
   const adminNotes = cleanString(record.adminNotes);
 
-  if (status !== "approved" && status !== "rejected") {
-    return { error: "Status must be approved or rejected." };
+  if (status !== "pending" && status !== "approved" && status !== "rejected") {
+    return { error: "Status must be pending, approved, or rejected." };
   }
 
   return {

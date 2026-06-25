@@ -9,7 +9,7 @@ export type ServicePayload = {
   name: string;
   code: string;
   description?: string;
-  status: "active" | "draft" | "archived";
+  status: "active" | "inactive";
   targetUsers: string;
   sortOrder: number;
   documents: ServiceDocumentInput[];
@@ -70,8 +70,8 @@ export function parseServicePayload(body: unknown): {
     return { error: "Service name must contain at least two letters or numbers." };
   }
 
-  if (status !== "active" && status !== "draft" && status !== "archived") {
-    return { error: "Status must be active, draft, or archived." };
+  if (status !== "active" && status !== "inactive") {
+    return { error: "Status must be active or inactive." };
   }
 
   const parsedDocuments = documents
@@ -81,7 +81,7 @@ export function parseServicePayload(body: unknown): {
         id: cleanString(document.id) || undefined,
         name: cleanString(document.name),
         isRequired: cleanBoolean(document.isRequired, true),
-        sortOrder: cleanNumber(document.sortOrder, (index + 1) * 10),
+        sortOrder: cleanNumber(document.sortOrder, index + 1),
       };
     })
     .filter((document) => document.name);
@@ -108,7 +108,7 @@ export function mapServiceRows(
     code: String(service.code),
     name: String(service.name),
     description: typeof service.description === "string" ? service.description : "",
-    status: service.status,
+    status: service.status === "active" ? "active" : "inactive",
     targetUsers: service.target_users,
     sortOrder: service.sort_order,
     documents: documents

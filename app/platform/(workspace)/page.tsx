@@ -6,26 +6,30 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
-  ChevronDown,
   ClipboardList,
   Clock3,
   Eye,
   FileWarning,
-  Filter,
   GraduationCap,
   Landmark,
-  Search,
-  UploadCloud,
   UsersRound,
   Wrench,
+  XCircle,
 } from "lucide-react";
 import { getPlatformSession } from "@/lib/platform/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  formatSubmissionDate,
+  formatSubmissionStatus,
+  getSubmissionList,
+  type SubmissionListItem,
+} from "@/app/platform/submissions-data";
 
 const summaryCards = [
   {
     icon: ClipboardList,
     value: "12",
-    label: "Total Services",
+    label: "Applied Service",
     action: "View all services",
     tone: "blue",
   },
@@ -95,72 +99,92 @@ const services = [
   },
 ];
 
-const notifications = [
-  {
-    icon: AlertTriangle,
-    title: "Your document for Application for Remedial/Advancement Classes",
-    text: "was returned for resubmission.",
-    time: "2h ago",
-    tone: "red",
-  },
-  {
-    icon: Clock3,
-    title: "Senior High School Permit Applications",
-    text: "is now under review.",
-    time: "1d ago",
-    tone: "gold",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Government Permit to Operate",
-    text: "has been approved.",
-    time: "3d ago",
-    tone: "green",
-  },
-  {
-    icon: ClipboardList,
-    title: "New announcement: Division Memo No. 245, s. 2025",
-    text: "",
-    time: "3d ago",
-    tone: "blue",
-  },
-];
-
-const timeline = [
-  {
-    title: "Government Permit to Operate",
-    text: "Approved on May 5, 2025",
-    status: "Approved",
-    tone: "green",
-  },
-  {
-    title: "School Calendar Submission",
-    text: "Approved on May 1, 2025",
-    status: "Approved",
-    tone: "green",
-  },
-  {
-    title: "Senior High School Permit Applications",
-    text: "Under review since May 10, 2025",
-    status: "Under Review",
-    tone: "gold",
-  },
-  {
-    title: "TOSFI Applications",
-    text: "In progress since May 8, 2025",
-    status: "In Progress",
-    tone: "blue",
-  },
-  {
-    title: "Application for Remedial/Advancement Classes",
-    text: "Returned on May 7, 2025",
-    status: "Returned",
-    tone: "red",
-  },
-];
+type SchoolNotification = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  created_at: string;
+};
 
 function statusClass(status: string) {
   return status.toLowerCase().replaceAll(" ", "-").replaceAll("/", "-");
+}
+
+function formatNotificationDate(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
+}
+
+function schoolNotificationTone(type: string) {
+  if (type.includes("approved")) {
+    return "green";
+  }
+
+  if (type.includes("pending")) {
+    return "gold";
+  }
+
+  if (type.includes("rejected")) {
+    return "red";
+  }
+
+  return "blue";
+}
+
+function SchoolNotificationIcon({ type }: { type: string }) {
+  if (type.includes("approved")) {
+    return <CheckCircle2 aria-hidden="true" size={17} />;
+  }
+
+  if (type.includes("pending")) {
+    return <Clock3 aria-hidden="true" size={17} />;
+  }
+
+  if (type.includes("rejected")) {
+    return <XCircle aria-hidden="true" size={17} />;
+  }
+
+  return <ClipboardList aria-hidden="true" size={17} />;
+}
+
+async function getSchoolNotifications(userId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("school_notifications")
+    .select("id, type, title, body, created_at")
+    .eq("recipient_user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (error) {
+    if (error.message.includes("schema cache") && error.message.includes("school_notifications")) {
+      return [];
+    }
+
+    console.error("Unable to load school notifications:", error.message);
+    return [];
+  }
+
+  const notifications = (data ?? []) as SchoolNotification[];
+  const unreadIds = notifications.map((item) => item.id);
+
+  if (unreadIds.length > 0) {
+    const { error: readError } = await supabase
+      .from("school_notifications")
+      .update({ is_read: true })
+      .in("id", unreadIds)
+      .eq("recipient_user_id", userId)
+      .eq("is_read", false);
+
+    if (readError) {
+      console.error("Unable to mark school notifications as read:", readError.message);
+    }
+  }
+
+  return notifications;
 }
 
 const adminStats = [
@@ -184,7 +208,7 @@ const adminActions = [
     text: "Create application services and manage required document checklists.",
   },
   {
-    href: "/platform/applications",
+    href: "/platform/submissions",
     icon: ClipboardList,
     title: "Application Review Queue",
     text: "Track submitted applications, documents, and evaluator actions.",
@@ -194,27 +218,9 @@ const adminActions = [
 function AdminDashboard() {
   return (
     <main className="platform-page">
-      <section className="platform-admin-hero">
-        <div>
-          <span className="platform-kicker">Admin workspace</span>
-          <h1>Manage schools, services, and application reviews.</h1>
-          <p>
-            Configure service requirements, approve school registrations, and monitor
-            submitted applications across the division.
-          </p>
-        </div>
-        <Link className="platform-btn primary" href="/platform/services">
-          <Wrench aria-hidden="true" size={18} />
-          Service Maintenance
-        </Link>
-      </section>
-
-      <section className="platform-stat-grid contact" aria-label="Admin statistics">
+      <section className="platform-stat-grid contact admin" aria-label="Admin statistics">
         {adminStats.map((stat) => (
           <article className={`platform-stat contact ${stat.tone}`} key={stat.label}>
-            <span className="platform-stat-icon">
-              <ClipboardList aria-hidden="true" size={30} />
-            </span>
             <div>
               <strong>{stat.value}</strong>
               <p>{stat.label}</p>
@@ -267,115 +273,85 @@ function AdminDashboard() {
   );
 }
 
-function SchoolDashboard() {
+function SchoolDashboard({
+  notifications,
+  submissions,
+}: {
+  notifications: SchoolNotification[];
+  submissions: SubmissionListItem[];
+}) {
   return (
     <main className="platform-page platform-contact-dashboard">
-      <section className="platform-welcome-banner">
-        <div>
-          <h1>Welcome back, Maria!</h1>
-          <p>Track your school&apos;s applications, document submissions, and approval progress in one place.</p>
-        </div>
-      </section>
-
-      <section className="platform-stat-grid contact" aria-label="Platform statistics">
-        {summaryCards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <article className={`platform-stat contact ${card.tone}`} key={card.label}>
-              <span className="platform-stat-icon">
-                <Icon aria-hidden="true" size={30} />
-              </span>
-              <div>
-                <strong>{card.value}</strong>
-                <p>{card.label}</p>
-              </div>
-              <Link href="/platform/applications">
-                {card.action}
-                <ArrowRight aria-hidden="true" size={17} />
-              </Link>
-            </article>
-          );
-        })}
+      <section className="platform-stat-grid contact no-icons" aria-label="Platform statistics">
+        {summaryCards.map((card) => (
+          <article className={`platform-stat contact ${card.tone}`} key={card.label}>
+            <div>
+              <strong>{card.value}</strong>
+              <p>{card.label}</p>
+            </div>
+            <Link href="/platform/applications">
+              {card.action}
+              <ArrowRight aria-hidden="true" size={17} />
+            </Link>
+          </article>
+        ))}
       </section>
 
       <section className="platform-dashboard-grid">
         <article className="platform-section platform-tracker-card">
           <div className="platform-section-head tracker">
-            <h2>My Services Tracker</h2>
-            <div className="platform-tracker-tools">
-              <label className="platform-mini-search">
-                <span className="sr-only">Search services</span>
-                <input type="search" placeholder="Search services..." />
-                <Search aria-hidden="true" size={18} />
-              </label>
-              <button type="button">
-                <Filter aria-hidden="true" size={17} />
-                Filter
-              </button>
-              <Link className="platform-btn primary" href="/platform/applications">
-                + New Submission
-              </Link>
-            </div>
+            <h2>Recent Submission</h2>
           </div>
 
           <div className="platform-services-table">
             <div className="platform-services-header">
               <span>Service</span>
-              <span>Progress</span>
+              <span>Files</span>
               <span>Status</span>
               <span>Action</span>
             </div>
-            {services.map((service) => {
-              const Icon = service.icon;
-
-              return (
-                <div className="platform-service-row" key={service.title}>
+            {submissions.length === 0 ? (
+              <p className="platform-empty-state">No recent submissions yet.</p>
+            ) : (
+              submissions.slice(0, 5).map((submission) => (
+                <div className="platform-service-row" key={submission.id}>
                   <div className="platform-service-name">
-                    <span className={`platform-service-icon ${service.tone}`}>
-                      <Icon aria-hidden="true" size={22} />
+                    <span className="platform-service-icon blue">
+                      <ClipboardList aria-hidden="true" size={22} />
                     </span>
                     <div>
-                      <strong>{service.title}</strong>
-                      <small>Submitted: {service.submitted}</small>
+                      <strong>{submission.serviceName}</strong>
+                      <small>Last submitted: {formatSubmissionDate(submission.submittedAt)}</small>
                     </div>
                   </div>
-                  <div className="platform-service-progress">
-                    <div>
-                      <span style={{ width: `${service.progress}%` }} />
-                    </div>
-                    <b>{service.progress}%</b>
-                  </div>
-                  <span className={`platform-pill ${statusClass(service.status)}`}>
-                    {service.status === "Approved" ? (
+                  <span>
+                    {submission.fileCount}
+                  </span>
+                  <span className={`platform-pill ${statusClass(formatSubmissionStatus(submission.status))}`}>
+                    {submission.status === "approved" ? (
                       <Check aria-hidden="true" size={14} />
-                    ) : service.status === "Returned for Resubmission" ? (
+                    ) : submission.status === "rejected" ? (
                       <AlertTriangle aria-hidden="true" size={14} />
                     ) : (
                       <Clock3 aria-hidden="true" size={14} />
                     )}
-                    {service.status}
+                    {formatSubmissionStatus(submission.status)}
                   </span>
                   <div className="platform-service-actions">
-                    <Link href="/platform/documents/sjh-permit-2026">
-                      {service.status === "Returned for Resubmission" ? (
-                        <UploadCloud aria-hidden="true" size={16} />
-                      ) : (
-                        <Eye aria-hidden="true" size={16} />
-                      )}
-                      {service.status === "Returned for Resubmission" ? "Upload" : "View"}
+                    <Link href={`/platform/submissions/${submission.id}`}>
+                      <Eye aria-hidden="true" size={16} />
+                      View
                     </Link>
-                    <button type="button" aria-label={`Open ${service.title} menu`}>
-                      <ChevronDown aria-hidden="true" size={16} />
-                    </button>
                   </div>
                 </div>
-              );
-            })}
+              ))
+            )}
           </div>
 
           <div className="platform-pagination">
-            <span>Showing 1 to 5 of 12 services</span>
+            <span>
+              Showing {Math.min(submissions.length, 5)} of {submissions.length} submissions
+            </span>
             <div>
               <button type="button">‹</button>
               <button className="active" type="button">1</button>
@@ -390,48 +366,29 @@ function SchoolDashboard() {
           <section className="platform-section platform-compact-panel">
             <div className="platform-panel-title">
               <h2>Recent Notifications</h2>
-              <Link href="/platform/applications">View all</Link>
+              <Link href="/platform">View all</Link>
             </div>
             <div className="platform-notification-list">
-              {notifications.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <div className="platform-notification-item" key={item.title}>
-                    <span className={item.tone}>
-                      <Icon aria-hidden="true" size={17} />
+              {notifications.length === 0 ? (
+                <p className="platform-empty-state">No recent notifications.</p>
+              ) : (
+                notifications.map((item) => (
+                  <div className="platform-notification-item" key={item.id}>
+                    <span className={schoolNotificationTone(item.type)}>
+                      <SchoolNotificationIcon type={item.type} />
                     </span>
                     <div>
                       <strong>{item.title}</strong>
-                      {item.text ? <p>{item.text}</p> : null}
+                      <p>{item.body}</p>
                     </div>
-                    <time>{item.time}</time>
+                    <time>{formatNotificationDate(item.created_at)}</time>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
-            <Link className="platform-side-link" href="/platform/applications">
+            <Link className="platform-side-link" href="/platform">
               Go to Notifications <ArrowRight aria-hidden="true" size={16} />
             </Link>
-          </section>
-
-          <section className="platform-section platform-compact-panel">
-            <div className="platform-panel-title">
-              <h2>Submission Timeline</h2>
-              <Link href="/platform/applications">View all</Link>
-            </div>
-            <div className="platform-contact-timeline">
-              {timeline.map((item) => (
-                <div className={item.tone} key={item.title}>
-                  <span />
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.text}</p>
-                  </div>
-                  <em className={`platform-pill ${statusClass(item.status)}`}>{item.status}</em>
-                </div>
-              ))}
-            </div>
           </section>
         </aside>
       </section>
@@ -446,5 +403,8 @@ export default async function PlatformDashboardPage() {
     return <AdminDashboard />;
   }
 
-  return <SchoolDashboard />;
+  const notifications = session.userId ? await getSchoolNotifications(session.userId) : [];
+  const submissions = await getSubmissionList(session);
+
+  return <SchoolDashboard notifications={notifications} submissions={submissions} />;
 }

@@ -6,13 +6,20 @@ create table if not exists public.services (
   name text not null,
   description text,
   status text not null default 'active'
-    check (status in ('active', 'draft', 'archived')),
+    check (status in ('active', 'inactive')),
   target_users text not null default 'schools',
   sort_order integer not null default 0,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.services drop constraint if exists services_status_check;
+update public.services
+set status = 'inactive'
+where status in ('draft', 'archived');
+alter table public.services
+  add constraint services_status_check check (status in ('active', 'inactive'));
 
 create table if not exists public.service_required_documents (
   id uuid primary key default gen_random_uuid(),
@@ -121,50 +128,122 @@ create policy "Admins can delete service documents"
   to authenticated
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
+delete from public.service_required_documents;
+delete from public.services;
+
 insert into public.services (code, name, description, status, target_users, sort_order)
 values
-  ('GPO', 'Government Permit to Operate', 'Application for authority to legally operate a school or learning center.', 'active', 'public-schools', 10),
-  ('REC', 'Recognition of schools and programs', 'Recognition request for schools and academic programs that require DepEd validation.', 'active', 'public-schools', 20),
-  ('TOSFI', 'Tuition and Other School Fees Increase (TOSFI)', 'Application for tuition and other school fees increase review and approval.', 'active', 'public-schools', 30),
-  ('NEW', 'Establishment of new schools, branches, and additional programs', 'Application for new schools, branch campuses, or additional academic programs.', 'active', 'public-schools', 40),
-  ('CHG', 'Change of school name, ownership, or location', 'Request for approval of institutional name, ownership, or location changes.', 'active', 'public-schools', 50),
-  ('SHS', 'Senior High School permit applications', 'Application for authority to offer Senior High School programs.', 'active', 'public-schools', 60)
-on conflict (code) do nothing;
+  ('GPO-NEW', 'Government Permit to Operate (New School/Additional Grade Level)', 'Required documents for Government Permit to Operate (New School/Additional Grade Level).', 'active', 'public-schools', 1),
+  ('REC', 'Government Recognition', 'Required documents for Government Recognition.', 'active', 'public-schools', 2),
+  ('TOSFI', 'Tuition and Other School Fees Increase (TOSFI)', 'Required documents for Tuition and Other School Fees Increase (TOSFI).', 'active', 'public-schools', 3),
+  ('BRANCH', 'Establishment of Branches or Additional Programs', 'Required documents for Establishment of Branches or Additional Programs.', 'active', 'public-schools', 4),
+  ('NAME', 'Change of School Name', 'Required documents for Change of School Name.', 'active', 'public-schools', 5),
+  ('OWNER', 'Change of Ownership', 'Required documents for Change of Ownership.', 'active', 'public-schools', 6),
+  ('LOCATION', 'Change of Location', 'Required documents for Change of Location.', 'active', 'public-schools', 7),
+  ('SHS', 'Senior High School Permit Application', 'Required documents for Senior High School Permit Application.', 'active', 'public-schools', 8),
+  ('CALENDAR', 'School Calendar', 'Required documents for School Calendar.', 'active', 'public-schools', 9),
+  ('REMEDIAL', 'Application for Remedial/ Advancement Classes', 'Required documents for Application for Remedial/ Advancement Classes.', 'active', 'public-schools', 10);
 
 insert into public.service_required_documents (service_id, name, sort_order)
 select s.id, d.name, d.sort_order
 from (
   values
-    ('GPO', 'Application form', 10),
-    ('GPO', 'School profile', 20),
-    ('GPO', 'Business permit or SEC/DTI registration', 30),
-    ('GPO', 'Fire safety inspection certificate', 40),
-    ('GPO', 'Site validation report', 50),
-    ('REC', 'Recognition application letter', 10),
-    ('REC', 'Program offering matrix', 20),
-    ('REC', 'Faculty roster', 30),
-    ('REC', 'Curriculum and learning resources inventory', 40),
-    ('REC', 'Facilities and room utilization report', 50),
-    ('TOSFI', 'TOSFI application form', 10),
-    ('TOSFI', 'Comparative fee schedule', 20),
-    ('TOSFI', 'Consultation minutes', 30),
-    ('TOSFI', 'Audited financial statement', 40),
-    ('TOSFI', 'Parent notification proof', 50),
-    ('NEW', 'Intent letter', 10),
-    ('NEW', 'Feasibility study', 20),
-    ('NEW', 'Proposed program details', 30),
-    ('NEW', 'Site ownership or lease documents', 40),
-    ('NEW', 'Inspection and evaluation checklist', 50),
-    ('CHG', 'Board resolution', 10),
-    ('CHG', 'Updated permits and registrations', 20),
-    ('CHG', 'Transfer or ownership documents', 30),
-    ('CHG', 'Stakeholder notification proof', 40),
-    ('CHG', 'Updated school profile', 50),
-    ('SHS', 'SHS permit application', 10),
-    ('SHS', 'Track and strand proposal', 20),
-    ('SHS', 'Faculty qualification documents', 30),
-    ('SHS', 'Laboratory and equipment inventory', 40),
-    ('SHS', 'Work immersion partnership documents', 50)
+    ('GPO-NEW', 'Letter of Intent addressed to the Regional Director through the Schools Division Superintendent', 1),
+    ('GPO-NEW', 'Board Resolution authorizing the opening of the school/program', 2),
+    ('GPO-NEW', 'Articles of Incorporation and By-Laws registered with SEC (for corporations)', 3),
+    ('GPO-NEW', 'DTI Registration (for sole proprietorship)', 4),
+    ('GPO-NEW', 'Mayor''s Permit/Business Permit', 5),
+    ('GPO-NEW', 'Transfer Certificate of Title (TCT), Deed of Sale, Lease Contract, or Proof of Ownership', 6),
+    ('GPO-NEW', 'Comprehensive Feasibility Study', 7),
+    ('GPO-NEW', 'Proposed School Calendar', 8),
+    ('GPO-NEW', 'Organizational Chart', 9),
+    ('GPO-NEW', 'Curriculum Offering', 10),
+    ('GPO-NEW', 'List of Administrators, Teaching and Non-Teaching Personnel with qualifications', 11),
+    ('GPO-NEW', 'School Site Development Plan', 12),
+    ('GPO-NEW', 'Inventory of Facilities, Laboratories, Library, and Equipment', 13),
+    ('GPO-NEW', 'Fire Safety Inspection Certificate', 14),
+    ('GPO-NEW', 'Sanitary Permit/Health Certificate', 15),
+    ('GPO-NEW', 'Photographs of school buildings and facilities', 16),
+    ('GPO-NEW', 'Enrollment Projection', 17),
+    ('GPO-NEW', 'Tuition and Other School Fees Schedule', 18),
+    ('GPO-NEW', 'Financial Statement or Proof of Financial Capability', 19),
+    ('GPO-NEW', 'Division Evaluation Report and Endorsement', 20),
+    ('REC', 'Application Letter for Recognition', 1),
+    ('REC', 'Existing Government Permit', 2),
+    ('REC', 'Board Resolution requesting recognition', 3),
+    ('REC', 'Accomplishment Report', 4),
+    ('REC', 'List of graduates and enrollment history', 5),
+    ('REC', 'Faculty Profile and Credentials', 6),
+    ('REC', 'Updated Curriculum', 7),
+    ('REC', 'Inventory of Facilities and Equipment', 8),
+    ('REC', 'Library Holdings and Learning Resources', 9),
+    ('REC', 'School Site Ownership or Lease Documents', 10),
+    ('REC', 'Fire Safety and Sanitary Certificates', 11),
+    ('REC', 'School Financial Statements', 12),
+    ('REC', 'Latest Inspection and Monitoring Reports', 13),
+    ('REC', 'Division Endorsement', 14),
+    ('REC', 'Subject to validation by the Regional Office.', 15),
+    ('TOSFI', 'Letter-request signed by School Head', 1),
+    ('TOSFI', 'Board Resolution approving proposed increase', 2),
+    ('TOSFI', 'Comparative Schedule of Existing and Proposed Fees', 3),
+    ('TOSFI', 'Detailed Justification for Increase', 4),
+    ('TOSFI', 'Financial Statements (audited, previous years)', 5),
+    ('TOSFI', 'Consultation Documents with Parents, Students, and Teachers', 6),
+    ('TOSFI', 'Minutes of Consultation Meeting', 7),
+    ('TOSFI', 'Attendance Sheets', 8),
+    ('TOSFI', 'Certification of Compliance with Consultation Requirements', 9),
+    ('TOSFI', 'Utilization Plan of Incremental Proceeds', 10),
+    ('TOSFI', 'Projected Income and Expenditures', 11),
+    ('BRANCH', 'Letter of Application', 1),
+    ('BRANCH', 'Board Resolution', 2),
+    ('BRANCH', 'Existing Government Recognition', 3),
+    ('BRANCH', 'Feasibility Study', 4),
+    ('BRANCH', 'Proposed Curriculum', 5),
+    ('BRANCH', 'School Site Ownership/Lease Documents', 6),
+    ('BRANCH', 'Floor Plan and Building Plan', 7),
+    ('BRANCH', 'List of Personnel and Qualifications', 8),
+    ('BRANCH', 'Inventory of Facilities and Equipment', 9),
+    ('BRANCH', 'Financial Capability Documents', 10),
+    ('BRANCH', 'Fire Safety Inspection Certificate', 11),
+    ('BRANCH', 'Sanitary Permit', 12),
+    ('BRANCH', 'Enrollment Projection', 13),
+    ('BRANCH', 'Proposed Tuition Fees', 14),
+    ('BRANCH', 'Division Evaluation and Endorsement', 15),
+    ('NAME', 'Letter-request', 1),
+    ('NAME', 'Board Resolution', 2),
+    ('NAME', 'SEC Amendment or DTI Amendment', 3),
+    ('NAME', 'Existing Government Recognition/Permit', 4),
+    ('NAME', 'Division endorsement', 5),
+    ('OWNER', 'Letter-request', 1),
+    ('OWNER', 'Deed of Sale/Transfer', 2),
+    ('OWNER', 'Board Resolution', 3),
+    ('OWNER', 'SEC Documents of New Corporation', 4),
+    ('OWNER', 'Financial Capability Documents', 5),
+    ('OWNER', 'Existing Permit/Recognition', 6),
+    ('OWNER', 'Division endorsement', 7),
+    ('LOCATION', 'Letter-request', 1),
+    ('LOCATION', 'Board Resolution', 2),
+    ('LOCATION', 'TCT or Lease Contract of New Site', 3),
+    ('LOCATION', 'Site Development Plan', 4),
+    ('LOCATION', 'Fire Safety Inspection Certificate', 5),
+    ('LOCATION', 'Sanitary Permit', 6),
+    ('LOCATION', 'Photos of Facilities', 7),
+    ('LOCATION', 'Ocular Inspection Report', 8),
+    ('SHS', 'Letter of Application signed by School Head', 1),
+    ('SHS', 'Board Resolution indicating tracks and strands to be offered', 2),
+    ('SHS', 'Existing Recognition in Basic Education or Accreditation', 3),
+    ('SHS', 'Proposed Tuition and Other School Fees', 4),
+    ('SHS', 'School Calendar', 5),
+    ('SHS', 'List of Academic and Non-Academic Personnel', 6),
+    ('SHS', 'Faculty Qualifications and Teaching Loads', 7),
+    ('SHS', 'Inventory of Classrooms, Laboratories, Workshops, Library and Equipment', 8),
+    ('SHS', 'Internet Connectivity Facilities', 9),
+    ('SHS', 'Curriculum and Program Offerings', 10),
+    ('SHS', 'Memorandum of Agreement (MOA) with Industry Partners or HEIs, if applicable', 11),
+    ('SHS', 'Career Guidance and Youth Formation Plan', 12),
+    ('SHS', 'Facilities and Safety Documents', 13),
+    ('SHS', 'Division Endorsement', 14),
+    ('CALENDAR', 'School Calendar', 1),
+    ('REMEDIAL', 'Application for Remedial/ Advancement Classes', 1)
 ) as d(code, name, sort_order)
-join public.services s on s.code = d.code
-on conflict (service_id, name) do nothing;
+join public.services s on s.code = d.code;

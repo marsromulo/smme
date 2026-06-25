@@ -1,8 +1,11 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { DragEvent, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
+  ChevronDown,
+  ChevronUp,
   FilePlus2,
+  GripVertical,
   Pencil,
   Plus,
   RefreshCw,
@@ -22,7 +25,7 @@ type ServiceRecord = {
   code: string;
   name: string;
   description: string;
-  status: "active" | "draft" | "archived";
+  status: "active" | "inactive";
   targetUsers: string;
   sortOrder: number;
   documents: ServiceDocument[];
@@ -30,11 +33,10 @@ type ServiceRecord = {
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type ServiceForm = Omit<ServiceRecord, "id"> & { id: string };
-type DocumentDraft = Pick<ServiceDocument, "name" | "isRequired">;
+type DocumentDraft = Pick<ServiceDocument, "name">;
 
 const emptyDocumentDraft: DocumentDraft = {
   name: "",
-  isRequired: true,
 };
 
 const emptyForm: ServiceForm = {
@@ -48,8 +50,60 @@ const emptyForm: ServiceForm = {
   documents: [],
 };
 
+function reorderItems<T>(items: T[], fromIndex: number, toIndex: number) {
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) {
+    return items;
+  }
+
+  const nextItems = [...items];
+  const [movedItem] = nextItems.splice(fromIndex, 1);
+
+  if (!movedItem) {
+    return items;
+  }
+
+  nextItems.splice(toIndex, 0, movedItem);
+  return nextItems;
+}
+
+function applyDocumentSortOrder(documents: ServiceDocument[]) {
+  return documents.map((document, index) => ({
+    ...document,
+    sortOrder: index + 1,
+  }));
+}
+
+function applyServiceSortOrder(services: ServiceRecord[]) {
+  return services.map((service, index) => ({
+    ...service,
+    sortOrder: index + 1,
+  }));
+}
+
+function buildServicePayload(serviceForm: ServiceForm, sortOrder: number) {
+  return {
+    name: serviceForm.name,
+    description: serviceForm.description,
+    status: serviceForm.status,
+    sortOrder,
+    documents: serviceForm.documents
+      .map((document, index) => ({
+        ...document,
+        name: document.name.trim(),
+        sortOrder: index + 1,
+      }))
+      .filter((document) => document.name),
+  };
+}
+
 export function ServicesMaintenanceClient() {
   const serviceEditorRef = useRef<HTMLElement | null>(null);
+  const documentListRef = useRef<HTMLDivElement | null>(null);
+  const formRef = useRef<ServiceForm>(emptyForm);
+  const documentDragStartDocumentsRef = useRef<ServiceDocument[]>([]);
+  const hasDocumentOrderChangedRef = useRef(false);
+  const documentDropCompletedRef = useRef(false);
+  const draggedDocumentIndexRef = useRef<number | null>(null);
   const [services, setServices] = useState<ServiceRecord[]>([]);
   const [form, setForm] = useState<ServiceForm>(emptyForm);
   const [documentDraft, setDocumentDraft] = useState<DocumentDraft>(emptyDocumentDraft);
@@ -57,8 +111,30 @@ export function ServicesMaintenanceClient() {
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [hasDocumentOverflow, setHasDocumentOverflow] = useState(false);
+  const [isDocumentListAtBottom, setIsDocumentListAtBottom] = useState(false);
+  const [draggedDocumentIndex, setDraggedDocumentIndex] = useState<number | null>(null);
+  const [draggedServiceId, setDraggedServiceId] = useState<string | null>(null);
+  const [serviceOrderMessage, setServiceOrderMessage] = useState("");
+  const [isReorderingServices, setIsReorderingServices] = useState(false);
 
   const isEditing = Boolean(form.id);
+
+  const updateDocumentListScrollState = useCallback(() => {
+    const list = documentListRef.current;
+
+    if (!list) {
+      setHasDocumentOverflow(false);
+      setIsDocumentListAtBottom(false);
+      return;
+    }
+
+    const hasOverflow = list.scrollHeight > list.clientHeight + 1;
+    const isAtBottom = !hasOverflow || list.scrollTop + list.clientHeight >= list.scrollHeight - 2;
+
+    setHasDocumentOverflow(hasOverflow);
+    setIsDocumentListAtBottom(isAtBottom);
+  }, []);
 
   const loadServices = useCallback(async () => {
     setLoadState("loading");
@@ -72,7 +148,7 @@ export function ServicesMaintenanceClient() {
         throw new Error(result.error ?? "Unable to load services.");
       }
 
-      setServices(result.services ?? []);
+      setServices(applyServiceSortOrder(result.services ?? []));
       setLoadState("ready");
     } catch (error) {
       setLoadState("error");
@@ -85,6 +161,39 @@ export function ServicesMaintenanceClient() {
       void loadServices();
     });
   }, [loadServices]);
+
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
+
+  useEffect(() => {
+    const animationFrame = window.requestAnimationFrame(updateDocumentListScrollState);
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [form.documents, isEditorOpen, updateDocumentListScrollState]);
+
+  useEffect(() => {
+    const list = documentListRef.current;
+
+    if (!list) {
+      return;
+    }
+
+    window.addEventListener("resize", updateDocumentListScrollState);
+
+    if (typeof ResizeObserver === "undefined") {
+      updateDocumentListScrollState();
+      return () => window.removeEventListener("resize", updateDocumentListScrollState);
+    }
+
+    const resizeObserver = new ResizeObserver(updateDocumentListScrollState);
+    resizeObserver.observe(list);
+    updateDocumentListScrollState();
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateDocumentListScrollState);
+    };
+  }, [form.documents.length, isEditorOpen, updateDocumentListScrollState]);
 
   function resetForm() {
     setForm(emptyForm);
@@ -99,7 +208,12 @@ export function ServicesMaintenanceClient() {
   }
 
   function startNewService() {
-    resetForm();
+    setForm({
+      ...emptyForm,
+      sortOrder: services.length + 1,
+    });
+    setDocumentDraft(emptyDocumentDraft);
+    setMessage("");
     setIsEditorOpen(true);
     scrollToEditor();
   }
@@ -113,7 +227,7 @@ export function ServicesMaintenanceClient() {
       status: service.status,
       targetUsers: service.targetUsers === "schools" ? "public-schools" : service.targetUsers,
       sortOrder: service.sortOrder,
-      documents: service.documents.map((document) => ({ ...document })),
+      documents: applyDocumentSortOrder(service.documents.map((document) => ({ ...document }))),
     });
     setDocumentDraft(emptyDocumentDraft);
     setMessage("");
@@ -130,14 +244,14 @@ export function ServicesMaintenanceClient() {
 
     setForm((current) => ({
       ...current,
-      documents: [
+      documents: applyDocumentSortOrder([
         ...current.documents,
         {
           name,
-          isRequired: documentDraft.isRequired,
-          sortOrder: (current.documents.length + 1) * 10,
+          isRequired: true,
+          sortOrder: current.documents.length + 1,
         },
-      ],
+      ]),
     }));
     setDocumentDraft(emptyDocumentDraft);
   }
@@ -145,8 +259,187 @@ export function ServicesMaintenanceClient() {
   function removeDocument(index: number) {
     setForm((current) => ({
       ...current,
-      documents: current.documents.filter((_, documentIndex) => documentIndex !== index),
+      documents: applyDocumentSortOrder(
+        current.documents.filter((_, documentIndex) => documentIndex !== index),
+      ),
     }));
+  }
+
+  function handleDocumentDragStart(index: number, event: DragEvent<HTMLDivElement>) {
+    documentDragStartDocumentsRef.current = form.documents;
+    hasDocumentOrderChangedRef.current = false;
+    documentDropCompletedRef.current = false;
+    draggedDocumentIndexRef.current = index;
+    setDraggedDocumentIndex(index);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(index));
+  }
+
+  function handleDocumentDragOver(targetIndex: number, event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+
+    const currentDraggedIndex = draggedDocumentIndexRef.current;
+
+    if (currentDraggedIndex === null || currentDraggedIndex === targetIndex) {
+      return;
+    }
+
+    hasDocumentOrderChangedRef.current = true;
+    setForm((current) => {
+      const nextForm = {
+        ...current,
+        documents: applyDocumentSortOrder(
+          reorderItems(current.documents, currentDraggedIndex, targetIndex),
+        ),
+      };
+
+      formRef.current = nextForm;
+      return nextForm;
+    });
+    draggedDocumentIndexRef.current = targetIndex;
+    setDraggedDocumentIndex(targetIndex);
+  }
+
+  function handleDocumentDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    documentDropCompletedRef.current = true;
+    draggedDocumentIndexRef.current = null;
+    setDraggedDocumentIndex(null);
+
+    if (!hasDocumentOrderChangedRef.current) {
+      return;
+    }
+
+    const nextForm = formRef.current;
+
+    if (nextForm.id) {
+      void persistDocumentOrder(nextForm, documentDragStartDocumentsRef.current);
+    }
+  }
+
+  function handleDocumentDragEnd() {
+    if (hasDocumentOrderChangedRef.current && !documentDropCompletedRef.current) {
+      const previousDocuments = documentDragStartDocumentsRef.current;
+
+      setForm((current) => {
+        const nextForm = {
+          ...current,
+          documents: previousDocuments,
+        };
+
+        formRef.current = nextForm;
+        return nextForm;
+      });
+    }
+
+    hasDocumentOrderChangedRef.current = false;
+    documentDropCompletedRef.current = false;
+    draggedDocumentIndexRef.current = null;
+    setDraggedDocumentIndex(null);
+  }
+
+  async function persistDocumentOrder(nextForm: ServiceForm, previousDocuments: ServiceDocument[]) {
+    setIsSaving(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/platform/services/${nextForm.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(buildServicePayload(nextForm, nextForm.sortOrder)),
+      });
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to update required document order.");
+      }
+
+      setServices((current) =>
+        current.map((service) =>
+          service.id === nextForm.id ? { ...service, documents: nextForm.documents } : service,
+        ),
+      );
+      setMessage("Required document order updated.");
+    } catch (error) {
+      setForm((current) =>
+        current.id === nextForm.id
+          ? { ...current, documents: previousDocuments }
+          : current,
+      );
+      setMessage(error instanceof Error ? error.message : "Unable to update required document order.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function persistServiceOrder(nextServices: ServiceRecord[]) {
+    setIsReorderingServices(true);
+    setServiceOrderMessage("");
+
+    try {
+      const response = await fetch("/api/platform/services/reorder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          services: nextServices.map((service) => ({
+            id: service.id,
+            sortOrder: service.sortOrder,
+          })),
+        }),
+      });
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to reorder services.");
+      }
+    } catch (error) {
+      setServiceOrderMessage(error instanceof Error ? error.message : "Unable to reorder services.");
+      await loadServices();
+    } finally {
+      setIsReorderingServices(false);
+    }
+  }
+
+  function handleServiceDragStart(serviceId: string, event: DragEvent<HTMLTableRowElement>) {
+    setDraggedServiceId(serviceId);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", serviceId);
+  }
+
+  function handleServiceDragOver(event: DragEvent<HTMLTableRowElement>) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }
+
+  function handleServiceDrop(targetServiceId: string, event: DragEvent<HTMLTableRowElement>) {
+    event.preventDefault();
+
+    if (!draggedServiceId || draggedServiceId === targetServiceId || isReorderingServices) {
+      setDraggedServiceId(null);
+      return;
+    }
+
+    const fromIndex = services.findIndex((service) => service.id === draggedServiceId);
+    const toIndex = services.findIndex((service) => service.id === targetServiceId);
+
+    if (fromIndex < 0 || toIndex < 0) {
+      setDraggedServiceId(null);
+      return;
+    }
+
+    const nextServices = applyServiceSortOrder(reorderItems(services, fromIndex, toIndex));
+    setServices(nextServices);
+    setDraggedServiceId(null);
+    void persistServiceOrder(nextServices);
+  }
+
+  function handleServiceDragEnd() {
+    setDraggedServiceId(null);
   }
 
   async function saveService(event: FormEvent<HTMLFormElement>) {
@@ -154,19 +447,7 @@ export function ServicesMaintenanceClient() {
     setIsSaving(true);
     setMessage("");
 
-    const payload = {
-      name: form.name,
-      description: form.description,
-      status: form.status,
-      sortOrder: form.sortOrder,
-      documents: form.documents
-        .map((document, index) => ({
-          ...document,
-          name: document.name.trim(),
-          sortOrder: (index + 1) * 10,
-        }))
-        .filter((document) => document.name),
-    };
+    const payload = buildServicePayload(form, isEditing ? form.sortOrder : services.length + 1);
 
     try {
       const response = await fetch(
@@ -203,10 +484,12 @@ export function ServicesMaintenanceClient() {
           <h1>Services</h1>
           <p>Create application services and define the required documents schools must submit.</p>
         </div>
-        <button className="platform-btn primary" type="button" onClick={startNewService}>
-          <Plus aria-hidden="true" size={18} />
-          New Service
-        </button>
+        {!isEditing ? (
+          <button className="platform-btn primary" type="button" onClick={startNewService}>
+            <Plus aria-hidden="true" size={18} />
+            New Service
+          </button>
+        ) : null}
       </section>
 
       {isEditorOpen ? (
@@ -240,16 +523,6 @@ export function ServicesMaintenanceClient() {
                   }
                 />
               </label>
-              <label className="platform-maintenance-sort-order">
-                <span>Sort Order</span>
-                <input
-                  type="number"
-                  value={form.sortOrder}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, sortOrder: Number(event.target.value) }))
-                  }
-                />
-              </label>
               <label className="platform-maintenance-status">
                 <span>Status</span>
                 <select
@@ -262,8 +535,7 @@ export function ServicesMaintenanceClient() {
                   }
                 >
                   <option value="active">Active</option>
-                  <option value="draft">Draft</option>
-                  <option value="archived">Archived</option>
+                  <option value="inactive">Inactive</option>
                 </select>
               </label>
 
@@ -283,7 +555,7 @@ export function ServicesMaintenanceClient() {
             <div className="platform-section-head compact">
               <div>
                 <span className="platform-kicker">Checklist builder</span>
-                <h2>Required Documents</h2>
+                <h2>Required Documents ({form.documents.length})</h2>
               </div>
             </div>
             {message ? <p className="platform-approval-message">{message}</p> : null}
@@ -305,19 +577,6 @@ export function ServicesMaintenanceClient() {
                     />
                   </label>
                   <div className="platform-document-row-controls">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={documentDraft.isRequired}
-                        onChange={(event) =>
-                          setDocumentDraft((current) => ({
-                            ...current,
-                            isRequired: event.target.checked,
-                          }))
-                        }
-                      />
-                      Required
-                    </label>
                     <button
                       className="platform-document-add-button"
                       type="button"
@@ -330,14 +589,27 @@ export function ServicesMaintenanceClient() {
                   </div>
                 </div>
                 {form.documents.length > 0 ? (
-                  <div className="platform-document-list">
-                    {form.documents.map((document, index) => (
-                      <div className="platform-document-list-item" key={`${document.id ?? "new"}-${index}`}>
-                        <span className="platform-document-list-name">{document.name}</span>
-                        <div className="platform-document-list-meta">
-                          <span className="platform-document-requirement">
-                            {document.isRequired ? "Required" : "Optional"}
+                  <div className="platform-document-list-frame">
+                    <div
+                      className="platform-document-list"
+                      ref={documentListRef}
+                      onScroll={updateDocumentListScrollState}
+                    >
+                      {form.documents.map((document, index) => (
+                        <div
+                          className={`platform-document-list-item${draggedDocumentIndex === index ? " dragging" : ""}`}
+                          draggable
+                          key={`${document.id ?? "new"}-${index}`}
+                          onDragEnd={handleDocumentDragEnd}
+                          onDragOver={(event) => handleDocumentDragOver(index, event)}
+                          onDragStart={(event) => handleDocumentDragStart(index, event)}
+                          onDrop={handleDocumentDrop}
+                        >
+                          <span className="platform-drag-handle" aria-hidden="true">
+                            <GripVertical size={15} />
                           </span>
+                          <span className="platform-sort-number">{index + 1}</span>
+                          <span className="platform-document-list-name">{document.name}</span>
                           <button
                             type="button"
                             onClick={() => removeDocument(index)}
@@ -346,8 +618,13 @@ export function ServicesMaintenanceClient() {
                             <Trash2 aria-hidden="true" size={14} />
                           </button>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                    {hasDocumentOverflow ? (
+                      <span className="platform-document-scroll-indicator" aria-hidden="true">
+                        {isDocumentListAtBottom ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                      </span>
+                    ) : null}
                   </div>
                 ) : (
                   <p className="platform-document-empty">No required documents added yet.</p>
@@ -369,6 +646,7 @@ export function ServicesMaintenanceClient() {
             Refresh
           </button>
         </div>
+        {serviceOrderMessage ? <p className="platform-approval-message">{serviceOrderMessage}</p> : null}
 
         {loadState === "loading" ? (
           <p className="platform-empty-state">Loading services...</p>
@@ -381,14 +659,29 @@ export function ServicesMaintenanceClient() {
             <table className="platform-maintenance-table">
               <thead>
                 <tr>
+                  <th>Order</th>
                   <th>Service Name</th>
                   <th>Number of Documents</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {services.map((service) => (
-                  <tr key={service.id}>
+                {services.map((service, index) => (
+                  <tr
+                    className={draggedServiceId === service.id ? "dragging" : undefined}
+                    draggable={!isReorderingServices}
+                    key={service.id}
+                    onDragEnd={handleServiceDragEnd}
+                    onDragOver={handleServiceDragOver}
+                    onDragStart={(event) => handleServiceDragStart(service.id, event)}
+                    onDrop={(event) => handleServiceDrop(service.id, event)}
+                  >
+                    <td>
+                      <span className="platform-table-order">
+                        <GripVertical aria-hidden="true" size={15} />
+                        {index + 1}
+                      </span>
+                    </td>
                     <td>
                       <strong>{service.name}</strong>
                     </td>

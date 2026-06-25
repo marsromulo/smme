@@ -1,126 +1,106 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarCheck2,
-  ClipboardCheck,
-  ClipboardList,
-  FileSearch,
-  Send,
-} from "lucide-react";
-import { requirements, serviceQueue, schools } from "../../data";
+import { ClipboardList } from "lucide-react";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-const stages = [
-  { label: "Screening", value: "8" },
-  { label: "Evaluation", value: "6" },
-  { label: "Inspection", value: "3" },
-  { label: "Release", value: "1" },
-];
+type ServiceRow = {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  status: "active" | "inactive";
+  sort_order: number;
+};
 
-export default function PlatformApplicationsPage() {
+type DocumentRow = {
+  service_id: string;
+};
+
+async function getSmmeServices() {
+  const supabase = createSupabaseAdminClient();
+  const { data: services, error: servicesError } = await supabase
+    .from("services")
+    .select("id, code, name, description, status, sort_order")
+    .eq("status", "active")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (servicesError) {
+    return { services: [], error: servicesError.message };
+  }
+
+  const serviceRows = (services ?? []) as ServiceRow[];
+  const serviceIds = serviceRows.map((service) => service.id);
+  const { data: documents, error: documentsError } = await supabase
+    .from("service_required_documents")
+    .select("service_id")
+    .in("service_id", serviceIds.length > 0 ? serviceIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (documentsError) {
+    return { services: [], error: documentsError.message };
+  }
+
+  const documentRows = (documents ?? []) as DocumentRow[];
+
+  return {
+    services: serviceRows.map((service) => ({
+      ...service,
+      documentCount: documentRows.filter((document) => document.service_id === service.id).length,
+    })),
+    error: null,
+  };
+}
+
+export default async function PlatformApplicationsPage() {
+  const { services, error } = await getSmmeServices();
+
   return (
     <main className="platform-page">
       <section className="platform-page-head">
         <div>
-          <span className="platform-kicker">Application queue</span>
+          <span className="platform-kicker">Applications</span>
           <h1>Applications</h1>
-          <p>Static view of service requests, review stages, and documentary requirements.</p>
+          <p>Browse SMME services available for school submissions.</p>
         </div>
-        <Link className="platform-btn primary" href="/platform/schools">
-          <Send aria-hidden="true" size={18} />
-          Select School
-        </Link>
       </section>
 
-      <section className="platform-stage-grid">
-        {stages.map((stage) => (
-          <article className="platform-stage-card" key={stage.label}>
-            <span>{stage.label}</span>
-            <strong>{stage.value}</strong>
-          </article>
-        ))}
-      </section>
-
-      <section className="platform-grid applications">
-        <div className="platform-section">
-          <div className="platform-section-head">
-            <div>
-              <span className="platform-kicker">Queue</span>
-              <h2>Open Requests</h2>
-            </div>
-          </div>
-          <div className="platform-application-list">
-            {serviceQueue.map((item, index) => {
-              const Icon = item.icon;
-              const school = schools[index % schools.length];
-
-              return (
-                <Link
-                  className="platform-application-row"
-                  href={`/platform/schools/${school.slug}`}
-                  key={item.label}
-                >
-                  <span className="platform-application-icon">
-                    <Icon aria-hidden="true" size={22} />
-                  </span>
-                  <div>
-                    <strong>{item.label}</strong>
-                    <small>{item.school}</small>
-                  </div>
-                  <em>{item.status}</em>
-                  <b>{item.due}</b>
-                  <ArrowRight aria-hidden="true" size={17} />
-                </Link>
-              );
-            })}
+      <section className="platform-section">
+        <div className="platform-section-head">
+          <div>
+            <span className="platform-kicker">Service catalog</span>
+            <h2>SMME Services</h2>
           </div>
         </div>
 
-        <aside className="platform-section">
-          <div className="platform-section-head compact">
-            <div>
-              <span className="platform-kicker">Checklist</span>
-              <h2>Requirements</h2>
-            </div>
-          </div>
-          <div className="platform-requirement-list">
-            {requirements.map((requirement) => {
-              const Icon = requirement.icon;
-
-              return (
-                <div className="platform-requirement-item" key={requirement.label}>
-                  <Icon aria-hidden="true" size={20} />
-                  <div>
-                    <strong>{requirement.label}</strong>
-                    <small>{requirement.state}</small>
-                  </div>
+        {error ? (
+          <p className="platform-empty-state">{error}</p>
+        ) : services.length === 0 ? (
+          <p className="platform-empty-state">No SMME services available yet.</p>
+        ) : (
+          <div className="platform-smme-service-list">
+            {services.map((service) => (
+              <Link
+                className="platform-smme-service-item"
+                href={`/platform/applications/${service.id}`}
+                key={service.id}
+              >
+                <span className="platform-smme-service-icon">
+                  <ClipboardList aria-hidden="true" size={21} />
+                </span>
+                <div>
+                  <strong>{service.name}</strong>
+                  {service.description ? <p>{service.description}</p> : null}
+                  <small>
+                    {service.documentCount} required document
+                    {service.documentCount === 1 ? "" : "s"}
+                  </small>
                 </div>
-              );
-            })}
+                <span className="platform-smme-service-apply">
+                  Apply
+                </span>
+              </Link>
+            ))}
           </div>
-        </aside>
-      </section>
-
-      <section className="platform-grid two">
-        <article className="platform-process-panel">
-          <ClipboardList aria-hidden="true" size={26} />
-          <h2>Submission Intake</h2>
-          <p>Schools submit application details and required attachments for initial screening.</p>
-        </article>
-        <article className="platform-process-panel">
-          <FileSearch aria-hidden="true" size={26} />
-          <h2>Evaluator Review</h2>
-          <p>Documents are checked, returned for revision, approved, or routed for inspection.</p>
-        </article>
-        <article className="platform-process-panel">
-          <CalendarCheck2 aria-hidden="true" size={26} />
-          <h2>Inspection Schedule</h2>
-          <p>On-site validation and program-specific checks are coordinated with the school.</p>
-        </article>
-        <article className="platform-process-panel">
-          <ClipboardCheck aria-hidden="true" size={26} />
-          <h2>Final Action</h2>
-          <p>Approved requests move to release, records, notices, and transaction history.</p>
-        </article>
+        )}
       </section>
     </main>
   );

@@ -16,7 +16,7 @@ type RegistrationDetail = {
   representative_position: string | null;
   representative_email: string;
   contact_number: string | null;
-  status: "pending" | "approved" | "rejected";
+  status: "new" | "pending" | "approved" | "rejected";
   admin_notes: string | null;
   reviewed_at: string | null;
   created_at: string;
@@ -34,6 +34,10 @@ function formatDateTime(value: string | null) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function formatRegistrationStatus(status: RegistrationDetail["status"]) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 export default async function RegistrationDetailPage({
@@ -75,6 +79,19 @@ export default async function RegistrationDetailPage({
 
   const registration = data as RegistrationDetail;
 
+  const { error: notificationReadError } = await supabase
+    .from("admin_notifications")
+    .update({ is_read: true })
+    .eq("school_registration_request_id", registration.id)
+    .eq("is_read", false);
+
+  if (notificationReadError) {
+    console.error(
+      "Unable to mark registration notifications as read:",
+      notificationReadError.message,
+    );
+  }
+
   return (
     <main className="platform-page">
       <section className="platform-page-head registration-review">
@@ -88,7 +105,7 @@ export default async function RegistrationDetailPage({
           <p>Review the submitted school registration request and set its approval status.</p>
         </div>
         <span className={`platform-pill registration-${registration.status}`}>
-          {registration.status}
+          {formatRegistrationStatus(registration.status)}
         </span>
       </section>
 
@@ -119,7 +136,7 @@ export default async function RegistrationDetailPage({
             </div>
             <div>
               <BookOpenCheck aria-hidden="true" size={18} />
-              <span>Offerings &amp; Services</span>
+              <span>Curriculum Offerings</span>
               <strong>
                 {registration.school_offerings?.length
                   ? registration.school_offerings.join(", ")

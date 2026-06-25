@@ -10,7 +10,7 @@ type Registration = {
   representative_name: string;
   representative_email: string;
   contact_number: string | null;
-  status: "pending" | "approved" | "rejected";
+  status: "new" | "pending" | "approved" | "rejected";
   created_at: string;
 };
 
@@ -22,6 +22,10 @@ function formatDate(value: string) {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function formatRegistrationStatus(status: Registration["status"]) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 export function AdminRegistrationApprovals() {
@@ -74,7 +78,7 @@ export function AdminRegistrationApprovals() {
           registration.id === id ? { ...registration, status } : registration,
         ),
       );
-      setMessage(`Registration ${status}.`);
+      setMessage(`Registration ${formatRegistrationStatus(status)}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update registration request.");
     }
@@ -124,7 +128,7 @@ export function AdminRegistrationApprovals() {
                 ) : (
                   <Clock3 aria-hidden="true" size={15} />
                 )}
-                {registration.status}
+                {formatRegistrationStatus(registration.status)}
               </span>
               <div className="platform-approval-actions">
                 <button

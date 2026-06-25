@@ -122,7 +122,7 @@ export default async function PlatformSchoolDetailsPage({
           <div className="platform-section-head compact">
             <div>
               <span className="platform-kicker">Programs</span>
-              <h2>Offerings & Services</h2>
+              <h2>Curriculum Offerings</h2>
             </div>
           </div>
           <div className="platform-tag-list">

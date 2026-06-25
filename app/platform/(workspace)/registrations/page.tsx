@@ -9,7 +9,7 @@ type RegistrationRow = {
   representative_name: string;
   representative_email: string;
   created_at: string;
-  status: "pending" | "approved" | "rejected";
+  status: "new" | "pending" | "approved" | "rejected";
 };
 
 function formatDate(value: string) {
@@ -18,6 +18,10 @@ function formatDate(value: string) {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function formatRegistrationStatus(status: RegistrationRow["status"]) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 export default async function RegistrationsPage() {
@@ -95,7 +99,7 @@ export default async function RegistrationsPage() {
                   <span>{registration.representative_email}</span>
                   <time dateTime={registration.created_at}>{formatDate(registration.created_at)}</time>
                   <em className={`platform-pill registration-${registration.status}`}>
-                    {registration.status}
+                    {formatRegistrationStatus(registration.status)}
                   </em>
                 </Link>
               ))}

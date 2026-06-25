@@ -13,6 +13,7 @@ export default async function PlatformWorkspaceLayout({
       email={session.email}
       name={session.name}
       role={session.role}
+      userId={session.userId}
     >
       {children}
     </PlatformWorkspaceShell>

@@ -31,9 +31,14 @@ function cleanFileName(value: string) {
   return cleaned || fallback;
 }
 
-function parseFiles(body: unknown): { files?: IncomingFile[]; error?: string } {
+function parseFiles(body: unknown): {
+  files?: IncomingFile[];
+  serviceRequiredDocumentId?: string | null;
+  error?: string;
+} {
   const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
   const files = Array.isArray(record.files) ? record.files : [];
+  const serviceRequiredDocumentId = cleanString(record.serviceRequiredDocumentId);
 
   if (files.length === 0) {
     return { error: "Select at least one file to upload." };
@@ -70,7 +75,7 @@ function parseFiles(body: unknown): { files?: IncomingFile[]; error?: string } {
     }
   }
 
-  return { files: parsedFiles };
+  return { files: parsedFiles, serviceRequiredDocumentId: serviceRequiredDocumentId || null };
 }
 
 export async function POST(
@@ -111,11 +116,28 @@ export async function POST(
       return Response.json({ error: "Application was not found." }, { status: 404 });
     }
 
+    if (parsed.serviceRequiredDocumentId) {
+      const { data: requiredDocument, error: requiredDocumentError } = await supabase
+        .from("service_required_documents")
+        .select("id")
+        .eq("id", parsed.serviceRequiredDocumentId)
+        .eq("service_id", application.service_id)
+        .single();
+
+      if (requiredDocumentError || !requiredDocument) {
+        return Response.json(
+          { error: "Selected requirement does not belong to this service." },
+          { status: 400 },
+        );
+      }
+    }
+
     const fileRows = parsed.files.map((file) => ({
       application_id: applicationId,
       mime_type: file.type,
       object_key: `applications/${auth.userId}/${applicationId}/${randomUUID()}-${cleanFileName(file.name)}`,
       original_name: file.name,
+      service_required_document_id: parsed.serviceRequiredDocumentId,
       size_bytes: file.size,
       upload_status: "pending",
       uploaded_by: auth.userId,

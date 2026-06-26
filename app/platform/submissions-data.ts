@@ -13,6 +13,16 @@ type ApplicationRow = {
   submitted_at: string;
 };
 
+export type SubmissionStatus = "new" | "in_progress" | "approved" | "rejected";
+export type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+export type RequiredDocumentStatus =
+  | "not_assigned"
+  | "assigned"
+  | "needs_review"
+  | "resubmit"
+  | "rejected"
+  | "approved";
+
 export type SubmissionFileRow = {
   application_id: string;
   created_at: string;
@@ -32,12 +42,14 @@ export type SubmissionFileRow = {
 export type SubmissionRequiredDocument = {
   id: string;
   name: string;
+  service_id: string;
   sort_order: number;
 };
 
 export type SubmissionFileReviewHistory = {
   created_at: string;
   id: string;
+  review_note: string | null;
   review_status: string;
   reviewer_name: string;
   service_application_file_id: string;
@@ -86,6 +98,10 @@ export function formatSubmissionDate(value: string) {
 export function formatSubmissionStatus(value: string) {
   const normalizedValue = normalizeSubmissionStatus(value);
 
+  if (normalizedValue === "new") {
+    return "New";
+  }
+
   if (normalizedValue === "in_progress") {
     return "In progress";
   }
@@ -112,7 +128,11 @@ export function submissionStatusClass(value: string) {
   return `platform-pill ${statusClass(normalizeSubmissionStatus(value))}`;
 }
 
-function normalizeSubmissionStatus(value: string) {
+export function normalizeSubmissionStatus(value: string): SubmissionStatus {
+  if (value === "new") {
+    return "new";
+  }
+
   if (value === "approved") {
     return "approved";
   }
@@ -122,6 +142,114 @@ function normalizeSubmissionStatus(value: string) {
   }
 
   return "in_progress";
+}
+
+export function normalizeReviewStatus(value: string): ReviewStatus {
+  if (value === "approved" || value === "rejected" || value === "resubmit") {
+    return value;
+  }
+
+  return "pending";
+}
+
+export function requiredDocumentStatusLabel(status: RequiredDocumentStatus) {
+  if (status === "not_assigned") {
+    return "Not Assigned";
+  }
+
+  if (status === "needs_review") {
+    return "Needs review";
+  }
+
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+export function requiredDocumentStatusClass(status: RequiredDocumentStatus) {
+  return `platform-pill ${statusClass(status)}`;
+}
+
+export function getRequiredDocumentStatus({
+  files,
+  requiredDocumentId,
+}: {
+  files: SubmissionFileRow[];
+  requiredDocumentId: string;
+}): RequiredDocumentStatus {
+  const assignedFiles = files.filter(
+    (file) =>
+      file.upload_status === "uploaded" &&
+      file.service_required_document_id === requiredDocumentId,
+  );
+
+  if (assignedFiles.length === 0) {
+    return "not_assigned";
+  }
+
+  if (assignedFiles.every((file) => normalizeReviewStatus(file.review_status) === "approved")) {
+    return "approved";
+  }
+
+  if (assignedFiles.some((file) => normalizeReviewStatus(file.review_status) === "rejected")) {
+    return "rejected";
+  }
+
+  if (assignedFiles.some((file) => normalizeReviewStatus(file.review_status) === "resubmit")) {
+    return "resubmit";
+  }
+
+  if (
+    assignedFiles.some(
+      (file) =>
+        normalizeReviewStatus(file.review_status) === "pending" &&
+        (file.reviewed_at || file.review_history.length > 0),
+    )
+  ) {
+    return "needs_review";
+  }
+
+  return "assigned";
+}
+
+export function deriveSubmissionStatus({
+  files,
+  requiredDocuments,
+  storedStatuses,
+}: {
+  files: SubmissionFileRow[];
+  requiredDocuments: SubmissionRequiredDocument[];
+  storedStatuses: string[];
+}): SubmissionStatus {
+  if (storedStatuses.some((status) => normalizeSubmissionStatus(status) === "rejected")) {
+    return "rejected";
+  }
+
+  const uploadedFiles = files.filter((file) => file.upload_status === "uploaded");
+  const requiredDocumentStatuses = requiredDocuments.map((document) =>
+    getRequiredDocumentStatus({
+      files: uploadedFiles,
+      requiredDocumentId: document.id,
+    }),
+  );
+
+  if (
+    requiredDocumentStatuses.length > 0 &&
+    requiredDocumentStatuses.every((status) => status === "approved")
+  ) {
+    return "approved";
+  }
+
+  if (uploadedFiles.some((file) => Boolean(file.service_required_document_id))) {
+    return "in_progress";
+  }
+
+  return "new";
+}
+
+function latestTimestamp(values: string[]) {
+  return values.reduce((latest, value) => {
+    const time = new Date(value).getTime();
+    return Number.isFinite(time) && time > latest ? time : latest;
+  }, 0);
 }
 
 function getServiceMap(services: ServiceRow[]) {
@@ -156,7 +284,7 @@ async function getRelatedRows(applications: ApplicationRow[]) {
       .order("created_at", { ascending: true }),
     supabase
       .from("service_required_documents")
-      .select("id, name, sort_order")
+      .select("id, service_id, name, sort_order")
       .in("service_id", serviceIds.length > 0 ? serviceIds : ["00000000-0000-0000-0000-000000000000"])
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true }),
@@ -166,7 +294,7 @@ async function getRelatedRows(applications: ApplicationRow[]) {
   const fileIds = fileRows.map((file) => file.id);
   const { data: reviewHistory } = await supabase
     .from("service_application_file_review_history")
-    .select("id, service_application_file_id, reviewer_name, review_status, created_at")
+    .select("id, service_application_file_id, reviewer_name, review_status, review_note, created_at")
     .in("service_application_file_id", fileIds.length > 0 ? fileIds : ["00000000-0000-0000-0000-000000000000"])
     .order("created_at", { ascending: false });
   const historyRows = (reviewHistory ?? []) as SubmissionFileReviewHistory[];
@@ -182,66 +310,85 @@ async function getRelatedRows(applications: ApplicationRow[]) {
   };
 }
 
-function mapApplication({
-  application,
+function buildSubmissionListItem({
+  applications,
   files,
+  requiredDocuments,
   schools,
   services,
 }: {
-  application: ApplicationRow;
+  applications: ApplicationRow[];
   files: SubmissionFileRow[];
+  requiredDocuments: SubmissionRequiredDocument[];
   schools: Map<string, SchoolRow>;
   services: Map<string, ServiceRow>;
 }): SubmissionListItem {
-  const service = services.get(application.service_id);
-  const applicationFiles = files.filter((file) => file.application_id === application.id);
+  const applicationIds = new Set(applications.map((application) => application.id));
+  const groupFiles = files.filter((file) => applicationIds.has(file.application_id));
+  const uploadedFiles = groupFiles.filter((file) => file.upload_status === "uploaded");
+  const latestApplication = applications.reduce((latest, application) => {
+    const latestTime = latestTimestamp([
+      latest.submitted_at,
+      latest.created_at,
+      ...groupFiles
+        .filter((file) => file.application_id === latest.id)
+        .map((file) => file.uploaded_at ?? file.created_at),
+    ]);
+    const applicationTime = latestTimestamp([
+      application.submitted_at,
+      application.created_at,
+      ...groupFiles
+        .filter((file) => file.application_id === application.id)
+        .map((file) => file.uploaded_at ?? file.created_at),
+    ]);
+
+    return applicationTime > latestTime ? application : latest;
+  }, applications[0]);
+  const service = services.get(latestApplication.service_id);
+  const serviceRequiredDocuments = requiredDocuments.filter(
+    (document) => document.service_id === latestApplication.service_id,
+  );
+  const submittedAt = new Date(
+    latestTimestamp([
+      latestApplication.submitted_at,
+      latestApplication.created_at,
+      ...groupFiles.map((file) => file.uploaded_at ?? file.created_at),
+    ]),
+  ).toISOString();
 
   return {
-    fileCount: applicationFiles.length,
-    id: application.id,
-    schoolName: application.school_id
-      ? schools.get(application.school_id)?.school_name ?? "School account"
+    fileCount: uploadedFiles.length,
+    id: latestApplication.id,
+    schoolName: latestApplication.school_id
+      ? schools.get(latestApplication.school_id)?.school_name ?? "School account"
       : "School account",
-    schoolSlug: application.school_id ? schools.get(application.school_id)?.slug ?? null : null,
-    schoolUserId: application.school_user_id,
+    schoolSlug: latestApplication.school_id ? schools.get(latestApplication.school_id)?.slug ?? null : null,
+    schoolUserId: latestApplication.school_user_id,
     serviceCode: service?.code ?? "SERVICE",
-    serviceId: application.service_id,
+    serviceId: latestApplication.service_id,
     serviceName: service?.name ?? "Service application",
-    status: normalizeSubmissionStatus(application.status),
-    submittedAt: application.submitted_at,
-    uploadedFileCount: applicationFiles.filter((file) => file.upload_status === "uploaded").length,
+    status: deriveSubmissionStatus({
+      files: groupFiles,
+      requiredDocuments: serviceRequiredDocuments,
+      storedStatuses: applications.map((application) => application.status),
+    }),
+    submittedAt,
+    uploadedFileCount: uploadedFiles.length,
   };
 }
 
-function groupSubmissions(items: SubmissionListItem[], getKey: (item: SubmissionListItem) => string) {
-  const groups = new Map<string, SubmissionListItem>();
+function groupApplications(
+  applications: ApplicationRow[],
+  getKey: (application: ApplicationRow) => string,
+) {
+  const groups = new Map<string, ApplicationRow[]>();
 
-  for (const item of items) {
-    const current = groups.get(getKey(item));
-
-    if (!current) {
-      groups.set(getKey(item), {
-        ...item,
-        fileCount: item.uploadedFileCount,
-        uploadedFileCount: item.uploadedFileCount,
-      });
-      continue;
-    }
-
-    const latestItem = new Date(item.submittedAt).getTime() > new Date(current.submittedAt).getTime()
-      ? item
-      : current;
-
-    groups.set(getKey(item), {
-      ...latestItem,
-      fileCount: current.fileCount + item.uploadedFileCount,
-      uploadedFileCount: current.uploadedFileCount + item.uploadedFileCount,
-    });
+  for (const application of applications) {
+    const key = getKey(application);
+    groups.set(key, [...(groups.get(key) ?? []), application]);
   }
 
-  return Array.from(groups.values()).sort(
-    (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
-  );
+  return Array.from(groups.values());
 }
 
 export async function getSubmissionList(session: PlatformSession): Promise<SubmissionListItem[]> {
@@ -276,20 +423,22 @@ export async function getSubmissionList(session: PlatformSession): Promise<Submi
   const serviceMap = getServiceMap(related.services);
   const schoolMap = getSchoolMap(related.schools);
 
-  const mappedApplications = applications.map((application) =>
-    mapApplication({
-      application,
-      files: related.files,
-      schools: schoolMap,
-      services: serviceMap,
-    }),
-  );
+  const groupedApplications =
+    session.role === "school"
+      ? groupApplications(applications, (application) => application.service_id)
+      : groupApplications(applications, (application) => `${application.school_user_id}:${application.service_id}`);
 
-  if (session.role === "school") {
-    return groupSubmissions(mappedApplications, (item) => item.serviceId);
-  }
-
-  return groupSubmissions(mappedApplications, (item) => `${item.schoolUserId}:${item.serviceId}`);
+  return groupedApplications
+    .map((applicationGroup) =>
+      buildSubmissionListItem({
+        applications: applicationGroup,
+        files: related.files,
+        requiredDocuments: related.requiredDocuments,
+        schools: schoolMap,
+        services: serviceMap,
+      }),
+    )
+    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
 }
 
 export async function getSubmissionDetail({
@@ -335,18 +484,13 @@ export async function getSubmissionDetail({
   }
 
   const related = await getRelatedRows(detailApplications);
-  const mappedApplications = detailApplications.map((detailApplication) =>
-    mapApplication({
-      application: detailApplication,
-      files: related.files,
-      schools: getSchoolMap(related.schools),
-      services: getServiceMap(related.services),
-    }),
-  );
-  const listItem =
-    session.role === "school"
-      ? groupSubmissions(mappedApplications, (item) => item.serviceId)[0]
-      : groupSubmissions(mappedApplications, (item) => `${item.schoolUserId}:${item.serviceId}`)[0];
+  const listItem = buildSubmissionListItem({
+    applications: detailApplications,
+    files: related.files,
+    requiredDocuments: related.requiredDocuments,
+    schools: getSchoolMap(related.schools),
+    services: getServiceMap(related.services),
+  });
 
   if (!listItem) {
     notFound();

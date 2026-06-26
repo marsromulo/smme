@@ -7,6 +7,7 @@ type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
 export type SubmissionFileHistoryEntry = {
   createdAt: string;
   id: string;
+  reviewNote?: string | null;
   reviewStatus: ReviewStatus;
   reviewerName: string;
 };

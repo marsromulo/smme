@@ -53,7 +53,7 @@ export default async function PlatformSubmissionsPage() {
               <tbody>
                 {submissions.map((submission) => (
                   <tr key={submission.id}>
-                    <td>
+                    <td className="platform-submission-service-cell">
                       <Link href={`/platform/submissions/${submission.id}`}>
                         <span className="platform-table-service-title">
                           <FileText aria-hidden="true" size={17} />
@@ -62,7 +62,7 @@ export default async function PlatformSubmissionsPage() {
                       </Link>
                     </td>
                     {isAdmin ? (
-                      <td>
+                      <td className="platform-submission-school-cell">
                         {submission.schoolSlug ? (
                           <Link href={`/platform/schools/${submission.schoolSlug}`}>
                             {submission.schoolName}
@@ -72,14 +72,14 @@ export default async function PlatformSubmissionsPage() {
                         )}
                       </td>
                     ) : null}
-                    <td>{submission.fileCount}</td>
-                    <td>
+                    <td className="platform-submission-compact-cell">{submission.fileCount}</td>
+                    <td className="platform-submission-compact-cell">
                       <span className={submissionStatusClass(submission.status)}>
                         {formatSubmissionStatus(submission.status)}
                       </span>
                     </td>
-                    <td>{formatSubmissionDate(submission.submittedAt)}</td>
-                    <td>
+                    <td className="platform-submission-date-cell">{formatSubmissionDate(submission.submittedAt)}</td>
+                    <td className="platform-submission-compact-cell">
                       <Link className="platform-table-action" href={`/platform/submissions/${submission.id}`}>
                         <FolderOpen aria-hidden="true" size={16} />
                         Open

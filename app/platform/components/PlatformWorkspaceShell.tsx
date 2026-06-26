@@ -34,12 +34,14 @@ export function PlatformWorkspaceShell({
   email,
   name,
   role,
+  schoolName,
   userId,
 }: Readonly<{
   children: React.ReactNode;
   email: string | null;
   name: string | null;
   role: PlatformRole;
+  schoolName: string | null;
   userId: string | null;
 }>) {
   const pathname = usePathname();
@@ -59,6 +61,7 @@ export function PlatformWorkspaceShell({
     return true;
   });
   const displayName = name ?? (isAdmin ? "Admin User" : "School Contact");
+  const dashboardTitle = isAdmin ? "Admin Dashboard" : schoolName ?? "School Contact Dashboard";
   const initials = displayName
     .split(" ")
     .filter(Boolean)
@@ -153,7 +156,7 @@ export function PlatformWorkspaceShell({
             <span>
               <LayoutDashboard aria-hidden="true" size={21} />
             </span>
-            <strong>{isAdmin ? "Admin Dashboard" : "School Contact Dashboard"}</strong>
+            <strong>{dashboardTitle}</strong>
           </div>
           <div className="platform-topbar-actions">
             <Link className="platform-notification-link" href={notificationHref} aria-label="Notifications">

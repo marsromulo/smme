@@ -50,7 +50,6 @@ export async function POST(request: Request) {
         school_id: school?.id ?? null,
         school_user_id: auth.userId,
         service_id: serviceId,
-        status: "in_progress",
       })
       .select("id")
       .single();

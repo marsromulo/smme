@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { ClipboardList } from "lucide-react";
+import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  formatSubmissionStatus,
+  getSubmissionList,
+  submissionStatusClass,
+} from "@/app/platform/submissions-data";
 
 type ServiceRow = {
   id: string;
@@ -51,7 +57,12 @@ async function getSmmeServices() {
 }
 
 export default async function PlatformApplicationsPage() {
-  const { services, error } = await getSmmeServices();
+  const session = await getPlatformSession();
+  const [{ services, error }, submissions] = await Promise.all([
+    getSmmeServices(),
+    session.role === "school" ? getSubmissionList(session) : Promise.resolve([]),
+  ]);
+  const submissionByServiceId = new Map(submissions.map((submission) => [submission.serviceId, submission]));
 
   return (
     <main className="platform-page">
@@ -77,28 +88,38 @@ export default async function PlatformApplicationsPage() {
           <p className="platform-empty-state">No SMME services available yet.</p>
         ) : (
           <div className="platform-smme-service-list">
-            {services.map((service) => (
-              <Link
-                className="platform-smme-service-item"
-                href={`/platform/applications/${service.id}`}
-                key={service.id}
-              >
-                <span className="platform-smme-service-icon">
-                  <ClipboardList aria-hidden="true" size={21} />
-                </span>
-                <div>
-                  <strong>{service.name}</strong>
-                  {service.description ? <p>{service.description}</p> : null}
-                  <small>
-                    {service.documentCount} required document
-                    {service.documentCount === 1 ? "" : "s"}
-                  </small>
-                </div>
-                <span className="platform-smme-service-apply">
-                  Apply
-                </span>
-              </Link>
-            ))}
+            {services.map((service) => {
+              const submission = submissionByServiceId.get(service.id);
+
+              return (
+                <Link
+                  className="platform-smme-service-item"
+                  href={`/platform/applications/${service.id}`}
+                  key={service.id}
+                >
+                  <span className="platform-smme-service-icon">
+                    <ClipboardList aria-hidden="true" size={21} />
+                  </span>
+                  <div>
+                    <strong>{service.name}</strong>
+                    {service.description ? <p>{service.description}</p> : null}
+                    <small>
+                      {service.documentCount} required document
+                      {service.documentCount === 1 ? "" : "s"}
+                    </small>
+                  </div>
+                  <span
+                    className={
+                      submission
+                        ? `platform-smme-service-apply status ${submissionStatusClass(submission.status)}`
+                        : "platform-smme-service-apply"
+                    }
+                  >
+                    {submission ? formatSubmissionStatus(submission.status) : "Apply"}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>

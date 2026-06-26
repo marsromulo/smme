@@ -5,8 +5,8 @@ create table if not exists public.service_applications (
   school_user_id uuid not null references auth.users(id) on delete cascade,
   school_id uuid references public.schools(id) on delete set null,
   service_id uuid not null references public.services(id) on delete restrict,
-  status text not null default 'in_progress'
-    check (status in ('in_progress', 'approved', 'rejected')),
+  status text not null default 'new'
+    check (status in ('new', 'in_progress', 'approved', 'rejected')),
   submitted_at timestamptz not null default now(),
   reviewed_by uuid references auth.users(id),
   reviewed_at timestamptz,
@@ -26,11 +26,11 @@ set status = case
 end;
 
 alter table public.service_applications
-  alter column status set default 'in_progress';
+  alter column status set default 'new';
 
 alter table public.service_applications
   add constraint service_applications_status_check
-  check (status in ('in_progress', 'approved', 'rejected'));
+  check (status in ('new', 'in_progress', 'approved', 'rejected'));
 
 create table if not exists public.service_application_files (
   id uuid primary key default gen_random_uuid(),

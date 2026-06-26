@@ -10,6 +10,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+type ApplicationStatus = "new" | "in_progress" | "approved" | "rejected";
 
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -140,6 +141,99 @@ function getReviewerName(session: {
   return session.name ?? session.email ?? "Admin";
 }
 
+function normalizeApplicationStatus(value: string): ApplicationStatus {
+  if (value === "approved") {
+    return "approved";
+  }
+
+  if (value === "rejected") {
+    return "rejected";
+  }
+
+  if (value === "in_progress") {
+    return "in_progress";
+  }
+
+  return "new";
+}
+
+function normalizeReviewStatus(value: string): ReviewStatus {
+  if (value === "approved" || value === "rejected" || value === "resubmit") {
+    return value;
+  }
+
+  return "pending";
+}
+
+async function syncGroupedApplicationStatus({
+  application,
+  supabase,
+}: {
+  application: {
+    school_user_id: string;
+    service_id: string;
+  };
+  supabase: ReturnType<typeof createSupabaseAdminClient>;
+}) {
+  const { data: applications, error: applicationsError } = await supabase
+    .from("service_applications")
+    .select("id, status")
+    .eq("school_user_id", application.school_user_id)
+    .eq("service_id", application.service_id);
+
+  if (applicationsError || !applications) {
+    console.error("Unable to load grouped applications for status sync:", applicationsError?.message);
+    return;
+  }
+
+  if (applications.some((item) => normalizeApplicationStatus(item.status) === "rejected")) {
+    return;
+  }
+
+  const applicationIds = applications.map((item) => item.id);
+  const [{ data: requiredDocuments }, { data: files }] = await Promise.all([
+    supabase
+      .from("service_required_documents")
+      .select("id")
+      .eq("service_id", application.service_id),
+    supabase
+      .from("service_application_files")
+      .select("service_required_document_id, review_status, upload_status")
+      .in("application_id", applicationIds.length > 0 ? applicationIds : ["00000000-0000-0000-0000-000000000000"]),
+  ]);
+
+  const uploadedFiles = (files ?? []).filter((row) => row.upload_status === "uploaded");
+  const documentIds = (requiredDocuments ?? []).map((document) => document.id);
+  let nextStatus: ApplicationStatus = "new";
+
+  if (
+    documentIds.length > 0 &&
+    documentIds.every((documentId) => {
+      const assignedFiles = uploadedFiles.filter(
+        (uploadedFile) => uploadedFile.service_required_document_id === documentId,
+      );
+
+      return (
+        assignedFiles.length > 0 &&
+        assignedFiles.every((assignedFile) => normalizeReviewStatus(assignedFile.review_status) === "approved")
+      );
+    })
+  ) {
+    nextStatus = "approved";
+  } else if (uploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
+    nextStatus = "in_progress";
+  }
+
+  const { error: updateStatusError } = await supabase
+    .from("service_applications")
+    .update({ status: nextStatus })
+    .in("id", applicationIds);
+
+  if (updateStatusError) {
+    console.error("Unable to sync grouped application status:", updateStatusError.message);
+  }
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ fileId: string }> },
@@ -249,7 +343,7 @@ export async function PATCH(
         reviewer_user_id: session.userId,
         service_application_file_id: fileId,
       })
-      .select("id, service_application_file_id, reviewer_name, review_status, created_at")
+      .select("id, service_application_file_id, reviewer_name, review_status, review_note, created_at")
       .single();
 
     if (historyError) {
@@ -262,6 +356,8 @@ export async function PATCH(
         { status: 500 },
       );
     }
+
+    await syncGroupedApplicationStatus({ application, supabase });
 
     const statusChanged = file.review_status !== parsed.data.reviewStatus;
     let emailResult: { reason?: string; sent?: boolean } | null = null;

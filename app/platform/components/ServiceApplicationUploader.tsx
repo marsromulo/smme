@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { FileText, UploadCloud, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FileText, Trash2, UploadCloud, XCircle } from "lucide-react";
 
 type UploadResponse = {
   uploads?: {
@@ -40,7 +41,28 @@ async function readJson<T>(response: Response): Promise<T> {
   return data;
 }
 
-export function ServiceApplicationUploader({ serviceId }: { serviceId: string }) {
+export function ServiceApplicationUploader({
+  applicationId,
+  buttonLabel = "Submit Document",
+  compact = false,
+  onUploadComplete,
+  refreshOnComplete = false,
+  serviceId,
+  serviceRequiredDocumentId,
+  successMessage = "Application documents uploaded successfully.",
+  uploadHint = "Select all documents for this service in one upload section.",
+}: {
+  applicationId?: string;
+  buttonLabel?: string;
+  compact?: boolean;
+  onUploadComplete?: () => void;
+  refreshOnComplete?: boolean;
+  serviceId: string;
+  serviceRequiredDocumentId?: string;
+  successMessage?: string;
+  uploadHint?: string;
+}) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -74,6 +96,21 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
     setFiles(selectedFiles);
   }
 
+  function removeFile(fileIndex: number) {
+    if (isUploading) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setUploadedCount(0);
+    setFiles((currentFiles) => currentFiles.filter((_, index) => index !== fileIndex));
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  }
+
   async function handleSubmit() {
     if (files.length === 0 || isUploading) {
       return;
@@ -85,20 +122,26 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
     setUploadedCount(0);
 
     try {
-      const applicationResponse = await fetch("/api/platform/applications", {
-        body: JSON.stringify({ serviceId }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-      });
-      const application = await readJson<{ applicationId: string; error?: string }>(applicationResponse);
+      let uploadApplicationId = applicationId;
 
-      const signResponse = await fetch(`/api/platform/applications/${application.applicationId}/files/sign`, {
+      if (!uploadApplicationId) {
+        const applicationResponse = await fetch("/api/platform/applications", {
+          body: JSON.stringify({ serviceId }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const application = await readJson<{ applicationId: string; error?: string }>(applicationResponse);
+        uploadApplicationId = application.applicationId;
+      }
+
+      const signResponse = await fetch(`/api/platform/applications/${uploadApplicationId}/files/sign`, {
         body: JSON.stringify({
           files: files.map((file) => ({
             name: file.name,
             size: file.size,
             type: file.type,
           })),
+          serviceRequiredDocumentId: serviceRequiredDocumentId ?? null,
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
@@ -129,7 +172,7 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
       }
 
       const completeResponse = await fetch(
-        `/api/platform/applications/${application.applicationId}/files/complete`,
+        `/api/platform/applications/${uploadApplicationId}/files/complete`,
         {
           body: JSON.stringify({ fileIds: uploadedFileIds }),
           headers: { "Content-Type": "application/json" },
@@ -142,7 +185,11 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
       if (inputRef.current) {
         inputRef.current.value = "";
       }
-      setMessage("Application documents uploaded successfully.");
+      setMessage(successMessage);
+      onUploadComplete?.();
+      if (refreshOnComplete) {
+        router.refresh();
+      }
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Unable to upload documents.");
     } finally {
@@ -151,7 +198,7 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
   }
 
   return (
-    <div className="platform-service-uploader">
+    <div className={`platform-service-uploader${compact ? " compact" : ""}`}>
       <label className="platform-service-upload-zone">
         <input
           accept="application/pdf,image/*"
@@ -166,7 +213,7 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
           <UploadCloud aria-hidden="true" size={34} />
         </span>
         <strong>Upload PDF and image files</strong>
-        <small>Select all documents for this service in one upload section.</small>
+        <small>{uploadHint}</small>
       </label>
 
       {files.length > 0 ? (
@@ -178,11 +225,21 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
             <span>{formatFileSize(totalSize)}</span>
           </div>
           <ul>
-            {files.map((file) => (
-              <li key={`${file.name}-${file.size}-${file.lastModified}`}>
+            {files.map((file, index) => (
+              <li key={`${file.name}-${file.size}-${file.lastModified}-${index}`}>
                 <FileText aria-hidden="true" size={16} />
                 <span>{file.name}</span>
                 <small>{formatFileSize(file.size)}</small>
+                <button
+                  aria-label={`Remove ${file.name}`}
+                  className="platform-selected-file-remove"
+                  disabled={isUploading}
+                  onClick={() => removeFile(index)}
+                  title="Remove file"
+                  type="button"
+                >
+                  <Trash2 aria-hidden="true" size={14} />
+                </button>
               </li>
             ))}
           </ul>
@@ -206,7 +263,7 @@ export function ServiceApplicationUploader({ serviceId }: { serviceId: string })
 
       <div className="platform-upload-actions">
         <button className="platform-btn primary" disabled={files.length === 0 || isUploading} onClick={handleSubmit} type="button">
-          {isUploading ? "Uploading..." : "Submit Document"}
+          {isUploading ? "Uploading..." : buttonLabel}
         </button>
       </div>
     </div>

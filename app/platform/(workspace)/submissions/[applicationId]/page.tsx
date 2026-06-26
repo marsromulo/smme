@@ -11,10 +11,10 @@ import { SchoolSubmissionDocumentPanel } from "@/app/platform/components/SchoolS
 import { SubmissionFileReviewPanel } from "@/app/platform/components/SubmissionFileReviewPanel";
 import { SubmissionStatusDecisionForm } from "@/app/platform/components/SubmissionStatusDecisionForm";
 
-type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 
 function normalizeReviewStatus(value: string): ReviewStatus {
-  if (value === "approved" || value === "rejected" || value === "resubmit") {
+  if (value === "approved" || value === "rejected" || value === "resubmit" || value === "invalid") {
     return value;
   }
 

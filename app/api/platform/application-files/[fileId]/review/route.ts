@@ -9,7 +9,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
-type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 type ApplicationStatus = "new" | "in_progress" | "approved" | "rejected";
 
 function cleanString(value: unknown) {
@@ -33,9 +33,10 @@ function parseReviewPayload(body: unknown): {
     reviewStatus !== "pending" &&
     reviewStatus !== "approved" &&
     reviewStatus !== "rejected" &&
-    reviewStatus !== "resubmit"
+    reviewStatus !== "resubmit" &&
+    reviewStatus !== "invalid"
   ) {
-    return { error: "Status must be Approved, Rejected, or Resubmit." };
+    return { error: "Status must be Approved, Rejected, Resubmit, or Invalid." };
   }
 
   return {
@@ -158,7 +159,7 @@ function normalizeApplicationStatus(value: string): ApplicationStatus {
 }
 
 function normalizeReviewStatus(value: string): ReviewStatus {
-  if (value === "approved" || value === "rejected" || value === "resubmit") {
+  if (value === "approved" || value === "rejected" || value === "resubmit" || value === "invalid") {
     return value;
   }
 
@@ -203,13 +204,16 @@ async function syncGroupedApplicationStatus({
   ]);
 
   const uploadedFiles = (files ?? []).filter((row) => row.upload_status === "uploaded");
+  const activeUploadedFiles = uploadedFiles.filter(
+    (uploadedFile) => normalizeReviewStatus(uploadedFile.review_status) !== "invalid",
+  );
   const documentIds = (requiredDocuments ?? []).map((document) => document.id);
   let nextStatus: ApplicationStatus = "new";
 
   if (
     documentIds.length > 0 &&
     documentIds.every((documentId) => {
-      const assignedFiles = uploadedFiles.filter(
+      const assignedFiles = activeUploadedFiles.filter(
         (uploadedFile) => uploadedFile.service_required_document_id === documentId,
       );
 
@@ -220,7 +224,7 @@ async function syncGroupedApplicationStatus({
     })
   ) {
     nextStatus = "approved";
-  } else if (uploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
+  } else if (activeUploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
     nextStatus = "in_progress";
   }
 
@@ -369,8 +373,14 @@ export async function PATCH(
 
       const { error: notificationError } = await supabase.from("school_notifications").insert({
         body: `${file.original_name}${requirementText} was marked ${label}.${noteText}`,
+        link_href: `/platform/submissions/${file.application_id}`,
         recipient_user_id: application.school_user_id,
-        title: `Document ${label}`,
+        reference_id: fileId,
+        reference_type: "service_application_file",
+        title:
+          parsed.data.reviewStatus === "approved"
+            ? "Document submission approved by admin"
+            : `Document submission ${label}`,
         type: `service_document_${parsed.data.reviewStatus}`,
       });
 

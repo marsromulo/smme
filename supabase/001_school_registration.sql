@@ -77,6 +77,9 @@ create table if not exists public.admin_notifications (
   type text not null,
   title text not null,
   body text not null,
+  reference_type text,
+  reference_id uuid,
+  link_href text,
   school_registration_request_id uuid references public.school_registration_requests(id) on delete cascade,
   is_read boolean not null default false,
   created_at timestamptz not null default now()
@@ -88,10 +91,23 @@ create table if not exists public.school_notifications (
   type text not null,
   title text not null,
   body text not null,
+  reference_type text,
+  reference_id uuid,
+  link_href text,
   school_registration_request_id uuid references public.school_registration_requests(id) on delete cascade,
   is_read boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+alter table public.admin_notifications
+  add column if not exists reference_type text,
+  add column if not exists reference_id uuid,
+  add column if not exists link_href text;
+
+alter table public.school_notifications
+  add column if not exists reference_type text,
+  add column if not exists reference_id uuid,
+  add column if not exists link_href text;
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -131,6 +147,9 @@ create index if not exists schools_created_at_idx
 
 create index if not exists admin_notifications_created_at_idx
   on public.admin_notifications(created_at desc);
+
+create index if not exists admin_notifications_read_created_idx
+  on public.admin_notifications(is_read, created_at desc);
 
 create index if not exists school_notifications_recipient_read_idx
   on public.school_notifications(recipient_user_id, is_read, created_at desc);

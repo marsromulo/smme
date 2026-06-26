@@ -44,7 +44,7 @@ create table if not exists public.service_application_files (
   upload_status text not null default 'pending'
     check (upload_status in ('pending', 'uploaded', 'failed')),
   review_status text not null default 'pending'
-    check (review_status in ('pending', 'approved', 'rejected', 'resubmit')),
+    check (review_status in ('pending', 'approved', 'rejected', 'resubmit', 'invalid')),
   review_note text,
   reviewed_by uuid references auth.users(id),
   reviewed_at timestamptz,
@@ -59,7 +59,7 @@ create table if not exists public.service_application_file_review_history (
   reviewer_user_id uuid references auth.users(id) on delete set null,
   reviewer_name text not null,
   review_status text not null
-    check (review_status in ('pending', 'approved', 'rejected', 'resubmit')),
+    check (review_status in ('pending', 'approved', 'rejected', 'resubmit', 'invalid')),
   review_note text,
   created_at timestamptz not null default now()
 );
@@ -76,11 +76,22 @@ alter table public.service_application_files
 
 update public.service_application_files
 set review_status = 'pending'
-where review_status not in ('pending', 'approved', 'rejected', 'resubmit');
+where review_status not in ('pending', 'approved', 'rejected', 'resubmit', 'invalid');
 
 alter table public.service_application_files
   add constraint service_application_files_review_status_check
-  check (review_status in ('pending', 'approved', 'rejected', 'resubmit'));
+  check (review_status in ('pending', 'approved', 'rejected', 'resubmit', 'invalid'));
+
+alter table public.service_application_file_review_history
+  drop constraint if exists service_application_file_review_history_review_status_check;
+
+update public.service_application_file_review_history
+set review_status = 'pending'
+where review_status not in ('pending', 'approved', 'rejected', 'resubmit', 'invalid');
+
+alter table public.service_application_file_review_history
+  add constraint service_application_file_review_history_review_status_check
+  check (review_status in ('pending', 'approved', 'rejected', 'resubmit', 'invalid'));
 
 insert into public.service_application_file_review_history (
   service_application_file_id,

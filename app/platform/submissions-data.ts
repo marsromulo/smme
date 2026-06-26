@@ -14,7 +14,7 @@ type ApplicationRow = {
 };
 
 export type SubmissionStatus = "new" | "in_progress" | "approved" | "rejected";
-export type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+export type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 export type RequiredDocumentStatus =
   | "not_assigned"
   | "assigned"
@@ -145,7 +145,7 @@ export function normalizeSubmissionStatus(value: string): SubmissionStatus {
 }
 
 export function normalizeReviewStatus(value: string): ReviewStatus {
-  if (value === "approved" || value === "rejected" || value === "resubmit") {
+  if (value === "approved" || value === "rejected" || value === "resubmit" || value === "invalid") {
     return value;
   }
 
@@ -180,25 +180,26 @@ export function getRequiredDocumentStatus({
       file.upload_status === "uploaded" &&
       file.service_required_document_id === requiredDocumentId,
   );
+  const activeFiles = assignedFiles.filter((file) => normalizeReviewStatus(file.review_status) !== "invalid");
 
-  if (assignedFiles.length === 0) {
+  if (activeFiles.length === 0) {
     return "not_assigned";
   }
 
-  if (assignedFiles.every((file) => normalizeReviewStatus(file.review_status) === "approved")) {
+  if (activeFiles.every((file) => normalizeReviewStatus(file.review_status) === "approved")) {
     return "approved";
   }
 
-  if (assignedFiles.some((file) => normalizeReviewStatus(file.review_status) === "rejected")) {
+  if (activeFiles.some((file) => normalizeReviewStatus(file.review_status) === "rejected")) {
     return "rejected";
   }
 
-  if (assignedFiles.some((file) => normalizeReviewStatus(file.review_status) === "resubmit")) {
+  if (activeFiles.some((file) => normalizeReviewStatus(file.review_status) === "resubmit")) {
     return "resubmit";
   }
 
   if (
-    assignedFiles.some(
+    activeFiles.some(
       (file) =>
         normalizeReviewStatus(file.review_status) === "pending" &&
         (file.reviewed_at || file.review_history.length > 0),
@@ -224,9 +225,12 @@ export function deriveSubmissionStatus({
   }
 
   const uploadedFiles = files.filter((file) => file.upload_status === "uploaded");
+  const activeUploadedFiles = uploadedFiles.filter(
+    (file) => normalizeReviewStatus(file.review_status) !== "invalid",
+  );
   const requiredDocumentStatuses = requiredDocuments.map((document) =>
     getRequiredDocumentStatus({
-      files: uploadedFiles,
+      files: activeUploadedFiles,
       requiredDocumentId: document.id,
     }),
   );
@@ -238,7 +242,7 @@ export function deriveSubmissionStatus({
     return "approved";
   }
 
-  if (uploadedFiles.some((file) => Boolean(file.service_required_document_id))) {
+  if (activeUploadedFiles.some((file) => Boolean(file.service_required_document_id))) {
     return "in_progress";
   }
 

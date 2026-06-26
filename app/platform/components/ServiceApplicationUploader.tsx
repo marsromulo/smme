@@ -46,6 +46,7 @@ export function ServiceApplicationUploader({
   buttonLabel = "Submit Document",
   compact = false,
   onUploadComplete,
+  replacesFileId,
   refreshOnComplete = false,
   serviceId,
   serviceRequiredDocumentId,
@@ -56,6 +57,7 @@ export function ServiceApplicationUploader({
   buttonLabel?: string;
   compact?: boolean;
   onUploadComplete?: () => void;
+  replacesFileId?: string;
   refreshOnComplete?: boolean;
   serviceId: string;
   serviceRequiredDocumentId?: string;
@@ -174,7 +176,7 @@ export function ServiceApplicationUploader({
       const completeResponse = await fetch(
         `/api/platform/applications/${uploadApplicationId}/files/complete`,
         {
-          body: JSON.stringify({ fileIds: uploadedFileIds }),
+          body: JSON.stringify({ fileIds: uploadedFileIds, replacesFileId: replacesFileId ?? null }),
           headers: { "Content-Type": "application/json" },
           method: "POST",
         },

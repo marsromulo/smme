@@ -9,17 +9,114 @@ import { cleanString, jsonAuthError, requirePlatformSchool } from "../../../help
 
 export const runtime = "nodejs";
 
-function parseFileIds(body: unknown): { fileIds?: string[]; error?: string } {
+type ApplicationStatus = "new" | "in_progress" | "approved" | "rejected";
+type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
+
+function parseFileIds(body: unknown): { fileIds?: string[]; replacesFileId?: string | null; error?: string } {
   const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
   const fileIds = Array.isArray(record.fileIds)
     ? Array.from(new Set(record.fileIds.map((fileId) => cleanString(fileId)).filter(Boolean)))
     : [];
+  const replacesFileId = cleanString(record.replacesFileId);
 
   if (fileIds.length === 0) {
     return { error: "No uploaded files were provided." };
   }
 
-  return { fileIds };
+  return { fileIds, replacesFileId: replacesFileId || null };
+}
+
+function normalizeApplicationStatus(value: string): ApplicationStatus {
+  if (value === "approved") {
+    return "approved";
+  }
+
+  if (value === "rejected") {
+    return "rejected";
+  }
+
+  if (value === "in_progress") {
+    return "in_progress";
+  }
+
+  return "new";
+}
+
+function normalizeReviewStatus(value: string): ReviewStatus {
+  if (value === "approved" || value === "rejected" || value === "resubmit" || value === "invalid") {
+    return value;
+  }
+
+  return "pending";
+}
+
+async function syncGroupedApplicationStatus({
+  application,
+  supabase,
+}: {
+  application: {
+    school_user_id: string;
+    service_id: string;
+  };
+  supabase: ReturnType<typeof createSupabaseAdminClient>;
+}) {
+  const { data: applications, error: applicationsError } = await supabase
+    .from("service_applications")
+    .select("id, status")
+    .eq("school_user_id", application.school_user_id)
+    .eq("service_id", application.service_id);
+
+  if (applicationsError || !applications) {
+    console.error("Unable to load grouped applications for status sync:", applicationsError?.message);
+    return;
+  }
+
+  if (applications.some((item) => normalizeApplicationStatus(item.status) === "rejected")) {
+    return;
+  }
+
+  const applicationIds = applications.map((item) => item.id);
+  const [{ data: requiredDocuments }, { data: files }] = await Promise.all([
+    supabase.from("service_required_documents").select("id").eq("service_id", application.service_id),
+    supabase
+      .from("service_application_files")
+      .select("service_required_document_id, review_status, upload_status")
+      .in("application_id", applicationIds.length > 0 ? applicationIds : ["00000000-0000-0000-0000-000000000000"]),
+  ]);
+
+  const uploadedFiles = (files ?? []).filter((row) => row.upload_status === "uploaded");
+  const activeUploadedFiles = uploadedFiles.filter(
+    (uploadedFile) => normalizeReviewStatus(uploadedFile.review_status) !== "invalid",
+  );
+  const documentIds = (requiredDocuments ?? []).map((document) => document.id);
+  let nextStatus: ApplicationStatus = "new";
+
+  if (
+    documentIds.length > 0 &&
+    documentIds.every((documentId) => {
+      const assignedFiles = activeUploadedFiles.filter(
+        (uploadedFile) => uploadedFile.service_required_document_id === documentId,
+      );
+
+      return (
+        assignedFiles.length > 0 &&
+        assignedFiles.every((assignedFile) => normalizeReviewStatus(assignedFile.review_status) === "approved")
+      );
+    })
+  ) {
+    nextStatus = "approved";
+  } else if (activeUploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
+    nextStatus = "in_progress";
+  }
+
+  const { error: updateStatusError } = await supabase
+    .from("service_applications")
+    .update({ status: nextStatus })
+    .in("id", applicationIds);
+
+  if (updateStatusError) {
+    console.error("Unable to sync grouped application status:", updateStatusError.message);
+  }
 }
 
 function escapeHtml(value: string) {
@@ -166,8 +263,57 @@ export async function POST(
           assignedFiles
             .map((file) => file.service_required_document_id)
             .filter((id): id is string => Boolean(id)),
-        ),
+          ),
       );
+      if (parsed.replacesFileId) {
+        const { data: replacedFile, error: replacedFileError } = await supabase
+          .from("service_application_files")
+          .select("id, review_status, service_required_document_id")
+          .eq("id", parsed.replacesFileId)
+          .eq("application_id", applicationId)
+          .maybeSingle();
+
+        if (replacedFileError) {
+          console.error("Unable to load replaced file for invalidation:", replacedFileError.message);
+        } else if (
+          replacedFile &&
+          !parsed.fileIds.includes(replacedFile.id) &&
+          replacedFile.service_required_document_id &&
+          requiredDocumentIds.includes(replacedFile.service_required_document_id) &&
+          normalizeReviewStatus(replacedFile.review_status) !== "invalid"
+        ) {
+          const invalidatedAt = new Date().toISOString();
+          const { error: invalidateError } = await supabase
+            .from("service_application_files")
+            .update({
+              review_note: "Invalidated after a replacement document was uploaded.",
+              review_status: "invalid",
+              reviewed_at: invalidatedAt,
+              reviewed_by: null,
+            })
+            .eq("id", replacedFile.id);
+
+          if (invalidateError) {
+            console.error("Unable to invalidate replaced files:", invalidateError.message);
+          } else {
+            const { error: invalidHistoryError } = await supabase
+              .from("service_application_file_review_history")
+              .insert({
+                created_at: invalidatedAt,
+                review_note: "Invalidated after a replacement document was uploaded.",
+                review_status: "invalid",
+                reviewer_name: "System",
+                reviewer_user_id: null,
+                service_application_file_id: replacedFile.id,
+              });
+
+            if (invalidHistoryError) {
+              console.error("Unable to record invalidation history:", invalidHistoryError.message);
+            }
+          }
+        }
+      }
+
       const [{ data: service }, { data: school }, { data: requiredDocuments }] = await Promise.all([
         supabase.from("services").select("name").eq("id", application.service_id).maybeSingle(),
         application.school_id
@@ -193,7 +339,10 @@ export async function POST(
         body: `${schoolName} uploaded ${assignedFiles.length} corrected document${
           assignedFiles.length === 1 ? "" : "s"
         } for ${serviceName}.`,
-        title: "Document resubmitted",
+        link_href: `/platform/submissions/${applicationId}`,
+        reference_id: applicationId,
+        reference_type: "service_application",
+        title: `Document submission from ${schoolName}`,
         type: "service_document_resubmitted",
       });
 
@@ -230,6 +379,8 @@ export async function POST(
         };
       }
     }
+
+    await syncGroupedApplicationStatus({ application, supabase });
 
     return Response.json({ email: emailResult, ok: true });
   } catch (error) {

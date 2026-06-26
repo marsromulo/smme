@@ -101,6 +101,9 @@ export async function POST(request: Request) {
       type: "school_registration_submitted",
       title: "New school registration request",
       body: `${parsed.data.schoolName} submitted a school account request.`,
+      reference_type: "school_registration",
+      reference_id: registration.id,
+      link_href: `/platform/registrations/${registration.id}`,
       school_registration_request_id: registration.id,
     });
 

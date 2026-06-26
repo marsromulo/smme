@@ -153,6 +153,9 @@ export async function PATCH(
         decisionLabel === "pending"
           ? `${registration.school_name} was marked Pending.`
           : `${registration.school_name} was ${decisionDisplay}.`,
+      reference_type: "school_registration",
+      reference_id: registration.id,
+      link_href: `/platform/registrations/${registration.id}`,
       school_registration_request_id: registration.id,
     });
 
@@ -179,6 +182,9 @@ export async function PATCH(
         type: `school_registration_${decisionLabel}`,
         title: schoolNotificationTitle,
         body: schoolNotificationBody,
+        reference_type: "school_registration",
+        reference_id: registration.id,
+        link_href: "/platform",
         school_registration_request_id: registration.id,
       });
 

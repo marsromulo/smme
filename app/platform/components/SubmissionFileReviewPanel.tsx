@@ -7,7 +7,7 @@ import {
   type SubmissionFileHistoryEntry,
 } from "@/app/platform/components/SubmissionFileHistoryPopover";
 
-type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 type RequirementStatus = "not_assigned" | "assigned" | "needs_review" | "resubmit" | "rejected" | "approved";
 
 type ReviewFile = {
@@ -90,10 +90,8 @@ export function SubmissionFileReviewPanel({
   files: ReviewFile[];
   requiredDocuments: RequiredDocument[];
 }) {
-  const [expandedFileId, setExpandedFileId] = useState<string | null>(files[0]?.id ?? null);
-  const [expandedRequirementId, setExpandedRequirementId] = useState<string | null>(
-    requiredDocuments[0]?.id ?? null,
-  );
+  const [expandedFileId, setExpandedFileId] = useState<string | null>(null);
+  const [expandedRequirementId, setExpandedRequirementId] = useState<string | null>(null);
   const [reviewHistory, setReviewHistory] = useState<Record<string, ReviewHistory[]>>(() =>
     Object.fromEntries(files.map((file) => [file.id, file.reviewHistory])),
   );
@@ -182,25 +180,26 @@ export function SubmissionFileReviewPanel({
     const assignedFiles = files.filter(
       (file) => fileState[file.id]?.serviceRequiredDocumentId === requiredDocumentId,
     );
+    const activeFiles = assignedFiles.filter((file) => fileState[file.id]?.reviewStatus !== "invalid");
 
-    if (assignedFiles.length === 0) {
+    if (activeFiles.length === 0) {
       return "not_assigned";
     }
 
-    if (assignedFiles.every((file) => fileState[file.id]?.reviewStatus === "approved")) {
+    if (activeFiles.every((file) => fileState[file.id]?.reviewStatus === "approved")) {
       return "approved";
     }
 
-    if (assignedFiles.some((file) => fileState[file.id]?.reviewStatus === "rejected")) {
+    if (activeFiles.some((file) => fileState[file.id]?.reviewStatus === "rejected")) {
       return "rejected";
     }
 
-    if (assignedFiles.some((file) => fileState[file.id]?.reviewStatus === "resubmit")) {
+    if (activeFiles.some((file) => fileState[file.id]?.reviewStatus === "resubmit")) {
       return "resubmit";
     }
 
     if (
-      assignedFiles.some((file) => {
+      activeFiles.some((file) => {
         const history = reviewHistory[file.id] ?? [];
         return fileState[file.id]?.reviewStatus === "pending" && (file.reviewedAt || history.length > 0);
       })
@@ -303,6 +302,7 @@ export function SubmissionFileReviewPanel({
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                   <option value="resubmit">Resubmit</option>
+                  <option value="invalid">Invalid</option>
                 </select>
               </label>
 
@@ -367,23 +367,28 @@ export function SubmissionFileReviewPanel({
 
           return (
             <article className="platform-requirement-review-card" key={document.id}>
-              <button
-                className="platform-requirement-review-row"
-                onClick={() => setExpandedRequirementId(isExpanded ? null : document.id)}
-                type="button"
-              >
+              <div className="platform-requirement-review-row admin">
                 <span>{index + 1}</span>
-                <div>
-                  <strong>
-                    {document.name}
-                    <em>{assignedFiles.length}</em>
-                  </strong>
-                </div>
+                <button
+                  className="platform-requirement-review-toggle"
+                  onClick={() => setExpandedRequirementId(isExpanded ? null : document.id)}
+                  type="button"
+                >
+                  <strong>{document.name}</strong>
+                </button>
+                <em className="platform-requirement-file-count">{assignedFiles.length}</em>
                 <small className={`platform-doc-status ${statusClass(status)}`}>
                   {requirementStatusLabel(status)}
                 </small>
-                <ChevronDown aria-hidden="true" className={isExpanded ? "open" : undefined} size={17} />
-              </button>
+                <button
+                  aria-label={isExpanded ? `Collapse ${document.name}` : `Expand ${document.name}`}
+                  className="platform-requirement-chevron"
+                  onClick={() => setExpandedRequirementId(isExpanded ? null : document.id)}
+                  type="button"
+                >
+                  <ChevronDown aria-hidden="true" className={isExpanded ? "open" : undefined} size={17} />
+                </button>
+              </div>
               {isExpanded ? (
                 <div className="platform-requirement-assigned-files">
                   {assignedFiles.length === 0 ? (

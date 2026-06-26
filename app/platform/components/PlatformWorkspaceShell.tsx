@@ -26,7 +26,7 @@ const navItems = [
   { href: "/platform/submissions", label: "Submissions", icon: ClipboardCheck, badge: undefined, adminOnly: true },
   { href: "/platform/applications", label: "Applications", icon: BriefcaseBusiness, badge: undefined, schoolOnly: true },
   { href: "/platform/submissions", label: "My Submissions", icon: FileBadge, badge: undefined, schoolOnly: true },
-  { href: "/platform/applications", label: "Notifications", icon: Bell, badge: undefined, neverActive: true },
+  { href: "/platform/notifications", label: "Notifications", icon: Bell, badge: undefined, neverActive: true },
 ];
 
 export function PlatformWorkspaceShell({
@@ -48,7 +48,7 @@ export function PlatformWorkspaceShell({
   const isAdmin = role === "admin";
   const [notificationCount, setNotificationCount] = useState<number | null>(null);
   const notificationBadge = (notificationCount ?? 0) > 0 ? String(notificationCount) : undefined;
-  const notificationHref = isAdmin ? "/platform/applications" : "/platform";
+  const notificationHref = "/platform/notifications";
   const visibleNavItems = navItems.filter((item) => {
     if (item.adminOnly && !isAdmin) {
       return false;

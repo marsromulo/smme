@@ -105,6 +105,7 @@ type SchoolNotification = {
   title: string;
   body: string;
   created_at: string;
+  link_href: string | null;
 };
 
 function statusClass(status: string) {
@@ -154,7 +155,7 @@ async function getSchoolNotifications(userId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("school_notifications")
-    .select("id, type, title, body, created_at")
+    .select("id, type, title, body, created_at, link_href")
     .eq("recipient_user_id", userId)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -168,23 +169,7 @@ async function getSchoolNotifications(userId: string) {
     return [];
   }
 
-  const notifications = (data ?? []) as SchoolNotification[];
-  const unreadIds = notifications.map((item) => item.id);
-
-  if (unreadIds.length > 0) {
-    const { error: readError } = await supabase
-      .from("school_notifications")
-      .update({ is_read: true })
-      .in("id", unreadIds)
-      .eq("recipient_user_id", userId)
-      .eq("is_read", false);
-
-    if (readError) {
-      console.error("Unable to mark school notifications as read:", readError.message);
-    }
-  }
-
-  return notifications;
+  return (data ?? []) as SchoolNotification[];
 }
 
 const adminStats = [
@@ -366,14 +351,18 @@ function SchoolDashboard({
           <section className="platform-section platform-compact-panel">
             <div className="platform-panel-title">
               <h2>Recent Notifications</h2>
-              <Link href="/platform">View all</Link>
+              <Link href="/platform/notifications">View all</Link>
             </div>
             <div className="platform-notification-list">
               {notifications.length === 0 ? (
                 <p className="platform-empty-state">No recent notifications.</p>
               ) : (
                 notifications.map((item) => (
-                  <div className="platform-notification-item" key={item.id}>
+                  <a
+                    className="platform-notification-item"
+                    href={`/api/platform/notifications/${item.id}/open`}
+                    key={item.id}
+                  >
                     <span className={schoolNotificationTone(item.type)}>
                       <SchoolNotificationIcon type={item.type} />
                     </span>
@@ -382,11 +371,11 @@ function SchoolDashboard({
                       <p>{item.body}</p>
                     </div>
                     <time>{formatNotificationDate(item.created_at)}</time>
-                  </div>
+                  </a>
                 ))
               )}
             </div>
-            <Link className="platform-side-link" href="/platform">
+            <Link className="platform-side-link" href="/platform/notifications">
               Go to Notifications <ArrowRight aria-hidden="true" size={16} />
             </Link>
           </section>

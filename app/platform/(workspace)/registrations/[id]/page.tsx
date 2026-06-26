@@ -79,19 +79,6 @@ export default async function RegistrationDetailPage({
 
   const registration = data as RegistrationDetail;
 
-  const { error: notificationReadError } = await supabase
-    .from("admin_notifications")
-    .update({ is_read: true })
-    .eq("school_registration_request_id", registration.id)
-    .eq("is_read", false);
-
-  if (notificationReadError) {
-    console.error(
-      "Unable to mark registration notifications as read:",
-      notificationReadError.message,
-    );
-  }
-
   return (
     <main className="platform-page">
       <section className="platform-page-head registration-review">

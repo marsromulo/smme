@@ -5,7 +5,7 @@ import { ChevronDown, Download, Eye, FileText, FileUp } from "lucide-react";
 import { ServiceApplicationUploader } from "@/app/platform/components/ServiceApplicationUploader";
 import { type SubmissionFileHistoryEntry } from "@/app/platform/components/SubmissionFileHistoryPopover";
 
-type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 type RequirementStatus = "not_assigned" | "assigned" | "needs_review" | "resubmit" | "rejected" | "approved";
 
 type SchoolSubmissionFile = {
@@ -79,25 +79,26 @@ function getRequirementStatus({
   requiredDocumentId: string;
 }): RequirementStatus {
   const assignedFiles = files.filter((file) => file.serviceRequiredDocumentId === requiredDocumentId);
+  const activeFiles = assignedFiles.filter((file) => file.reviewStatus !== "invalid");
 
-  if (assignedFiles.length === 0) {
+  if (activeFiles.length === 0) {
     return "not_assigned";
   }
 
-  if (assignedFiles.every((file) => file.reviewStatus === "approved")) {
+  if (activeFiles.every((file) => file.reviewStatus === "approved")) {
     return "approved";
   }
 
-  if (assignedFiles.some((file) => file.reviewStatus === "rejected")) {
+  if (activeFiles.some((file) => file.reviewStatus === "rejected")) {
     return "rejected";
   }
 
-  if (assignedFiles.some((file) => file.reviewStatus === "resubmit")) {
+  if (activeFiles.some((file) => file.reviewStatus === "resubmit")) {
     return "resubmit";
   }
 
   if (
-    assignedFiles.some(
+    activeFiles.some(
       (file) => file.reviewStatus === "pending" && (file.reviewedAt || file.reviewHistory.length > 0),
     )
   ) {
@@ -199,10 +200,8 @@ export function SchoolSubmissionDocumentPanel({
   requiredDocuments: RequiredDocument[];
   serviceId: string;
 }) {
-  const [expandedFileId, setExpandedFileId] = useState<string | null>(files[0]?.id ?? null);
-  const [expandedRequirementId, setExpandedRequirementId] = useState<string | null>(
-    requiredDocuments[0]?.id ?? null,
-  );
+  const [expandedFileId, setExpandedFileId] = useState<string | null>(null);
+  const [expandedRequirementId, setExpandedRequirementId] = useState<string | null>(null);
   const [resubmitUploadFileId, setResubmitUploadFileId] = useState<string | null>(null);
 
   function renderFileCard(file: SchoolSubmissionFile) {
@@ -294,6 +293,7 @@ export function SchoolSubmissionDocumentPanel({
                   buttonLabel="Submit Resubmission"
                   compact
                   onUploadComplete={() => setResubmitUploadFileId(null)}
+                  replacesFileId={file.id}
                   refreshOnComplete
                   serviceId={serviceId}
                   serviceRequiredDocumentId={file.serviceRequiredDocumentId}

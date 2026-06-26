@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit";
+type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 
 export type SubmissionFileHistoryEntry = {
   createdAt: string;

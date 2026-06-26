@@ -13,6 +13,15 @@ type UploadResponse = {
   error?: string;
 };
 
+type CompleteUploadResponse = {
+  email?: {
+    reason?: string;
+    sent?: boolean;
+  } | null;
+  error?: string;
+  ok: boolean;
+};
+
 const maxFileSize = 25 * 1024 * 1024;
 
 function isAllowedFile(file: File) {
@@ -181,13 +190,17 @@ export function ServiceApplicationUploader({
           method: "POST",
         },
       );
-      await readJson<{ ok: boolean; error?: string }>(completeResponse);
+      const completeResult = await readJson<CompleteUploadResponse>(completeResponse);
 
       setFiles([]);
       if (inputRef.current) {
         inputRef.current.value = "";
       }
-      setMessage(successMessage);
+      setMessage(
+        completeResult.email?.sent === false
+          ? `${successMessage} Admin email notification could not be sent. Check SendGrid configuration.`
+          : successMessage,
+      );
       onUploadComplete?.();
       if (refreshOnComplete) {
         router.refresh();

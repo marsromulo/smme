@@ -207,6 +207,7 @@ export async function POST(request: Request) {
       });
 
       if (!emailResult.sent) {
+        console.warn("Admin registration email was not sent:", emailResult.reason ?? "Unknown email failure.");
         warnings.push(`admin email failed: ${emailResult.reason ?? "Unable to send email."}`);
       }
     } catch (emailError) {

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Building2 } from "lucide-react";
 import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -60,10 +59,6 @@ export default async function RegistrationsPage() {
           <h1>Registrations</h1>
           <p>Review school registration requests submitted from the public registration form.</p>
         </div>
-        <Link className="platform-btn primary" href="/platform/register">
-          <Building2 aria-hidden="true" size={18} />
-          Register School
-        </Link>
       </section>
 
       <section className="platform-section">

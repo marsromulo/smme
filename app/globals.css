@@ -1105,6 +1105,8 @@ img {
 .platform-nav a,
 .platform-icon-link,
 .platform-topbar-actions > a,
+.platform-topbar-actions > button,
+.platform-user-menu > button.platform-user,
 .platform-filter-button,
 .platform-btn,
 .platform-back-link {
@@ -2024,6 +2026,19 @@ img {
   border: 1px solid #d3e3f8;
   border-radius: 8px;
   background: #fff;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+  transform-origin: center;
+}
+
+.platform-requirement-review-card.assignment-highlight {
+  animation: platform-rd-assignment-pulse 780ms ease-out;
+  border-color: #2f6df6;
+  box-shadow:
+    0 0 0 3px rgb(47 109 246 / 0.18),
+    0 12px 28px rgb(0 82 217 / 0.18);
 }
 
 .platform-requirement-review-row {
@@ -2454,8 +2469,41 @@ img {
 
 .platform-uploaded-review-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.platform-unsaved-review-pill {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #fff7e8;
+  color: #8a4b00;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.platform-assignment-transfer-orb {
+  position: fixed;
+  z-index: 80;
+  left: var(--transfer-from-x);
+  top: var(--transfer-from-y);
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #1f5eff;
+  box-shadow:
+    0 0 0 7px rgb(31 94 255 / 0.14),
+    0 8px 18px rgb(0 82 217 / 0.28);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: platform-assignment-transfer 780ms cubic-bezier(0.18, 0.8, 0.24, 1) forwards;
 }
 
 .platform-uploaded-review-footer {
@@ -2522,6 +2570,44 @@ img {
   color: #607089;
   font-size: 11px;
   font-weight: 800;
+}
+
+@keyframes platform-assignment-transfer {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.55);
+  }
+
+  16% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  100% {
+    left: var(--transfer-to-x);
+    top: var(--transfer-to-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+}
+
+@keyframes platform-rd-assignment-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(47 109 246 / 0);
+  }
+
+  38% {
+    transform: scale(1.1);
+    box-shadow:
+      0 0 0 3px rgb(47 109 246 / 0.22),
+      0 12px 28px rgb(0 82 217 / 0.2);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(47 109 246 / 0);
+  }
 }
 
 .platform-submission-file-list {
@@ -2892,13 +2978,30 @@ img {
   font-weight: 900;
 }
 
-.platform-submissions-table .platform-table-service-title {
-  display: inline-flex;
+.platform-submissions-table .platform-submission-service-cell {
+  min-width: 300px;
+}
+
+.platform-submissions-table .platform-submission-school-cell {
+  min-width: 200px;
+}
+
+.platform-submissions-table .platform-submission-service-cell .platform-table-service-title {
+  display: inline;
   margin-top: 0;
   color: #071538;
+  cursor: grab;
+  font-family: Inter, "Inter Fallback", "Segoe UI", Arial, sans-serif;
   font-size: 14px;
   font-weight: 900;
-  line-height: 1.35;
+  line-height: 1.25;
+}
+
+.platform-submissions-table .platform-submission-service-cell .platform-table-service-title svg {
+  width: 17px;
+  height: 17px;
+  margin-right: 5px;
+  vertical-align: middle;
 }
 
 .platform-submissions-table .platform-submission-compact-cell {
@@ -3994,7 +4097,13 @@ img {
   font-weight: 900;
 }
 
-.platform-topbar-actions > a.platform-user {
+.platform-user-menu {
+  position: relative;
+}
+
+.platform-topbar-actions > a.platform-user,
+.platform-topbar-actions > button.platform-user,
+.platform-user-menu > button.platform-user {
   width: auto;
   min-height: 56px;
   gap: 10px;
@@ -4002,6 +4111,9 @@ img {
   border: 0;
   border-left: 1px solid #d7e2f1;
   background: transparent;
+  color: #071538;
+  cursor: pointer;
+  font: inherit;
 }
 
 .platform-user > span {
@@ -4015,6 +4127,88 @@ img {
 .platform-user strong {
   font-size: 15px;
   line-height: 1.1;
+}
+
+.platform-user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 35;
+  display: grid;
+  min-width: 210px;
+  padding: 8px;
+  border: 1px solid #d7e2f1;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(13, 34, 72, 0.16);
+}
+
+.platform-user-dropdown a,
+.platform-user-dropdown button {
+  display: inline-flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #17243a;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+  text-align: left;
+  cursor: pointer;
+}
+
+.platform-user-dropdown a:hover,
+.platform-user-dropdown button:hover {
+  background: #eef5ff;
+  color: #003087;
+}
+
+.platform-user-dropdown button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.platform-grid.profile {
+  grid-template-columns: minmax(0, 760px);
+}
+
+.platform-profile-form {
+  display: grid;
+  max-width: 520px;
+  gap: 14px;
+}
+
+.platform-profile-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.platform-profile-form label span {
+  color: #003087;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.platform-profile-form input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  border: 1px solid #cdd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #071538;
+  font: inherit;
+  outline: 0;
+}
+
+.platform-profile-form input:focus {
+  border-color: #0a55d4;
+  box-shadow: 0 0 0 3px rgba(10, 85, 212, 0.12);
 }
 
 .platform-contact-dashboard {
@@ -4663,13 +4857,32 @@ img {
   background: #f8fbff;
 }
 
+.platform-admin-service-preview p {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+}
+
 .platform-admin-service-preview strong,
-.platform-admin-service-preview span {
+.platform-admin-service-preview span,
+.platform-admin-service-preview em {
   display: block;
 }
 
 .platform-admin-service-preview strong {
+  min-width: 0;
   color: #003087;
+}
+
+.platform-admin-service-preview em {
+  flex: 0 0 auto;
+  color: #17243a;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 .platform-admin-service-preview span {
@@ -5456,7 +5669,9 @@ img {
   }
 
   .platform-school-switcher,
-  .platform-topbar-actions > a.platform-user {
+  .platform-topbar-actions > a.platform-user,
+  .platform-topbar-actions > button.platform-user,
+  .platform-user-menu > button.platform-user {
     padding-left: 0;
     border-left: 0;
   }

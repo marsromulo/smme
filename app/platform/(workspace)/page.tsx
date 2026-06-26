@@ -2,18 +2,14 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowRight,
+  Bell,
   Building2,
-  CalendarDays,
   Check,
   CheckCircle2,
   ClipboardList,
   Clock3,
   Eye,
   FileWarning,
-  GraduationCap,
-  Landmark,
-  UsersRound,
-  Wrench,
   XCircle,
 } from "lucide-react";
 import { getPlatformSession } from "@/lib/platform/auth";
@@ -52,49 +48,6 @@ const summaryCards = [
     value: "2",
     label: "Documents for Resubmission",
     action: "View resubmissions",
-    tone: "red",
-  },
-];
-
-const services = [
-  {
-    icon: Landmark,
-    title: "Government Permit to Operate",
-    submitted: "May 2, 2025",
-    progress: 100,
-    status: "Approved",
-    tone: "blue",
-  },
-  {
-    icon: CalendarDays,
-    title: "School Calendar Submission",
-    submitted: "Apr 28, 2025",
-    progress: 100,
-    status: "Approved",
-    tone: "green",
-  },
-  {
-    icon: GraduationCap,
-    title: "Senior High School Permit Applications",
-    submitted: "May 10, 2025",
-    progress: 60,
-    status: "Under Review",
-    tone: "gold",
-  },
-  {
-    icon: ClipboardList,
-    title: "TOSFI Applications",
-    submitted: "May 8, 2025",
-    progress: 35,
-    status: "In Progress",
-    tone: "violet",
-  },
-  {
-    icon: UsersRound,
-    title: "Application for Remedial/Advancement Classes",
-    submitted: "May 6, 2025",
-    progress: 20,
-    status: "Returned for Resubmission",
     tone: "red",
   },
 ];
@@ -172,45 +125,179 @@ async function getSchoolNotifications(userId: string) {
   return (data ?? []) as SchoolNotification[];
 }
 
-const adminStats = [
-  { label: "Registered schools", value: "24", tone: "blue" },
-  { label: "Pending registrations", value: "5", tone: "gold" },
-  { label: "Open applications", value: "18", tone: "green" },
-  { label: "Returned documents", value: "6", tone: "red" },
-];
-
 const adminActions = [
-  {
-    href: "/platform/registrations",
-    icon: Building2,
-    title: "Review School Registrations",
-    text: "Approve, reject, and monitor school account requests.",
-  },
-  {
-    href: "/platform/services",
-    icon: Wrench,
-    title: "Maintain Services",
-    text: "Create application services and manage required document checklists.",
-  },
   {
     href: "/platform/submissions",
     icon: ClipboardList,
-    title: "Application Review Queue",
+    title: "Submissions",
     text: "Track submitted applications, documents, and evaluator actions.",
+  },
+  {
+    href: "/platform/registrations",
+    icon: Building2,
+    title: "Registrations",
+    text: "Approve, reject, and monitor school account requests.",
+  },
+  {
+    href: "/platform/notifications",
+    icon: Bell,
+    title: "Notifications",
+    text: "Open admin alerts and review platform activity updates.",
   },
 ];
 
-function AdminDashboard() {
+type AdminServicePreview = {
+  applicantCount: number;
+  id: string;
+  name: string;
+  status: string;
+};
+
+type AdminStat = {
+  href: string;
+  label: string;
+  tone: string;
+  value: string;
+};
+
+function exactCount(count: number | null) {
+  return String(count ?? 0);
+}
+
+async function getAdminStats(): Promise<AdminStat[]> {
+  const supabase = createSupabaseAdminClient();
+  const [
+    registeredSchools,
+    pendingRegistrations,
+    openApplications,
+    unassignedDocuments,
+  ] = await Promise.all([
+    supabase
+      .from("schools")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase
+      .from("school_registration_requests")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["new", "pending"]),
+    supabase
+      .from("service_applications")
+      .select("school_user_id, service_id")
+      .in("status", ["new", "in_progress"]),
+    supabase
+      .from("service_application_files")
+      .select("id", { count: "exact", head: true })
+      .eq("upload_status", "uploaded")
+      .neq("review_status", "invalid")
+      .is("service_required_document_id", null),
+  ]);
+
+  for (const [label, result] of [
+    ["registered schools", registeredSchools],
+    ["pending registrations", pendingRegistrations],
+    ["open applications", openApplications],
+    ["unassigned documents", unassignedDocuments],
+  ] as const) {
+    if (result.error) {
+      console.error(`Unable to load ${label} dashboard count:`, result.error.message);
+    }
+  }
+
+  return [
+    {
+      href: "/platform/schools",
+      label: "Registered schools",
+      value: exactCount(registeredSchools.count),
+      tone: "blue",
+    },
+    {
+      href: "/platform/registrations",
+      label: "Pending registrations",
+      value: exactCount(pendingRegistrations.count),
+      tone: "gold",
+    },
+    {
+      href: "/platform/submissions",
+      label: "Open applications",
+      value: String(
+        new Set(
+          ((openApplications.data ?? []) as Array<{ school_user_id: string; service_id: string }>).map(
+            (application) => `${application.school_user_id}:${application.service_id}`,
+          ),
+        ).size,
+      ),
+      tone: "green",
+    },
+    {
+      href: "/platform/submissions",
+      label: "Unassigned Documents",
+      value: exactCount(unassignedDocuments.count),
+      tone: "red",
+    },
+  ];
+}
+
+async function getAdminServicePreview() {
+  const supabase = createSupabaseAdminClient();
+  const { data: servicesData, error: servicesError } = await supabase
+    .from("services")
+    .select("id, name, status, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (servicesError) {
+    console.error("Unable to load dashboard services:", servicesError.message);
+    return [];
+  }
+
+  const serviceRows = (servicesData ?? []) as Array<{
+    id: string;
+    name: string;
+    status: string;
+  }>;
+  const serviceIds = serviceRows.map((service) => service.id);
+  const { data: applicationsData, error: applicationsError } = await supabase
+    .from("service_applications")
+    .select("service_id, school_user_id")
+    .in("service_id", serviceIds.length > 0 ? serviceIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (applicationsError) {
+    console.error("Unable to load dashboard service applicants:", applicationsError.message);
+  }
+
+  const applicantsByServiceId = new Map<string, Set<string>>();
+
+  for (const application of (applicationsData ?? []) as Array<{ school_user_id: string; service_id: string }>) {
+    const applicants = applicantsByServiceId.get(application.service_id) ?? new Set<string>();
+    applicants.add(application.school_user_id);
+    applicantsByServiceId.set(application.service_id, applicants);
+  }
+
+  return serviceRows.map((service) => ({
+    applicantCount: applicantsByServiceId.get(service.id)?.size ?? 0,
+    id: service.id,
+    name: service.name,
+    status: service.status,
+  }));
+}
+
+function AdminDashboard({
+  stats,
+  services,
+}: {
+  stats: AdminStat[];
+  services: AdminServicePreview[];
+}) {
   return (
     <main className="platform-page">
       <section className="platform-stat-grid contact admin" aria-label="Admin statistics">
-        {adminStats.map((stat) => (
+        {stats.map((stat) => (
           <article className={`platform-stat contact ${stat.tone}`} key={stat.label}>
             <div>
               <strong>{stat.value}</strong>
               <p>{stat.label}</p>
             </div>
-            <Link href={stat.label.includes("registrations") ? "/platform/registrations" : "/platform/applications"}>
+            <Link href={stat.href}>
               View records
               <ArrowRight aria-hidden="true" size={17} />
             </Link>
@@ -241,18 +328,26 @@ function AdminDashboard() {
         <div className="platform-section-head">
           <div>
             <span className="platform-kicker">Service setup</span>
-            <h2>Initial Application Services</h2>
+            <h2>SMME Services</h2>
           </div>
-          <Link href="/platform/services">Open maintenance</Link>
         </div>
-        <div className="platform-admin-service-preview">
-          {services.slice(0, 5).map((service) => (
-            <div key={service.title}>
-              <strong>{service.title}</strong>
-              <span>Requirements checklist ready for maintenance</span>
-            </div>
-          ))}
-        </div>
+        {services.length === 0 ? (
+          <p className="platform-empty-state">No configured services yet.</p>
+        ) : (
+          <div className="platform-admin-service-preview">
+            {services.map((service) => (
+              <div key={service.id}>
+                <p>
+                  <strong>{service.name}</strong>
+                  <em>
+                    {service.applicantCount} applicant{service.applicantCount === 1 ? "" : "s"}
+                  </em>
+                </p>
+                <span>{service.status === "active" ? "Active service" : "Inactive service"}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
@@ -389,7 +484,8 @@ export default async function PlatformDashboardPage() {
   const session = await getPlatformSession();
 
   if (session.role === "admin") {
-    return <AdminDashboard />;
+    const [stats, services] = await Promise.all([getAdminStats(), getAdminServicePreview()]);
+    return <AdminDashboard stats={stats} services={services} />;
   }
 
   const notifications = session.userId ? await getSchoolNotifications(session.userId) : [];

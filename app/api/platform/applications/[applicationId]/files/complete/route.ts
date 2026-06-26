@@ -380,6 +380,10 @@ export async function POST(
             name: "SMME Admin",
           },
         });
+
+        if (!emailResult.sent) {
+          console.warn("Admin upload email was not sent:", emailResult.reason ?? "Unknown email failure.");
+        }
       } catch (emailError) {
         console.error(
           "Unable to send admin upload email:",

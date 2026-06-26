@@ -78,6 +78,7 @@ export type SubmissionListItem = {
   serviceName: string;
   status: string;
   submittedAt: string;
+  unassignedFileCount: number;
   uploadedFileCount: number;
 };
 
@@ -330,6 +331,11 @@ function buildSubmissionListItem({
   const applicationIds = new Set(applications.map((application) => application.id));
   const groupFiles = files.filter((file) => applicationIds.has(file.application_id));
   const uploadedFiles = groupFiles.filter((file) => file.upload_status === "uploaded");
+  const unassignedFiles = uploadedFiles.filter(
+    (file) =>
+      !file.service_required_document_id &&
+      normalizeReviewStatus(file.review_status) !== "invalid",
+  );
   const latestApplication = applications.reduce((latest, application) => {
     const latestTime = latestTimestamp([
       latest.submitted_at,
@@ -377,6 +383,7 @@ function buildSubmissionListItem({
       storedStatuses: applications.map((application) => application.status),
     }),
     submittedAt,
+    unassignedFileCount: unassignedFiles.length,
     uploadedFileCount: uploadedFiles.length,
   };
 }

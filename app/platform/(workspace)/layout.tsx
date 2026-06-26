@@ -31,6 +31,34 @@ async function getSchoolNameByContactEmail(email: string | null) {
   }
 }
 
+async function getAdminDisplayName(userId: string | null) {
+  if (!userId) {
+    return null;
+  }
+
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase
+      .from("admin_profiles")
+      .select("display_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Unable to load admin profile for workspace shell:", error.message);
+      return null;
+    }
+
+    return typeof data?.display_name === "string" ? data.display_name : null;
+  } catch (error) {
+    console.error(
+      "Unable to load admin profile for workspace shell:",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
 export default async function PlatformWorkspaceLayout({
   children,
 }: Readonly<{
@@ -38,11 +66,12 @@ export default async function PlatformWorkspaceLayout({
 }>) {
   const session = await getPlatformSession();
   const schoolName = session.role === "school" ? await getSchoolNameByContactEmail(session.email) : null;
+  const adminDisplayName = session.role === "admin" ? await getAdminDisplayName(session.userId) : null;
 
   return (
     <PlatformWorkspaceShell
       email={session.email}
-      name={session.name}
+      name={adminDisplayName ?? session.name}
       role={session.role}
       schoolName={schoolName}
       userId={session.userId}

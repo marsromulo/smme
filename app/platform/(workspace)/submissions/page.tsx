@@ -45,9 +45,10 @@ export default async function PlatformSubmissionsPage() {
                   <th>Service</th>
                   {isAdmin ? <th>School</th> : null}
                   <th>Files</th>
+                  {isAdmin ? <th>Unassigned Documents</th> : null}
                   <th>Status</th>
                   <th>Last submitted</th>
-                  <th>Action</th>
+                  {isAdmin ? null : <th>Action</th>}
                 </tr>
               </thead>
               <tbody>
@@ -73,18 +74,25 @@ export default async function PlatformSubmissionsPage() {
                       </td>
                     ) : null}
                     <td className="platform-submission-compact-cell">{submission.fileCount}</td>
+                    {isAdmin ? (
+                      <td className="platform-submission-compact-cell">
+                        {submission.unassignedFileCount}
+                      </td>
+                    ) : null}
                     <td className="platform-submission-compact-cell">
                       <span className={submissionStatusClass(submission.status)}>
                         {formatSubmissionStatus(submission.status)}
                       </span>
                     </td>
                     <td className="platform-submission-date-cell">{formatSubmissionDate(submission.submittedAt)}</td>
-                    <td className="platform-submission-compact-cell">
-                      <Link className="platform-table-action" href={`/platform/submissions/${submission.id}`}>
-                        <FolderOpen aria-hidden="true" size={16} />
-                        Open
-                      </Link>
-                    </td>
+                    {isAdmin ? null : (
+                      <td className="platform-submission-compact-cell">
+                        <Link className="platform-table-action" href={`/platform/submissions/${submission.id}`}>
+                          <FolderOpen aria-hidden="true" size={16} />
+                          Open
+                        </Link>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

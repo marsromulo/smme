@@ -32,6 +32,29 @@ function reviewStatusLabel(status: ReviewStatus) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+function displayReviewerName(value: string | null | undefined) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return "No updates yet";
+  }
+
+  if (!trimmed.includes("@")) {
+    return trimmed;
+  }
+
+  const localPart = trimmed.split("@")[0]?.replace(/[._-]+/g, " ").trim();
+
+  if (!localPart) {
+    return "Admin";
+  }
+
+  return localPart
+    .split(/\s+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function SubmissionFileHistoryPopover({
   fileName,
   history,
@@ -46,7 +69,7 @@ export function SubmissionFileHistoryPopover({
     <div className="platform-file-review-history-wrap">
       <div className="platform-file-review-history-trigger">
         <span>Last updated by:</span>
-        <strong>{lastHistory?.reviewerName ?? "No updates yet"}</strong>
+        <strong>{displayReviewerName(lastHistory?.reviewerName)}</strong>
         {history.length > 0 ? (
           <button onClick={() => setIsOpen(true)} type="button">
             Update history
@@ -72,7 +95,7 @@ export function SubmissionFileHistoryPopover({
             <tbody>
               {history.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.reviewerName}</td>
+                  <td>{displayReviewerName(item.reviewerName)}</td>
                   <td>{reviewStatusLabel(item.reviewStatus)}</td>
                   <td>{formatDate(item.createdAt)}</td>
                 </tr>

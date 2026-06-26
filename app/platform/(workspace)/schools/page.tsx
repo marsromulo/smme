@@ -35,10 +35,6 @@ export default async function PlatformSchoolsPage() {
           <h1>Schools</h1>
           <p>Select a school name to view its full profile, documents, programs, and service history.</p>
         </div>
-        <Link className="platform-btn primary" href="/platform/register">
-          <Building2 aria-hidden="true" size={18} />
-          Add School
-        </Link>
       </section>
 
       <section className="platform-filter-bar school-list">

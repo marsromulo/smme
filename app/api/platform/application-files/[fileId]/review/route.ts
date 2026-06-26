@@ -216,11 +216,74 @@ function buildRequiredDocumentReviewEmail({
   return { html, subject, text };
 }
 
-function getReviewerName(session: {
-  email: string | null;
-  name: string | null;
+function readableNameFromEmail(email: string | null) {
+  if (!email) {
+    return "";
+  }
+
+  const localPart = email.split("@")[0]?.replace(/[._-]+/g, " ").trim();
+
+  if (!localPart) {
+    return "";
+  }
+
+  return localPart
+    .split(/\s+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function userMetadataName(metadata: unknown) {
+  const record =
+    metadata && typeof metadata === "object" && !Array.isArray(metadata)
+      ? (metadata as Record<string, unknown>)
+      : {};
+
+  return cleanString(record.name) || cleanString(record.full_name);
+}
+
+async function getReviewerName({
+  session,
+  supabase,
+}: {
+  session: {
+    email: string | null;
+    name: string | null;
+    userId: string | null;
+  };
+  supabase: ReturnType<typeof createSupabaseAdminClient>;
 }) {
-  return session.name ?? session.email ?? "Admin";
+  if (session.userId) {
+    const { data: profile, error: profileError } = await supabase
+      .from("admin_profiles")
+      .select("display_name")
+      .eq("user_id", session.userId)
+      .maybeSingle();
+
+    const profileName = cleanString(profile?.display_name);
+
+    if (profileName) {
+      return profileName.includes("@") ? readableNameFromEmail(profileName) || "Admin" : profileName;
+    }
+
+    if (
+      profileError &&
+      !profileError.message.includes("admin_profiles") &&
+      !profileError.message.includes("schema cache") &&
+      !profileError.message.includes("does not exist")
+    ) {
+      console.error("Unable to load admin profile:", profileError.message);
+    }
+
+    const authUser = await supabase.auth.admin.getUserById(session.userId);
+    const metadataName = userMetadataName(authUser.data.user?.user_metadata);
+
+    if (metadataName) {
+      return metadataName;
+    }
+  }
+
+  return cleanString(session.name) || readableNameFromEmail(session.email) || "Admin";
 }
 
 function normalizeApplicationStatus(value: string): ApplicationStatus {
@@ -497,7 +560,7 @@ export async function PATCH(
       return Response.json({ error: updateError.message }, { status: 500 });
     }
 
-    const reviewerName = getReviewerName(session);
+    const reviewerName = await getReviewerName({ session, supabase });
     const { data: history, error: historyError } = await supabase
       .from("service_application_file_review_history")
       .insert({

@@ -99,6 +99,13 @@ create table if not exists public.school_notifications (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.admin_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null check (length(trim(display_name)) > 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.admin_notifications
   add column if not exists reference_type text,
   add column if not exists reference_id uuid,
@@ -108,6 +115,18 @@ alter table public.school_notifications
   add column if not exists reference_type text,
   add column if not exists reference_id uuid,
   add column if not exists link_href text;
+
+alter table public.admin_profiles
+  add column if not exists display_name text,
+  add column if not exists created_at timestamptz not null default now(),
+  add column if not exists updated_at timestamptz not null default now();
+
+alter table public.admin_profiles
+  drop constraint if exists admin_profiles_display_name_check;
+
+alter table public.admin_profiles
+  add constraint admin_profiles_display_name_check
+  check (length(trim(display_name)) > 0);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -128,6 +147,24 @@ drop trigger if exists set_schools_updated_at on public.schools;
 create trigger set_schools_updated_at
 before update on public.schools
 for each row execute function public.set_updated_at();
+
+drop trigger if exists set_admin_profiles_updated_at on public.admin_profiles;
+create trigger set_admin_profiles_updated_at
+before update on public.admin_profiles
+for each row execute function public.set_updated_at();
+
+insert into public.admin_profiles (user_id, display_name)
+select
+  u.id,
+  coalesce(
+    nullif(trim(u.raw_user_meta_data ->> 'name'), ''),
+    nullif(trim(u.raw_user_meta_data ->> 'full_name'), ''),
+    nullif(initcap(regexp_replace(split_part(u.email, '@', 1), '[._-]+', ' ', 'g')), ''),
+    'Admin'
+  )
+from auth.users u
+where u.raw_app_meta_data ->> 'role' = 'admin'
+on conflict (user_id) do nothing;
 
 create index if not exists school_registration_requests_status_idx
   on public.school_registration_requests(status);
@@ -156,6 +193,7 @@ create index if not exists school_notifications_recipient_read_idx
 
 alter table public.school_registration_requests enable row level security;
 alter table public.schools enable row level security;
+alter table public.admin_profiles enable row level security;
 alter table public.admin_notifications enable row level security;
 alter table public.school_notifications enable row level security;
 
@@ -208,6 +246,40 @@ create policy "Admins can update schools"
   to authenticated
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
   with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+drop policy if exists "Admins can read admin profiles"
+  on public.admin_profiles;
+create policy "Admins can read admin profiles"
+  on public.admin_profiles
+  for select
+  to authenticated
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+drop policy if exists "Admins can create own admin profile"
+  on public.admin_profiles;
+create policy "Admins can create own admin profile"
+  on public.admin_profiles
+  for insert
+  to authenticated
+  with check (
+    user_id = auth.uid()
+    and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+drop policy if exists "Admins can update own admin profile"
+  on public.admin_profiles;
+create policy "Admins can update own admin profile"
+  on public.admin_profiles
+  for update
+  to authenticated
+  using (
+    user_id = auth.uid()
+    and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  )
+  with check (
+    user_id = auth.uid()
+    and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
 
 drop policy if exists "Admins can read admin notifications"
   on public.admin_notifications;

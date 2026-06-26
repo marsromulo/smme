@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 type ApplicationStatus = "new" | "in_progress" | "approved" | "rejected";
+type RequiredDocumentStatus = "not_assigned" | "pending" | "approved" | "rejected" | "resubmit";
 
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -62,6 +63,15 @@ function reviewStatusSubject(status: ReviewStatus) {
   }
 
   return `Document ${reviewStatusLabel(status).toLowerCase()}`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function buildDocumentReviewEmail({
@@ -135,6 +145,77 @@ function buildDocumentReviewEmail({
   return { html, subject, text };
 }
 
+function buildRequiredDocumentReviewEmail({
+  fileNames,
+  note,
+  platformUrl,
+  requirementName,
+  schoolName,
+  serviceName,
+  status,
+}: {
+  fileNames: string[];
+  note: string | null;
+  platformUrl: string;
+  requirementName: string;
+  schoolName: string;
+  serviceName: string;
+  status: "approved" | "rejected";
+}) {
+  const statusLabel = reviewStatusLabel(status);
+  const subject = `SMME required document ${status}: ${requirementName}`;
+  const actionText = "You may sign in to the SMME Platform to view the document review details.";
+  const text = [
+    `Dear ${schoolName},`,
+    "",
+    `The SMME admin has marked a required document as ${statusLabel}.`,
+    "",
+    `Service: ${serviceName}`,
+    `Required document: ${requirementName}`,
+    `Status: ${statusLabel}`,
+    fileNames.length > 0 ? `Reviewed file(s): ${fileNames.join(", ")}` : null,
+    note ? `Note: ${note}` : null,
+    "",
+    actionText,
+    platformUrl ? `Platform: ${platformUrl}/platform/submissions` : null,
+    "",
+    "This is an automated notification from the SDO Baguio SMME Platform.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const actionButton = platformUrl
+    ? `<p style="margin:22px 0 0;"><a href="${platformUrl}/platform/submissions" style="display:inline-block;padding:11px 16px;border-radius:6px;background:#0052d9;color:#ffffff;text-decoration:none;font-weight:700;">Open SMME Platform</a></p>`
+    : "";
+  const fileList = fileNames.map((fileName) => `<li>${escapeHtml(fileName)}</li>`).join("");
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:24px;background:#ffffff;">
+      <h1 style="margin:0 0 16px;color:#071538;font-size:22px;">Required Document ${statusLabel}</h1>
+      ${paragraph(`Dear ${schoolName},`)}
+      ${paragraph(`The SMME admin has marked a required document as ${statusLabel}.`)}
+      <table style="width:100%;border-collapse:collapse;margin:18px 0;border:1px solid #dce5f2;background:#f8fbff;">
+        <tbody>
+          ${detailRow("Service", serviceName)}
+          ${detailRow("Required document", requirementName)}
+          ${detailRow("Status", statusLabel)}
+          ${note ? detailRow("Note", note) : ""}
+        </tbody>
+      </table>
+      ${
+        fileNames.length > 0
+          ? `<p style="margin:0 0 8px;color:#607089;font-weight:700;">Reviewed file(s)</p><ul style="margin:0;padding-left:20px;color:#17243a;font-weight:700;line-height:1.55;">${fileList}</ul>`
+          : ""
+      }
+      ${paragraph(actionText)}
+      ${actionButton}
+      <p style="margin:24px 0 0;color:#607089;font-size:12px;line-height:1.5;">
+        This is an automated notification from the SDO Baguio SMME Platform.
+      </p>
+    </div>
+  `;
+
+  return { html, subject, text };
+}
+
 function getReviewerName(session: {
   email: string | null;
   name: string | null;
@@ -164,6 +245,77 @@ function normalizeReviewStatus(value: string): ReviewStatus {
   }
 
   return "pending";
+}
+
+function evaluateRequiredDocumentStatus(
+  files: Array<{ review_status: string; upload_status: string }>,
+): RequiredDocumentStatus {
+  const activeFiles = files.filter(
+    (file) => file.upload_status === "uploaded" && normalizeReviewStatus(file.review_status) !== "invalid",
+  );
+
+  if (activeFiles.length === 0) {
+    return "not_assigned";
+  }
+
+  if (activeFiles.every((file) => normalizeReviewStatus(file.review_status) === "approved")) {
+    return "approved";
+  }
+
+  if (activeFiles.some((file) => normalizeReviewStatus(file.review_status) === "rejected")) {
+    return "rejected";
+  }
+
+  if (activeFiles.some((file) => normalizeReviewStatus(file.review_status) === "resubmit")) {
+    return "resubmit";
+  }
+
+  return "pending";
+}
+
+async function getRequiredDocumentReviewState({
+  application,
+  serviceRequiredDocumentId,
+  supabase,
+}: {
+  application: {
+    school_user_id: string;
+    service_id: string;
+  };
+  serviceRequiredDocumentId: string;
+  supabase: ReturnType<typeof createSupabaseAdminClient>;
+}) {
+  const { data: applications, error: applicationsError } = await supabase
+    .from("service_applications")
+    .select("id")
+    .eq("school_user_id", application.school_user_id)
+    .eq("service_id", application.service_id);
+
+  if (applicationsError || !applications) {
+    console.error("Unable to load grouped applications for required document status:", applicationsError?.message);
+    return null;
+  }
+
+  const applicationIds = applications.map((item) => item.id);
+  const { data: files, error: filesError } = await supabase
+    .from("service_application_files")
+    .select("original_name, review_status, upload_status")
+    .eq("service_required_document_id", serviceRequiredDocumentId)
+    .in("application_id", applicationIds.length > 0 ? applicationIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (filesError) {
+    console.error("Unable to load required document files for status:", filesError.message);
+    return null;
+  }
+
+  const activeFiles = (files ?? []).filter(
+    (file) => file.upload_status === "uploaded" && normalizeReviewStatus(file.review_status) !== "invalid",
+  );
+
+  return {
+    fileNames: activeFiles.map((file) => file.original_name),
+    status: evaluateRequiredDocumentStatus(files ?? []),
+  };
 }
 
 async function syncGroupedApplicationStatus({
@@ -272,7 +424,7 @@ export async function PATCH(
   try {
     const { data: file, error: fileError } = await supabase
       .from("service_application_files")
-      .select("id, application_id, original_name, review_status")
+      .select("id, application_id, original_name, review_status, service_required_document_id")
       .eq("id", fileId)
       .single();
 
@@ -322,6 +474,14 @@ export async function PATCH(
       requirementName = requirement.name;
     }
 
+    const previousRequiredDocumentState = parsed.data.serviceRequiredDocumentId
+      ? await getRequiredDocumentReviewState({
+          application,
+          serviceRequiredDocumentId: parsed.data.serviceRequiredDocumentId,
+          supabase,
+        })
+      : null;
+
     const { error: updateError } = await supabase
       .from("service_application_files")
       .update({
@@ -370,6 +530,14 @@ export async function PATCH(
       const label = reviewStatusLabel(parsed.data.reviewStatus);
       const requirementText = requirementName ? ` for ${requirementName}` : "";
       const noteText = parsed.data.reviewNote ? ` Note: ${parsed.data.reviewNote}` : "";
+      const nextRequiredDocumentState =
+        parsed.data.serviceRequiredDocumentId && requirementName
+          ? await getRequiredDocumentReviewState({
+              application,
+              serviceRequiredDocumentId: parsed.data.serviceRequiredDocumentId,
+              supabase,
+            })
+          : null;
 
       const { error: notificationError } = await supabase.from("school_notifications").insert({
         body: `${file.original_name}${requirementText} was marked ${label}.${noteText}`,
@@ -392,15 +560,31 @@ export async function PATCH(
       const contactEmail = school?.representative_email ?? authUser.data.user?.email ?? null;
 
       if (contactEmail) {
-        const emailMessage = buildDocumentReviewEmail({
-          fileName: file.original_name,
-          note: parsed.data.reviewNote,
-          platformUrl: getPlatformUrl(),
-          requirementName,
-          schoolName: school?.school_name ?? "School Contact",
-          serviceName: service?.name ?? "SMME Service Application",
-          status: parsed.data.reviewStatus,
-        });
+        const rdStatus = nextRequiredDocumentState?.status;
+        const requiredDocumentName = requirementName;
+        const shouldSendRequiredDocumentEmail =
+          Boolean(requiredDocumentName) &&
+          (rdStatus === "approved" || rdStatus === "rejected") &&
+          previousRequiredDocumentState?.status !== rdStatus;
+        const emailMessage = shouldSendRequiredDocumentEmail
+          ? buildRequiredDocumentReviewEmail({
+              fileNames: nextRequiredDocumentState?.fileNames ?? [file.original_name],
+              note: parsed.data.reviewNote,
+              platformUrl: getPlatformUrl(),
+              requirementName: requiredDocumentName!,
+              schoolName: school?.school_name ?? "School Contact",
+              serviceName: service?.name ?? "SMME Service Application",
+              status: rdStatus,
+            })
+          : buildDocumentReviewEmail({
+              fileName: file.original_name,
+              note: parsed.data.reviewNote,
+              platformUrl: getPlatformUrl(),
+              requirementName,
+              schoolName: school?.school_name ?? "School Contact",
+              serviceName: service?.name ?? "SMME Service Application",
+              status: parsed.data.reviewStatus,
+            });
 
         try {
           emailResult = await sendSendGridEmail({

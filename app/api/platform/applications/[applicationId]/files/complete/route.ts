@@ -137,27 +137,32 @@ function getAdminNotificationEmail() {
   );
 }
 
-function buildAdminResubmissionEmail({
+function buildAdminUploadEmail({
   fileNames,
+  isResubmission,
   platformUrl,
   requirementNames,
   schoolName,
   serviceName,
 }: {
   fileNames: string[];
+  isResubmission: boolean;
   platformUrl: string;
   requirementNames: string[];
   schoolName: string;
   serviceName: string;
 }) {
-  const subject = `SMME document resubmission: ${schoolName} - ${serviceName}`;
+  const uploadLabel = isResubmission ? "Document Resubmission Received" : "Document Upload Received";
+  const subject = `SMME document ${isResubmission ? "resubmission" : "upload"}: ${schoolName} - ${serviceName}`;
   const fileText = fileNames.join(", ");
-  const requirementText = requirementNames.length > 0 ? requirementNames.join(", ") : "Assigned document";
+  const requirementText = requirementNames.length > 0 ? requirementNames.join(", ") : "Unassigned document";
   const platformLink = platformUrl ? `${platformUrl}/platform/submissions` : null;
   const text = [
     "Dear SMME Admin,",
     "",
-    "A school uploaded corrected document(s) for a requirement marked Resubmit.",
+    isResubmission
+      ? "A school uploaded corrected document(s) for a requirement marked Resubmit."
+      : "A school uploaded document(s) for review.",
     "",
     `School: ${schoolName}`,
     `Service: ${serviceName}`,
@@ -177,9 +182,13 @@ function buildAdminResubmissionEmail({
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:24px;background:#ffffff;">
-      <h1 style="margin:0 0 16px;color:#071538;font-size:22px;">Document Resubmission Received</h1>
+      <h1 style="margin:0 0 16px;color:#071538;font-size:22px;">${uploadLabel}</h1>
       ${paragraph("Dear SMME Admin,")}
-      ${paragraph("A school uploaded corrected document(s) for a requirement marked Resubmit.")}
+      ${paragraph(
+        isResubmission
+          ? "A school uploaded corrected document(s) for a requirement marked Resubmit."
+          : "A school uploaded document(s) for review.",
+      )}
       <table style="width:100%;border-collapse:collapse;margin:18px 0;border:1px solid #dce5f2;background:#f8fbff;">
         <tbody>
           ${detailRow("School", schoolName)}
@@ -254,10 +263,11 @@ export async function POST(
       .select("id, original_name, service_required_document_id")
       .eq("application_id", applicationId)
       .in("id", parsed.fileIds);
+    const uploadedFiles = completedFiles ?? [];
     const assignedFiles = (completedFiles ?? []).filter((file) => file.service_required_document_id);
     let emailResult: { reason?: string; sent?: boolean } | null = null;
 
-    if (assignedFiles.length > 0) {
+    if (uploadedFiles.length > 0) {
       const requiredDocumentIds = Array.from(
         new Set(
           assignedFiles
@@ -332,27 +342,29 @@ export async function POST(
       const schoolName =
         school?.school_name ?? authUser.data.user?.user_metadata?.school_name ?? authUser.data.user?.email ?? "School";
       const serviceName = service?.name ?? "SMME Service Application";
-      const fileNames = assignedFiles.map((file) => file.original_name);
+      const fileNames = uploadedFiles.map((file) => file.original_name);
       const requirementNames = (requiredDocuments ?? []).map((document) => document.name);
+      const isResubmission = Boolean(parsed.replacesFileId);
 
       const { error: notificationError } = await supabase.from("admin_notifications").insert({
-        body: `${schoolName} uploaded ${assignedFiles.length} corrected document${
-          assignedFiles.length === 1 ? "" : "s"
+        body: `${schoolName} uploaded ${uploadedFiles.length} ${isResubmission ? "corrected " : ""}document${
+          uploadedFiles.length === 1 ? "" : "s"
         } for ${serviceName}.`,
         link_href: `/platform/submissions/${applicationId}`,
         reference_id: applicationId,
         reference_type: "service_application",
         title: `Document submission from ${schoolName}`,
-        type: "service_document_resubmitted",
+        type: isResubmission ? "service_document_resubmitted" : "service_document_uploaded",
       });
 
       if (notificationError) {
-        console.error("Unable to create admin resubmission notification:", notificationError.message);
+        console.error("Unable to create admin upload notification:", notificationError.message);
       }
 
       try {
-        const emailMessage = buildAdminResubmissionEmail({
+        const emailMessage = buildAdminUploadEmail({
           fileNames,
+          isResubmission,
           platformUrl: getPlatformUrl(),
           requirementNames,
           schoolName,
@@ -370,7 +382,7 @@ export async function POST(
         });
       } catch (emailError) {
         console.error(
-          "Unable to send admin resubmission email:",
+          "Unable to send admin upload email:",
           emailError instanceof Error ? emailError.message : emailError,
         );
         emailResult = {

@@ -36,6 +36,7 @@ type EmailTemplateOptions = {
 
 const defaultFromEmail = "admin@depedbaguio-sgod-smme.com";
 const defaultFromName = "SDO Baguio SMME";
+const defaultEmailLogoUrl = "https://depedbaguio-sgod-smme.com/assets/logos/sdobc-smme-logo-cutout.png";
 
 function getSendGridApiKey() {
   return process.env.SENDGRID_API_KEY ?? "";
@@ -240,7 +241,7 @@ export function buildSmmeEmailTemplate({
   const logoUrl =
     process.env.SMME_EMAIL_LOGO_URL ??
     process.env.SENDGRID_LOGO_URL ??
-    (platformUrl ? `${platformUrl}/assets/logos/sdobc-smme-logo-cutout.png` : "");
+    (platformUrl ? `${platformUrl}/assets/logos/sdobc-smme-logo-cutout.png` : defaultEmailLogoUrl);
   const logoHtml = logoUrl
     ? `<img src="${escapeHtml(logoUrl)}" width="68" height="68" alt="SMME logo" style="display:block;width:68px;height:68px;border:0;object-fit:contain;">`
     : `<div style="width:68px;height:68px;border-radius:50%;background:#ffffff;text-align:center;line-height:68px;color:#003486;font-size:28px;font-weight:900;">S</div>`;

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { PlatformWorkspaceShell } from "../components/PlatformWorkspaceShell";
@@ -65,6 +66,11 @@ export default async function PlatformWorkspaceLayout({
   children: React.ReactNode;
 }>) {
   const session = await getPlatformSession();
+
+  if (!session.userId) {
+    redirect("/platform/login");
+  }
+
   const schoolName = session.role === "school" ? await getSchoolNameByContactEmail(session.email) : null;
   const adminDisplayName = session.role === "admin" ? await getAdminDisplayName(session.userId) : null;
 

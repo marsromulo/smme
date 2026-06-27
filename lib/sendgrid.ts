@@ -28,6 +28,8 @@ type EmailTemplateOptions = {
   details: EmailTemplateDetail[];
   fileNames?: string[];
   greeting: string;
+  hideHeaderBadge?: boolean;
+  hideTitleIcon?: boolean;
   intro: string[];
   status?: EmailTemplateStatus;
   statusLabel?: string;
@@ -126,7 +128,7 @@ function statusColors(status: EmailTemplateStatus = "info") {
       background: "#eef6ff",
       border: "#a9c7ff",
       color: "#0047c2",
-      icon: "+",
+      icon: "",
       label: "Registration",
     };
   }
@@ -231,6 +233,8 @@ export function buildSmmeEmailTemplate({
   details,
   fileNames = [],
   greeting,
+  hideHeaderBadge = false,
+  hideTitleIcon = false,
   intro,
   status = "info",
   statusLabel,
@@ -262,13 +266,23 @@ export function buildSmmeEmailTemplate({
     : "";
   const badgeLabel = statusLabel ?? colors.label;
   const badgeIcon = colors.icon ? `${colors.icon} ` : "";
+  const headerBadgeHtml = hideHeaderBadge
+    ? ""
+    : `<span style="display:inline-block;padding:9px 16px;border-radius:999px;background:#ffffff;color:${colors.color};font-size:15px;font-weight:900;text-transform:uppercase;">${badgeIcon}${escapeHtml(badgeLabel)}</span>`;
+  const titleIconHtml = hideTitleIcon
+    ? ""
+    : `
+      <td style="width:84px;vertical-align:top;">
+        <div style="width:66px;height:66px;border:3px solid #0052d9;border-radius:50%;color:#0052d9;text-align:center;font-size:32px;line-height:62px;font-weight:900;">${colors.icon}</div>
+      </td>
+    `;
 
   return `
     <div style="margin:0;padding:24px;background:#edf6ff;font-family:Inter,Segoe UI,Arial,sans-serif;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:820px;margin:0 auto;border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #d8e8fb;border-radius:8px;overflow:hidden;box-shadow:0 18px 42px rgba(0,44,110,0.16);">
         <tr>
           <td style="padding:0;">
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:linear-gradient(135deg,#003486 0%,#0052d9 58%,#0b73ff 100%);">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#163A9D" style="background:#163A9D;background:linear-gradient(135deg,#163A9D 0%,#0052d9 58%,#0b73ff 100%);">
               <tr>
                 <td style="padding:26px 34px;">
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -282,7 +296,7 @@ export function buildSmmeEmailTemplate({
                         <div style="margin-top:7px;color:#dfeaff;font-size:14px;line-height:1.2;">Supporting Schools. Strengthening Education.</div>
                       </td>
                       <td style="text-align:right;vertical-align:middle;">
-                        <span style="display:inline-block;padding:9px 16px;border-radius:999px;background:#ffffff;color:${colors.color};font-size:15px;font-weight:900;text-transform:uppercase;">${badgeIcon}${escapeHtml(badgeLabel)}</span>
+                        ${headerBadgeHtml}
                       </td>
                     </tr>
                   </table>
@@ -295,9 +309,7 @@ export function buildSmmeEmailTemplate({
           <td style="padding:30px 42px 0;">
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
               <tr>
-                <td style="width:84px;vertical-align:top;">
-                  <div style="width:66px;height:66px;border:3px solid #0052d9;border-radius:50%;color:#0052d9;text-align:center;font-size:32px;line-height:62px;font-weight:900;">${colors.icon}</div>
-                </td>
+                ${titleIconHtml}
                 <td style="vertical-align:middle;">
                   <h1 style="margin:0;color:#071c57;font-size:34px;line-height:1.05;font-weight:950;">${escapeHtml(title)}</h1>
                   <div style="width:80px;height:3px;margin-top:12px;background:#0052d9;border-radius:999px;"></div>

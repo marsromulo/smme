@@ -34,7 +34,7 @@ export function SiteHeader() {
         <div className="container header-inner">
           <Link className="brand" href="/" onClick={() => setIsOpen(false)}>
             <Image
-              src="/assets/logos/sdobc-smme-logo-cutout.png"
+              src="/assets/logos/sdobc-smme-logo.png"
               alt="SMME logo"
               width={118}
               height={118}

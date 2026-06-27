@@ -284,8 +284,8 @@ export default function PlatformRegisterPage() {
             <label className="school-register-terms">
               <input type="checkbox" required />
               <span>
-                I agree to the <a href="#">Terms of Service</a> and{" "}
-                <a href="#">Privacy Policy</a>
+                I agree to the <Link href="/platform/terms">Terms of Service</Link> and{" "}
+                <Link href="/platform/privacy">Privacy Policy</Link>
               </span>
             </label>
 

@@ -1,56 +1,52 @@
 import Link from "next/link";
 import {
-  AlertTriangle,
   ArrowRight,
   Bell,
   Building2,
-  Check,
   CheckCircle2,
   ClipboardList,
   Clock3,
-  Eye,
   FileWarning,
   XCircle,
 } from "lucide-react";
 import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
-  formatSubmissionDate,
-  formatSubmissionStatus,
   getSubmissionList,
+  normalizeSubmissionStatus,
   type SubmissionListItem,
 } from "@/app/platform/submissions-data";
 
-const summaryCards = [
+const schoolSummaryCards = [
   {
     icon: ClipboardList,
-    value: "12",
+    key: "appliedServices",
     label: "Applied Service",
     action: "View all services",
     tone: "blue",
   },
   {
     icon: CheckCircle2,
-    value: "6",
+    key: "approvedServices",
     label: "Approved Services",
     action: "View approved",
     tone: "green",
   },
   {
     icon: Clock3,
-    value: "4",
+    key: "pendingServices",
     label: "Pending Services",
     action: "View pending",
     tone: "gold",
   },
   {
     icon: FileWarning,
-    value: "2",
+    key: "resubmissionDocuments",
     label: "Documents for Resubmission",
     action: "View resubmissions",
     tone: "red",
   },
-];
+] as const;
 
 type SchoolNotification = {
   id: string;
@@ -61,9 +57,18 @@ type SchoolNotification = {
   link_href: string | null;
 };
 
-function statusClass(status: string) {
-  return status.toLowerCase().replaceAll(" ", "-").replaceAll("/", "-");
-}
+type SchoolDashboardStats = {
+  appliedServices: number;
+  approvedServices: number;
+  pendingServices: number;
+  resubmissionDocuments: number;
+};
+
+type SchoolRecentFile = {
+  assignmentStatus: "Assigned" | "Unassigned";
+  id: string;
+  originalName: string;
+};
 
 function formatNotificationDate(value: string) {
   return new Intl.DateTimeFormat("en", {
@@ -123,6 +128,97 @@ async function getSchoolNotifications(userId: string) {
   }
 
   return (data ?? []) as SchoolNotification[];
+}
+
+function getSchoolDashboardStats({
+  resubmissionDocuments,
+  submissions,
+}: {
+  resubmissionDocuments: number;
+  submissions: SubmissionListItem[];
+}): SchoolDashboardStats {
+  return {
+    appliedServices: submissions.length,
+    approvedServices: submissions.filter(
+      (submission) => normalizeSubmissionStatus(submission.status) === "approved",
+    ).length,
+    pendingServices: submissions.filter((submission) =>
+      ["new", "in_progress"].includes(normalizeSubmissionStatus(submission.status)),
+    ).length,
+    resubmissionDocuments,
+  };
+}
+
+async function getSchoolRecentFiles(userId: string): Promise<{
+  files: SchoolRecentFile[];
+  resubmissionDocuments: number;
+}> {
+  const supabase = createSupabaseAdminClient();
+  const { data: applicationsData, error: applicationsError } = await supabase
+    .from("service_applications")
+    .select("id")
+    .eq("school_user_id", userId);
+
+  if (applicationsError) {
+    console.error("Unable to load school dashboard applications:", applicationsError.message);
+    return {
+      files: [] as SchoolRecentFile[],
+      resubmissionDocuments: 0,
+    };
+  }
+
+  const applicationIds = ((applicationsData ?? []) as Array<{ id: string }>).map(
+    (application) => application.id,
+  );
+
+  if (applicationIds.length === 0) {
+    return {
+      files: [] as SchoolRecentFile[],
+      resubmissionDocuments: 0,
+    };
+  }
+
+  const [recentFilesResult, resubmissionDocumentsResult] = await Promise.all([
+    supabase
+      .from("service_application_files")
+      .select("id, original_name, service_required_document_id, uploaded_at, created_at")
+      .in("application_id", applicationIds)
+      .eq("upload_status", "uploaded")
+      .neq("review_status", "invalid")
+      .order("uploaded_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("service_application_files")
+      .select("id", { count: "exact", head: true })
+      .in("application_id", applicationIds)
+      .eq("upload_status", "uploaded")
+      .eq("review_status", "resubmit"),
+  ]);
+
+  if (recentFilesResult.error) {
+    console.error("Unable to load school dashboard recent files:", recentFilesResult.error.message);
+  }
+
+  if (resubmissionDocumentsResult.error) {
+    console.error(
+      "Unable to load school dashboard resubmission count:",
+      resubmissionDocumentsResult.error.message,
+    );
+  }
+
+  return {
+    files: ((recentFilesResult.data ?? []) as Array<{
+      id: string;
+      original_name: string;
+      service_required_document_id: string | null;
+    }>).map((file) => ({
+      assignmentStatus: file.service_required_document_id ? "Assigned" : "Unassigned",
+      id: file.id,
+      originalName: file.original_name,
+    })),
+    resubmissionDocuments: resubmissionDocumentsResult.count ?? 0,
+  };
 }
 
 const adminActions = [
@@ -354,19 +450,21 @@ function AdminDashboard({
 }
 
 function SchoolDashboard({
+  files,
   notifications,
-  submissions,
+  stats,
 }: {
+  files: SchoolRecentFile[];
   notifications: SchoolNotification[];
-  submissions: SubmissionListItem[];
+  stats: SchoolDashboardStats;
 }) {
   return (
     <main className="platform-page platform-contact-dashboard">
       <section className="platform-stat-grid contact no-icons" aria-label="Platform statistics">
-        {summaryCards.map((card) => (
+        {schoolSummaryCards.map((card) => (
           <article className={`platform-stat contact ${card.tone}`} key={card.label}>
             <div>
-              <strong>{card.value}</strong>
+              <strong>{stats[card.key]}</strong>
               <p>{card.label}</p>
             </div>
             <Link href="/platform/applications">
@@ -383,62 +481,30 @@ function SchoolDashboard({
             <h2>Recent Submission</h2>
           </div>
 
-          <div className="platform-services-table">
-            <div className="platform-services-header">
-              <span>Service</span>
-              <span>Files</span>
+          <div className="platform-services-table school-recent-files">
+            <div className="platform-services-header school-recent-files">
+              <span>Filename</span>
               <span>Status</span>
-              <span>Action</span>
             </div>
-            {submissions.length === 0 ? (
+            {files.length === 0 ? (
               <p className="platform-empty-state">No recent submissions yet.</p>
             ) : (
-              submissions.slice(0, 5).map((submission) => (
-                <div className="platform-service-row" key={submission.id}>
+              files.map((file) => (
+                <div className="platform-service-row school-recent-files" key={file.id}>
                   <div className="platform-service-name">
                     <span className="platform-service-icon blue">
-                      <ClipboardList aria-hidden="true" size={22} />
+                      <ClipboardList aria-hidden="true" size={17} />
                     </span>
                     <div>
-                      <strong>{submission.serviceName}</strong>
-                      <small>Last submitted: {formatSubmissionDate(submission.submittedAt)}</small>
+                      <strong>{file.originalName}</strong>
                     </div>
                   </div>
-                  <span>
-                    {submission.fileCount}
+                  <span className={`platform-pill ${file.assignmentStatus.toLowerCase()}`}>
+                    {file.assignmentStatus}
                   </span>
-                  <span className={`platform-pill ${statusClass(formatSubmissionStatus(submission.status))}`}>
-                    {submission.status === "approved" ? (
-                      <Check aria-hidden="true" size={14} />
-                    ) : submission.status === "rejected" ? (
-                      <AlertTriangle aria-hidden="true" size={14} />
-                    ) : (
-                      <Clock3 aria-hidden="true" size={14} />
-                    )}
-                    {formatSubmissionStatus(submission.status)}
-                  </span>
-                  <div className="platform-service-actions">
-                    <Link href={`/platform/submissions/${submission.id}`}>
-                      <Eye aria-hidden="true" size={16} />
-                      View
-                    </Link>
-                  </div>
                 </div>
               ))
             )}
-          </div>
-
-          <div className="platform-pagination">
-            <span>
-              Showing {Math.min(submissions.length, 5)} of {submissions.length} submissions
-            </span>
-            <div>
-              <button type="button">‹</button>
-              <button className="active" type="button">1</button>
-              <button type="button">2</button>
-              <button type="button">3</button>
-              <button type="button">›</button>
-            </div>
           </div>
         </article>
 
@@ -488,8 +554,23 @@ export default async function PlatformDashboardPage() {
     return <AdminDashboard stats={stats} services={services} />;
   }
 
-  const notifications = session.userId ? await getSchoolNotifications(session.userId) : [];
-  const submissions = await getSubmissionList(session);
+  const [notifications, submissions, recentFiles] = await Promise.all([
+    session.userId ? getSchoolNotifications(session.userId) : [],
+    getSubmissionList(session),
+    session.userId
+      ? getSchoolRecentFiles(session.userId)
+      : Promise.resolve({ files: [] as SchoolRecentFile[], resubmissionDocuments: 0 }),
+  ]);
+  const stats = getSchoolDashboardStats({
+    resubmissionDocuments: recentFiles.resubmissionDocuments,
+    submissions,
+  });
 
-  return <SchoolDashboard notifications={notifications} submissions={submissions} />;
+  return (
+    <SchoolDashboard
+      files={recentFiles.files}
+      notifications={notifications}
+      stats={stats}
+    />
+  );
 }

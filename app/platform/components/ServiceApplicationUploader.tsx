@@ -23,6 +23,8 @@ type CompleteUploadResponse = {
 };
 
 const maxFileSize = 25 * 1024 * 1024;
+const defaultSuccessMessage =
+  "Application documents uploaded successfully. Your submitted document will be reviewed by the admin. Please visit your dashboard again to check for updates. You will also receive an email if the document you uploaded is approved.";
 
 function isAllowedFile(file: File) {
   return file.type === "application/pdf" || file.type.startsWith("image/");
@@ -59,7 +61,7 @@ export function ServiceApplicationUploader({
   refreshOnComplete = false,
   serviceId,
   serviceRequiredDocumentId,
-  successMessage = "Application documents uploaded successfully.",
+  successMessage = defaultSuccessMessage,
   uploadHint = "Select all documents for this service in one upload section.",
 }: {
   applicationId?: string;
@@ -213,7 +215,10 @@ export function ServiceApplicationUploader({
   }
 
   return (
-    <div className={`platform-service-uploader${compact ? " compact" : ""}`}>
+    <div
+      aria-busy={isUploading}
+      className={`platform-service-uploader${compact ? " compact" : ""}${isUploading ? " uploading" : ""}`}
+    >
       <label className="platform-service-upload-zone">
         <input
           accept="application/pdf,image/*"
@@ -224,6 +229,11 @@ export function ServiceApplicationUploader({
           ref={inputRef}
           type="file"
         />
+        {isUploading ? (
+          <span className="platform-upload-zone-saving-indicator" aria-hidden="true">
+            <span />
+          </span>
+        ) : null}
         <span>
           <UploadCloud aria-hidden="true" size={34} />
         </span>

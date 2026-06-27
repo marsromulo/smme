@@ -180,6 +180,8 @@ function buildAdminUploadEmail({
     ],
     fileNames,
     greeting: "Dear SMME Admin,",
+    hideHeaderBadge: true,
+    hideTitleIcon: true,
     intro: [
       isResubmission
         ? "A school uploaded corrected document(s) for a requirement marked Resubmit."

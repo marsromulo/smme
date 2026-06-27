@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type CSSProperties } from "react";
-import { ChevronDown, Download, Eye, FileText, Save } from "lucide-react";
+import { Check, ChevronDown, Download, Eye, FileText, Save } from "lucide-react";
 import {
   SubmissionFileHistoryPopover,
   type SubmissionFileHistoryEntry,
@@ -296,6 +296,7 @@ export function SubmissionFileReviewPanel({
     const requirementName = requiredDocuments.find(
       (document) => document.id === current.savedServiceRequiredDocumentId,
     )?.name;
+    const isAssignmentOnly = !current.savedServiceRequiredDocumentId;
     const hasUnsavedAssignment = current.serviceRequiredDocumentId !== current.savedServiceRequiredDocumentId;
     const hasUnsavedReview =
       hasUnsavedAssignment ||
@@ -304,12 +305,21 @@ export function SubmissionFileReviewPanel({
 
     return (
       <article
-        className={`platform-uploaded-review-card${isExpanded ? " active" : ""}`}
+        aria-busy={current.isSaving}
+        className={`platform-uploaded-review-card${isExpanded ? " active" : ""}${
+          current.isSaving ? " saving" : ""
+        }`}
         key={file.id}
         ref={(element) => {
           fileCardRefs.current[file.id] = element;
         }}
       >
+        {current.isSaving ? (
+          <div className="platform-review-card-saving-indicator" aria-hidden="true">
+            <span />
+          </div>
+        ) : null}
+
         <div className="platform-uploaded-review-header">
           <button
             className="platform-uploaded-review-toggle"
@@ -370,7 +380,7 @@ export function SubmissionFileReviewPanel({
                     })
                   }
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">{isAssignmentOnly ? "Select document" : "Unassigned"}</option>
                   {requiredDocuments.map((document) => (
                     <option key={document.id} value={document.id}>
                       {document.name}
@@ -379,46 +389,56 @@ export function SubmissionFileReviewPanel({
                 </select>
               </label>
 
-              <label>
-                <span>Status</span>
-                <select
-                  value={current.reviewStatus}
-                  onChange={(event) =>
-                    updateFileState(file.id, {
-                      reviewStatus: event.target.value as ReviewStatus,
-                    })
-                  }
-                >
-                  <option value="pending">Needs review</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="resubmit">Resubmit</option>
-                  <option value="invalid">Invalid</option>
-                </select>
-              </label>
+              {isAssignmentOnly ? null : (
+                <>
+                  <label>
+                    <span>Status</span>
+                    <select
+                      value={current.reviewStatus}
+                      onChange={(event) =>
+                        updateFileState(file.id, {
+                          reviewStatus: event.target.value as ReviewStatus,
+                        })
+                      }
+                    >
+                      <option value="pending">Needs review</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="resubmit">Resubmit</option>
+                      <option value="invalid">Invalid</option>
+                    </select>
+                  </label>
 
-              <label className="platform-file-review-note">
-                <span>Note</span>
-                <textarea
-                  value={current.reviewNote}
-                  onChange={(event) => updateFileState(file.id, { reviewNote: event.target.value })}
-                  rows={3}
-                />
-              </label>
+                  <label className="platform-file-review-note">
+                    <span>Note</span>
+                    <textarea
+                      value={current.reviewNote}
+                      onChange={(event) => updateFileState(file.id, { reviewNote: event.target.value })}
+                      rows={3}
+                    />
+                  </label>
+                </>
+              )}
             </div>
 
             <div className="platform-uploaded-review-footer">
-              <SubmissionFileHistoryPopover fileName={file.originalName} history={history} />
+              {isAssignmentOnly ? (
+                <span />
+              ) : (
+                <SubmissionFileHistoryPopover fileName={file.originalName} history={history} />
+              )}
               <div className="platform-uploaded-review-actions">
-                {hasUnsavedReview ? <span className="platform-unsaved-review-pill">Unsaved changes</span> : null}
+                {!isAssignmentOnly && hasUnsavedReview ? (
+                  <span className="platform-unsaved-review-pill">Unsaved changes</span>
+                ) : null}
                 <button
                   className="platform-btn primary"
-                  disabled={current.isSaving}
+                  disabled={current.isSaving || (isAssignmentOnly && !current.serviceRequiredDocumentId)}
                   onClick={() => void saveFileReview(file.id)}
                   type="button"
                 >
-                  <Save aria-hidden="true" size={14} />
-                  {current.isSaving ? "Saving..." : "Save"}
+                  {isAssignmentOnly ? <Check aria-hidden="true" size={14} /> : <Save aria-hidden="true" size={14} />}
+                  {current.isSaving ? "Saving..." : isAssignmentOnly ? "OK" : "Save"}
                 </button>
               </div>
             </div>

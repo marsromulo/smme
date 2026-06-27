@@ -148,7 +148,7 @@ export function PlatformWorkspaceShell({
       <aside className="platform-sidebar" aria-label="Platform navigation">
         <Link className="platform-brand" href="/platform">
           <Image
-            src="/assets/logos/sdobc-smme-logo-cutout.png"
+            src="/assets/logos/sdobc-smme-logo.png"
             alt="SMME logo"
             width={68}
             height={68}

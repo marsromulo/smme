@@ -43,7 +43,7 @@ const services = [
 
 const newsItems = [
   {
-    image: "/assets/images/M&E-Platform-Enhancements.png",
+    image: "/assets/images/school_time.png",
     month: "May",
     day: "16",
     title: "M&E Platform Enhancements",

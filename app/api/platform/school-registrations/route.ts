@@ -74,9 +74,10 @@ function buildAdminRegistrationEmail({
       ...(contactNumber ? [{ label: "Contact number", value: contactNumber }] : []),
     ],
     greeting: "Dear SMME Admin,",
+    hideTitleIcon: true,
     intro: ["A new school registration request was submitted."],
     status: "registration",
-    statusLabel: "New",
+    statusLabel: "Registration",
     title: "New School Registration Request",
   });
 

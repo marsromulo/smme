@@ -3,7 +3,7 @@ import { PageShell } from "../components/PageShell";
 
 const updates = [
   {
-    image: "/assets/images/M&E-Platform-Enhancements.png",
+    image: "/assets/images/school_time.png",
     date: "May 16, 2024",
     title: "M&E Platform Enhancements",
     text: "New platform improvements are available to help schools submit requirements, monitor status updates, and manage application records.",

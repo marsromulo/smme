@@ -401,7 +401,7 @@ export function SchoolSubmissionDocumentPanel({
             applicationId={applicationId}
             refreshOnComplete
             serviceId={serviceId}
-            successMessage="Documents uploaded successfully."
+            successMessage="Application documents uploaded successfully. Your submitted document will be reviewed by the admin. Please visit your dashboard again to check for updates. You will also receive an email if the document you uploaded is approved."
           />
         </div>
       </aside>

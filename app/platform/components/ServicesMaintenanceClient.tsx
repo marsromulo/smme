@@ -494,7 +494,10 @@ export function ServicesMaintenanceClient() {
 
       {isEditorOpen ? (
         <section className="platform-service-maintenance-grid">
-          <article className="platform-section platform-service-editor" ref={serviceEditorRef}>
+          <article
+            className={`platform-section platform-service-editor${isEditing ? " editing" : ""}`}
+            ref={serviceEditorRef}
+          >
             <div className="platform-section-head compact">
               <div>
                 <span className="platform-kicker">{isEditing ? "Edit service" : "Create service"}</span>

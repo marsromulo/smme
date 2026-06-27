@@ -1,10 +1,67 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  buildSmmeEmailTemplate,
+  getPlatformUrl,
+  sendSendGridEmail,
+} from "@/lib/sendgrid";
 import { approveSchoolAuthUser, rejectSchoolAuthUser, setPendingSchoolAuthUser } from "../auth-users";
 import {
   parseRegistrationDecision,
   requirePlatformAdmin,
 } from "../helpers";
 import { slugifySchoolName } from "@/app/platform/school-records";
+
+function buildSchoolRegistrationApprovedEmail({
+  adminNotes,
+  platformUrl,
+  representativeName,
+  schoolName,
+}: {
+  adminNotes: string | null;
+  platformUrl: string;
+  representativeName: string;
+  schoolName: string;
+}) {
+  const loginLink = platformUrl ? `${platformUrl}/platform/login` : null;
+  const subject = "SMME school registration approved";
+  const text = [
+    `Dear ${schoolName},`,
+    "",
+    "Your school registration has been approved.",
+    "You can now sign in to the SMME Platform using the account details submitted during registration.",
+    adminNotes ? `Admin note: ${adminNotes}` : null,
+    loginLink ? `Sign in: ${loginLink}` : null,
+    "",
+    "This is an automated notification from the SDO Baguio SMME Platform.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const html = buildSmmeEmailTemplate({
+    action: loginLink
+      ? {
+          href: loginLink,
+          label: "Sign in to Platform",
+        }
+      : null,
+    details: [
+      { label: "School", value: schoolName },
+      { label: "Representative", value: representativeName },
+      { label: "Status", value: "Approved" },
+      ...(adminNotes ? [{ label: "Note", value: adminNotes }] : []),
+    ],
+    greeting: `Dear ${schoolName},`,
+    hideTitleIcon: true,
+    intro: [
+      "Your school registration has been approved.",
+      "You can now sign in to the SMME Platform using the account details submitted during registration.",
+    ],
+    status: "registration",
+    statusLabel: "Registration",
+    title: "Registration Approved",
+  });
+
+  return { html, subject, text, toName: representativeName };
+}
 
 export async function PATCH(
   request: Request,
@@ -190,6 +247,38 @@ export async function PATCH(
 
       if (schoolNotificationError) {
         notificationErrors.push(`school notification failed: ${schoolNotificationError.message}`);
+      }
+    }
+
+    if (parsed.data.status === "approved") {
+      try {
+        const emailMessage = buildSchoolRegistrationApprovedEmail({
+          adminNotes: parsed.data.adminNotes ?? null,
+          platformUrl: getPlatformUrl(),
+          representativeName: registration.representative_name,
+          schoolName: registration.school_name,
+        });
+        const emailResult = await sendSendGridEmail({
+          html: emailMessage.html,
+          subject: emailMessage.subject,
+          text: emailMessage.text,
+          to: {
+            email: registration.representative_email,
+            name: emailMessage.toName,
+          },
+        });
+
+        if (!emailResult.sent) {
+          notificationErrors.push(
+            `school approval email failed: ${emailResult.reason ?? "Unable to send email."}`,
+          );
+        }
+      } catch (emailError) {
+        notificationErrors.push(
+          `school approval email failed: ${
+            emailError instanceof Error ? emailError.message : "Unable to send email."
+          }`,
+        );
       }
     }
 

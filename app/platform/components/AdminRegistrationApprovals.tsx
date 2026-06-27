@@ -10,9 +10,11 @@ type Registration = {
   representative_name: string;
   representative_email: string;
   contact_number: string | null;
-  status: "new" | "pending" | "approved" | "rejected";
+  status: string;
   created_at: string;
 };
+
+type RegistrationStatus = "pending" | "approved" | "rejected";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -24,7 +26,15 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function formatRegistrationStatus(status: Registration["status"]) {
+function normalizeRegistrationStatus(status: string): RegistrationStatus {
+  if (status === "approved" || status === "rejected") {
+    return status;
+  }
+
+  return "pending";
+}
+
+function formatRegistrationStatus(status: RegistrationStatus) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
@@ -56,7 +66,7 @@ export function AdminRegistrationApprovals() {
     }
   }, []);
 
-  async function updateRegistration(id: string, status: "approved" | "rejected") {
+  async function updateRegistration(id: string, status: RegistrationStatus) {
     setMessage("");
 
     try {
@@ -107,47 +117,51 @@ export function AdminRegistrationApprovals() {
         <p className="platform-empty-state">No school registration requests yet.</p>
       ) : (
         <div className="platform-approval-list">
-          {registrations.map((registration) => (
-            <article className="platform-approval-row" key={registration.id}>
-              <div>
-                <strong>{registration.school_name}</strong>
-                <span>
-                  {registration.school_id || "No school ID"} · {registration.representative_name}
+          {registrations.map((registration) => {
+            const status = normalizeRegistrationStatus(registration.status);
+
+            return (
+              <article className="platform-approval-row" key={registration.id}>
+                <div>
+                  <strong>{registration.school_name}</strong>
+                  <span>
+                    {registration.school_id || "No school ID"} · {registration.representative_name}
+                  </span>
+                  <small>
+                    {registration.representative_email}
+                    {registration.contact_number ? ` · ${registration.contact_number}` : ""} · Submitted{" "}
+                    {formatDate(registration.created_at)}
+                  </small>
+                </div>
+                <span className={`platform-pill registration-${status}`}>
+                  {status === "approved" ? (
+                    <CheckCircle2 aria-hidden="true" size={15} />
+                  ) : status === "rejected" ? (
+                    <XCircle aria-hidden="true" size={15} />
+                  ) : (
+                    <Clock3 aria-hidden="true" size={15} />
+                  )}
+                  {formatRegistrationStatus(status)}
                 </span>
-                <small>
-                  {registration.representative_email}
-                  {registration.contact_number ? ` · ${registration.contact_number}` : ""} · Submitted{" "}
-                  {formatDate(registration.created_at)}
-                </small>
-              </div>
-              <span className={`platform-pill registration-${registration.status}`}>
-                {registration.status === "approved" ? (
-                  <CheckCircle2 aria-hidden="true" size={15} />
-                ) : registration.status === "rejected" ? (
-                  <XCircle aria-hidden="true" size={15} />
-                ) : (
-                  <Clock3 aria-hidden="true" size={15} />
-                )}
-                {formatRegistrationStatus(registration.status)}
-              </span>
-              <div className="platform-approval-actions">
-                <button
-                  type="button"
-                  onClick={() => updateRegistration(registration.id, "approved")}
-                  disabled={registration.status === "approved"}
-                >
-                  Approve
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateRegistration(registration.id, "rejected")}
-                  disabled={registration.status === "rejected"}
-                >
-                  Reject
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="platform-approval-actions">
+                  <button
+                    type="button"
+                    onClick={() => updateRegistration(registration.id, "approved")}
+                    disabled={status === "approved"}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateRegistration(registration.id, "rejected")}
+                    disabled={status === "rejected"}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

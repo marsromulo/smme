@@ -1376,7 +1376,7 @@ img {
 .platform-review-status small {
   color: #6b7890;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .platform-hero-panel strong,
@@ -1685,6 +1685,7 @@ img {
   min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
+  font-weight: 400;
   cursor: default;
 }
 
@@ -1919,7 +1920,7 @@ img {
   margin: 0;
   color: #0052d9;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 400;
 }
 
 .platform-upload-actions {
@@ -2214,7 +2215,7 @@ img {
   padding: 6px 9px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 400;
   white-space: nowrap;
 }
 
@@ -3097,7 +3098,7 @@ img {
   background: #eef5ff;
   color: #003a8c;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 400;
   white-space: nowrap;
 }
 
@@ -3468,7 +3469,7 @@ img {
 .platform-review-status.registration span {
   color: #6b7890;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .platform-review-status.registration strong {
@@ -5645,11 +5646,6 @@ img {
 .platform-pill.registration-approved {
   background: #dff4e8;
   color: #087443;
-}
-
-.platform-pill.registration-new {
-  background: #eef1f5;
-  color: #526070;
 }
 
 .platform-pill.registration-pending {

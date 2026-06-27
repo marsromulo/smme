@@ -158,7 +158,7 @@ export async function POST(request: Request) {
         representative_position: parsed.data.representativePosition ?? null,
         representative_email: parsed.data.representativeEmail,
         contact_number: parsed.data.contactNumber ?? null,
-        status: "new",
+        status: "pending",
       })
       .select()
       .single();

@@ -275,7 +275,7 @@ async function getAdminStats(): Promise<AdminStat[]> {
     supabase
       .from("school_registration_requests")
       .select("id", { count: "exact", head: true })
-      .in("status", ["new", "pending"]),
+      .eq("status", "pending"),
     supabase
       .from("service_applications")
       .select("school_user_id, service_id")

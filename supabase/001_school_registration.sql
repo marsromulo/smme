@@ -12,8 +12,8 @@ create table if not exists public.school_registration_requests (
   representative_position text,
   representative_email text not null,
   contact_number text,
-  status text not null default 'new'
-    check (status in ('new', 'pending', 'approved', 'rejected')),
+  status text not null default 'pending'
+    check (status in ('pending', 'approved', 'rejected')),
   admin_notes text,
   reviewed_by uuid references auth.users(id),
   reviewed_at timestamptz,
@@ -29,11 +29,16 @@ alter table public.school_registration_requests
   add column if not exists representative_position text;
 
 alter table public.school_registration_requests drop constraint if exists school_registration_requests_status_check;
+
+update public.school_registration_requests
+set status = 'pending'
+where status = 'new';
+
 alter table public.school_registration_requests
-  alter column status set default 'new';
+  alter column status set default 'pending';
 alter table public.school_registration_requests
   add constraint school_registration_requests_status_check
-  check (status in ('new', 'pending', 'approved', 'rejected'));
+  check (status in ('pending', 'approved', 'rejected'));
 
 create table if not exists public.schools (
   id uuid primary key default gen_random_uuid(),
@@ -203,7 +208,7 @@ create policy "Anyone can submit school registration requests"
   on public.school_registration_requests
   for insert
   to anon, authenticated
-  with check (status = 'new');
+  with check (status = 'pending');
 
 drop policy if exists "Admins can read school registration requests"
   on public.school_registration_requests;

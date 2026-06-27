@@ -108,7 +108,7 @@ function statusColors(status: EmailTemplateStatus = "info") {
       background: "#fff7df",
       border: "#f2d072",
       color: "#9a6700",
-      icon: "RS",
+      icon: "",
       label: "Resubmit",
     };
   }
@@ -178,7 +178,7 @@ function detailIcon(label: string) {
 
 function renderStatusPill(label: string, status: EmailTemplateStatus = "info") {
   const colors = statusColors(status);
-  const icon = colors.icon ? `${colors.icon} ` : "";
+  const icon = status !== "resubmit" && colors.icon ? `${colors.icon} ` : "";
 
   return `<span style="display:inline-block;padding:6px 10px;border:1px solid ${colors.border};border-radius:8px;background:${colors.background};color:${colors.color};font-size:15px;font-weight:800;line-height:1;">${icon}${escapeHtml(label)}</span>`;
 }

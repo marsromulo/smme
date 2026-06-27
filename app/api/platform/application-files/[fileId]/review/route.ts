@@ -91,7 +91,10 @@ function buildDocumentReviewEmail({
 }) {
   const statusLabel = reviewStatusLabel(status);
   const statusTone = reviewEmailTone(status);
-  const subject = `SMME ${reviewStatusSubject(status)}: ${requirementName ?? fileName}`;
+  const subject =
+    status === "resubmit"
+      ? "SMME Document marked for resubmission"
+      : `SMME ${reviewStatusSubject(status)}: ${requirementName ?? fileName}`;
   const actionText =
     status === "resubmit"
       ? "Please sign in to the SMME Platform, review the note, and upload the corrected document."
@@ -131,6 +134,7 @@ function buildDocumentReviewEmail({
       ...(note ? [{ label: "Note", value: note }] : []),
     ],
     greeting: `Dear ${schoolName},`,
+    hideTitleIcon: status === "resubmit",
     intro: ["The SMME admin has reviewed one of your submitted documents.", actionText],
     status: statusTone,
     statusLabel,

@@ -8,8 +8,10 @@ type RegistrationRow = {
   representative_name: string;
   representative_email: string;
   created_at: string;
-  status: "new" | "pending" | "approved" | "rejected";
+  status: string;
 };
+
+type RegistrationStatus = "pending" | "approved" | "rejected";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
@@ -19,7 +21,15 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function formatRegistrationStatus(status: RegistrationRow["status"]) {
+function normalizeRegistrationStatus(status: string): RegistrationStatus {
+  if (status === "approved" || status === "rejected") {
+    return status;
+  }
+
+  return "pending";
+}
+
+function formatRegistrationStatus(status: RegistrationStatus) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
@@ -83,21 +93,25 @@ export default async function RegistrationsPage() {
               <span>Status</span>
             </div>
             <div className="platform-registration-table-body">
-              {registrations.map((registration) => (
-                <Link
-                  className="platform-registration-table-row"
-                  href={`/platform/registrations/${registration.id}`}
-                  key={registration.id}
-                >
-                  <strong>{registration.school_name}</strong>
-                  <span>{registration.representative_name}</span>
-                  <span>{registration.representative_email}</span>
-                  <time dateTime={registration.created_at}>{formatDate(registration.created_at)}</time>
-                  <em className={`platform-pill registration-${registration.status}`}>
-                    {formatRegistrationStatus(registration.status)}
-                  </em>
-                </Link>
-              ))}
+              {registrations.map((registration) => {
+                const status = normalizeRegistrationStatus(registration.status);
+
+                return (
+                  <Link
+                    className="platform-registration-table-row"
+                    href={`/platform/registrations/${registration.id}`}
+                    key={registration.id}
+                  >
+                    <strong>{registration.school_name}</strong>
+                    <span>{registration.representative_name}</span>
+                    <span>{registration.representative_email}</span>
+                    <time dateTime={registration.created_at}>{formatDate(registration.created_at)}</time>
+                    <em className={`platform-pill registration-${status}`}>
+                      {formatRegistrationStatus(status)}
+                    </em>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

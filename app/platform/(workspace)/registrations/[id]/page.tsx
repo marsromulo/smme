@@ -16,11 +16,13 @@ type RegistrationDetail = {
   representative_position: string | null;
   representative_email: string;
   contact_number: string | null;
-  status: "new" | "pending" | "approved" | "rejected";
+  status: string;
   admin_notes: string | null;
   reviewed_at: string | null;
   created_at: string;
 };
+
+type RegistrationStatus = "pending" | "approved" | "rejected";
 
 function formatDateTime(value: string | null) {
   if (!value) {
@@ -36,7 +38,15 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
-function formatRegistrationStatus(status: RegistrationDetail["status"]) {
+function normalizeRegistrationStatus(status: string): RegistrationStatus {
+  if (status === "approved" || status === "rejected") {
+    return status;
+  }
+
+  return "pending";
+}
+
+function formatRegistrationStatus(status: RegistrationStatus) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
@@ -78,6 +88,7 @@ export default async function RegistrationDetailPage({
   }
 
   const registration = data as RegistrationDetail;
+  const registrationStatus = normalizeRegistrationStatus(registration.status);
 
   return (
     <main className="platform-page">
@@ -91,8 +102,8 @@ export default async function RegistrationDetailPage({
           <h1>{registration.school_name}</h1>
           <p>Review the submitted school registration request and set its approval status.</p>
         </div>
-        <span className={`platform-pill registration-${registration.status}`}>
-          {formatRegistrationStatus(registration.status)}
+        <span className={`platform-pill registration-${registrationStatus}`}>
+          {formatRegistrationStatus(registrationStatus)}
         </span>
       </section>
 
@@ -174,7 +185,7 @@ export default async function RegistrationDetailPage({
 
           <RegistrationDecisionForm
             registrationId={registration.id}
-            currentStatus={registration.status}
+            currentStatus={registrationStatus}
             initialNotes={registration.admin_notes ?? ""}
           />
         </aside>

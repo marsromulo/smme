@@ -7,7 +7,7 @@ import { CheckCircle2, Clock3, XCircle } from "lucide-react";
 type RegistrationDecisionFormProps = {
   registrationId: string;
   initialNotes: string;
-  currentStatus: "new" | "pending" | "approved" | "rejected";
+  currentStatus: "pending" | "approved" | "rejected";
 };
 
 type SubmitState = "idle" | "submitting" | "success" | "error";

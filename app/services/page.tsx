@@ -1,36 +1,6 @@
 import Link from "next/link";
 import { PageShell } from "../components/PageShell";
-
-const services = [
-  {
-    title: "Government Permit to Operate",
-    text: "Prepare the required documents, submit the application, and coordinate with the unit for review, validation, and next steps.",
-  },
-  {
-    title: "Recognition of schools and academic programs",
-    text: "Request recognition for school operations or academic programs that need validation against DepEd standards.",
-  },
-  {
-    title: "Tuition and Other School Fees Increase applications",
-    text: "Submit TOSFI requirements for review, including supporting documents and notices required by applicable guidelines.",
-  },
-  {
-    title: "Establishment of new schools, branch campuses, and additional programs",
-    text: "Apply for approval to establish a new school, open a branch campus, or offer additional academic programs.",
-  },
-  {
-    title: "Change of school name, ownership, or location",
-    text: "Request approval for institutional changes and submit the supporting documents required for validation.",
-  },
-  {
-    title: "Senior High School permit applications",
-    text: "Submit requirements for authority to offer Senior High School programs in compliance with DepEd policies.",
-  },
-  {
-    title: "School Calendar",
-    text: "Submit the school year calendar for review, including class opening, holidays, examinations, breaks, school activities, and school day counts.",
-  },
-];
+import { publicServices } from "../public-services";
 
 const steps = [
   "Review the service requirements and prepare the necessary documents.",
@@ -56,7 +26,7 @@ export default function ServicesPage() {
         </section>
 
         <section className="info-card-grid">
-          {services.map((service) => (
+          {publicServices.map((service) => (
             <article className="info-card" key={service.title}>
               <h3>{service.title}</h3>
               <p>{service.text}</p>

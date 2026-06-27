@@ -2,44 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
-
-const services = [
-  {
-    icon: "/assets/icons/permit.svg",
-    title: "Government Permit to Operate",
-    text: "Required for all private schools and learning centers before they may legally operate.",
-  },
-  {
-    icon: "/assets/icons/recognition.svg",
-    title: "Recognition of Schools and Academic Programs",
-    text: "Ensures that schools and academic programs meet the standards set by DepEd.",
-  },
-  {
-    icon: "/assets/icons/tosfi.svg",
-    title: "Tuition and Other School Fees Increase (TOSFI) Applications",
-    text: "Apply for authority to increase tuition and other school fees in compliance with DepEd guidelines.",
-  },
-  {
-    icon: "/assets/icons/new-school.svg",
-    title: "Establishment of New Schools, Branch Campuses, and Additional Academic Programs",
-    text: "Secure approval to open new schools, branch campuses, or offer new academic programs.",
-  },
-  {
-    icon: "/assets/icons/change.svg",
-    title: "Change of School Name, Ownership, or Location",
-    text: "Request approval for changes in school name, ownership, or transfer of school location.",
-  },
-  {
-    icon: "/assets/icons/shs.svg",
-    title: "Senior High School Permit Applications",
-    text: "Obtain a permit to offer Senior High School programs in compliance with DepEd policies.",
-  },
-  {
-    icon: "/assets/icons/school-calendar.svg",
-    title: "School Calendar",
-    text: "Submit the school year calendar for review, including class opening, holidays, examinations, breaks, school activities, and school day counts.",
-  },
-];
+import { publicServices } from "./public-services";
 
 const newsItems = [
   {
@@ -167,7 +130,7 @@ export default function Home() {
           <div className="section-head">
             <div>
               <span className="eyebrow">Key Regulatory Requirements & Approval Processes</span>
-              <h2>Services & Application Processes</h2>
+              <h2>Regulatory Services for Schools</h2>
             </div>
             <p>
               These are the key regulatory requirements and approval processes that schools must
@@ -176,7 +139,7 @@ export default function Home() {
             </p>
           </div>
           <div className="service-grid">
-            {services.map((service) => (
+            {publicServices.map((service) => (
               <article className="service-card" key={service.title}>
                 <Image src={service.icon} alt="" width={82} height={82} />
                 <h3>{service.title}</h3>

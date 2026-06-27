@@ -13,7 +13,7 @@ type ApplicationRow = {
   submitted_at: string;
 };
 
-export type SubmissionStatus = "new" | "in_progress" | "approved" | "rejected";
+export type SubmissionStatus = "new" | "in_progress" | "for_final_approval" | "approved" | "rejected";
 export type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 export type RequiredDocumentStatus =
   | "not_assigned"
@@ -107,6 +107,10 @@ export function formatSubmissionStatus(value: string) {
     return "In progress";
   }
 
+  if (normalizedValue === "for_final_approval") {
+    return "For Final Approval";
+  }
+
   return normalizedValue
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -136,6 +140,10 @@ export function normalizeSubmissionStatus(value: string): SubmissionStatus {
 
   if (value === "approved") {
     return "approved";
+  }
+
+  if (value === "for_final_approval") {
+    return "for_final_approval";
   }
 
   if (value === "rejected" || value === "returned") {
@@ -221,6 +229,16 @@ export function deriveSubmissionStatus({
   requiredDocuments: SubmissionRequiredDocument[];
   storedStatuses: string[];
 }): SubmissionStatus {
+  const latestStoredStatus = normalizeSubmissionStatus(storedStatuses[0] ?? "new");
+
+  if (
+    latestStoredStatus === "approved" ||
+    latestStoredStatus === "rejected" ||
+    latestStoredStatus === "for_final_approval"
+  ) {
+    return latestStoredStatus;
+  }
+
   if (storedStatuses.some((status) => normalizeSubmissionStatus(status) === "rejected")) {
     return "rejected";
   }
@@ -240,7 +258,7 @@ export function deriveSubmissionStatus({
     requiredDocumentStatuses.length > 0 &&
     requiredDocumentStatuses.every((status) => status === "approved")
   ) {
-    return "approved";
+    return "for_final_approval";
   }
 
   if (activeUploadedFiles.some((file) => Boolean(file.service_required_document_id))) {
@@ -380,7 +398,12 @@ function buildSubmissionListItem({
     status: deriveSubmissionStatus({
       files: groupFiles,
       requiredDocuments: serviceRequiredDocuments,
-      storedStatuses: applications.map((application) => application.status),
+      storedStatuses: [
+        latestApplication.status,
+        ...applications
+          .filter((application) => application.id !== latestApplication.id)
+          .map((application) => application.status),
+      ],
     }),
     submittedAt,
     unassignedFileCount: unassignedFiles.length,

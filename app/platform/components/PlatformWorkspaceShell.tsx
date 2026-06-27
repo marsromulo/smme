@@ -27,7 +27,7 @@ const navItems = [
   { href: "/platform/schools", label: "Schools", icon: Building2, badge: undefined, adminOnly: true },
   { href: "/platform/submissions", label: "Submissions", icon: ClipboardCheck, badge: undefined, adminOnly: true },
   { href: "/platform/services", label: "Services", icon: Wrench, badge: undefined, adminOnly: true },
-  { href: "/platform/applications", label: "Applications", icon: BriefcaseBusiness, badge: undefined, schoolOnly: true },
+  { href: "/platform/applications", label: "My Applications", icon: BriefcaseBusiness, badge: undefined, schoolOnly: true },
   { href: "/platform/submissions", label: "My Submissions", icon: FileBadge, badge: undefined, schoolOnly: true },
   { href: "/platform/notifications", label: "Notifications", icon: Bell, badge: undefined, neverActive: true },
 ];

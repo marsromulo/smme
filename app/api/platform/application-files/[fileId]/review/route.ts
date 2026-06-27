@@ -9,7 +9,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
-type ApplicationStatus = "new" | "in_progress" | "approved" | "rejected";
+type ApplicationStatus = "new" | "in_progress" | "for_final_approval" | "approved" | "rejected";
 type RequiredDocumentStatus = "not_assigned" | "pending" | "approved" | "rejected" | "resubmit";
 
 function cleanString(value: unknown) {
@@ -282,6 +282,10 @@ function normalizeApplicationStatus(value: string): ApplicationStatus {
     return "approved";
   }
 
+  if (value === "for_final_approval") {
+    return "for_final_approval";
+  }
+
   if (value === "rejected") {
     return "rejected";
   }
@@ -397,6 +401,10 @@ async function syncGroupedApplicationStatus({
     return;
   }
 
+  if (applications.some((item) => normalizeApplicationStatus(item.status) === "approved")) {
+    return;
+  }
+
   const applicationIds = applications.map((item) => item.id);
   const [{ data: requiredDocuments }, { data: files }] = await Promise.all([
     supabase
@@ -429,7 +437,7 @@ async function syncGroupedApplicationStatus({
       );
     })
   ) {
-    nextStatus = "approved";
+    nextStatus = "for_final_approval";
   } else if (activeUploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
     nextStatus = "in_progress";
   }
@@ -488,12 +496,19 @@ export async function PATCH(
 
     const { data: application, error: applicationError } = await supabase
       .from("service_applications")
-      .select("id, school_id, school_user_id, service_id")
+      .select("id, school_id, school_user_id, service_id, status")
       .eq("id", file.application_id)
       .single();
 
     if (applicationError || !application) {
       return Response.json({ error: "Application was not found." }, { status: 404 });
+    }
+
+    if (application.status === "approved") {
+      return Response.json(
+        { error: "Approved applications are locked. Reopen the application before editing documents." },
+        { status: 400 },
+      );
     }
 
     let requirementName: string | null = null;

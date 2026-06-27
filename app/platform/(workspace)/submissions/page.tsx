@@ -18,7 +18,7 @@ export default async function PlatformSubmissionsPage() {
       <section className="platform-page-head">
         <div>
           <span className="platform-kicker">{isAdmin ? "Review queue" : "My submissions"}</span>
-          <h1>{isAdmin ? "Service Submissions" : "My Submissions"}</h1>
+          <h1>{isAdmin ? "Document Submissions" : "My Submissions"}</h1>
           <p>
             {isAdmin
               ? "Review submitted service applications and uploaded documents."

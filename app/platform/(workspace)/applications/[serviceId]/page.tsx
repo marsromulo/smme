@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CheckCircle2, FileUp, ListChecks } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileUp, ListChecks, MailCheck } from "lucide-react";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ServiceApplicationUploader } from "@/app/platform/components/ServiceApplicationUploader";
 
@@ -65,7 +65,7 @@ export default async function ServiceApplicationPage({
   return (
     <main className="platform-page">
       <section className="platform-page-head">
-        <div>
+        <div className="platform-application-title-stack">
           <Link className="platform-back-link" href="/platform/applications">
             <ArrowLeft aria-hidden="true" size={17} />
             Back to Applications
@@ -76,10 +76,30 @@ export default async function ServiceApplicationPage({
         </div>
       </section>
 
+      <section className="platform-section platform-application-instructions">
+        <div className="platform-section-head compact">
+          <div>
+            <span className="platform-kicker">Before you upload</span>
+            <h2>Document Submission Instructions</h2>
+          </div>
+          <MailCheck aria-hidden="true" size={24} />
+        </div>
+        <p>
+          Start by reviewing the required documents listed below, then upload the files that match
+          each requirement for this service. The SMME admin will validate every submitted document
+          and mark it as approved, for resubmission, or rejected.
+        </p>
+        <p>
+          Please check your dashboard regularly for updates. You should also monitor your registered
+          email address for admin notifications about your application status and document review
+          results.
+        </p>
+      </section>
+
       <section className="platform-application-intake-grid">
         <article className="platform-section platform-application-upload-panel">
           <div className="platform-section-head compact">
-            <div>
+            <div className="platform-application-title-stack">
               <span className="platform-kicker">Upload package</span>
               <h2>Application Documents</h2>
             </div>

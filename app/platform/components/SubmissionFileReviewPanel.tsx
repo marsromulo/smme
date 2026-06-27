@@ -6,6 +6,7 @@ import {
   SubmissionFileHistoryPopover,
   type SubmissionFileHistoryEntry,
 } from "@/app/platform/components/SubmissionFileHistoryPopover";
+import { FinalApplicationApprovalForm } from "@/app/platform/components/FinalApplicationApprovalForm";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 type RequirementStatus = "not_assigned" | "assigned" | "needs_review" | "resubmit" | "rejected" | "approved";
@@ -96,9 +97,15 @@ function statusClass(value: string) {
 }
 
 export function SubmissionFileReviewPanel({
+  adminNotes,
+  applicationId,
+  applicationStatus,
   files,
   requiredDocuments,
 }: {
+  adminNotes: string | null;
+  applicationId: string;
+  applicationStatus: string;
   files: ReviewFile[];
   requiredDocuments: RequiredDocument[];
 }) {
@@ -129,8 +136,13 @@ export function SubmissionFileReviewPanel({
       ]),
     ),
   );
+  const isApplicationApproved = applicationStatus === "approved";
 
   function updateFileState(fileId: string, nextState: Partial<FileFormState>) {
+    if (isApplicationApproved) {
+      return;
+    }
+
     setFileState((current) => ({
       ...current,
       [fileId]: {
@@ -187,6 +199,10 @@ export function SubmissionFileReviewPanel({
   }
 
   async function saveFileReview(fileId: string) {
+    if (isApplicationApproved) {
+      return;
+    }
+
     const current = fileState[fileId];
     const previousSavedDocumentId = current.savedServiceRequiredDocumentId;
     const nextSavedDocumentId = current.serviceRequiredDocumentId;
@@ -373,6 +389,7 @@ export function SubmissionFileReviewPanel({
               <label>
                 <span>Document</span>
                 <select
+                  disabled={isApplicationApproved}
                   value={current.serviceRequiredDocumentId}
                   onChange={(event) =>
                     updateFileState(file.id, {
@@ -394,6 +411,7 @@ export function SubmissionFileReviewPanel({
                   <label>
                     <span>Status</span>
                     <select
+                      disabled={isApplicationApproved}
                       value={current.reviewStatus}
                       onChange={(event) =>
                         updateFileState(file.id, {
@@ -412,6 +430,7 @@ export function SubmissionFileReviewPanel({
                   <label className="platform-file-review-note">
                     <span>Note</span>
                     <textarea
+                      disabled={isApplicationApproved}
                       value={current.reviewNote}
                       onChange={(event) => updateFileState(file.id, { reviewNote: event.target.value })}
                       rows={3}
@@ -433,7 +452,11 @@ export function SubmissionFileReviewPanel({
                 ) : null}
                 <button
                   className="platform-btn primary"
-                  disabled={current.isSaving || (isAssignmentOnly && !current.serviceRequiredDocumentId)}
+                  disabled={
+                    isApplicationApproved ||
+                    current.isSaving ||
+                    (isAssignmentOnly && !current.serviceRequiredDocumentId)
+                  }
                   onClick={() => void saveFileReview(file.id)}
                   type="button"
                 >
@@ -457,6 +480,9 @@ export function SubmissionFileReviewPanel({
   ).length;
   const assignedCount = requirementStatuses.filter((status) => status === "assigned").length;
   const notAssignedCount = requirementStatuses.filter((status) => status === "not_assigned").length;
+  const unassignedFiles = files.filter((file) => !fileState[file.id]?.savedServiceRequiredDocumentId);
+  const shouldHideUnassignedDocuments = applicationStatus === "for_final_approval" || applicationStatus === "approved";
+  const approvedNotes = adminNotes?.trim();
 
   return (
     <div className="platform-submission-review-layout">
@@ -536,21 +562,33 @@ export function SubmissionFileReviewPanel({
         })}
       </section>
 
-      <aside className="platform-uploaded-review-list" aria-label="Unassigned documents">
-        <div className="platform-uploaded-review-head">
-          <span className="platform-kicker">Unassigned documents</span>
-          <strong>
-            {files.filter((file) => !fileState[file.id]?.savedServiceRequiredDocumentId).length}
-          </strong>
-        </div>
+      <aside className="platform-submission-review-sidebar">
+        {!shouldHideUnassignedDocuments ? (
+          <section className="platform-uploaded-review-list" aria-label="Unassigned documents">
+            <div className="platform-uploaded-review-head">
+              <span className="platform-kicker">Unassigned documents</span>
+              <strong>{unassignedFiles.length}</strong>
+            </div>
 
-        {files.filter((file) => !fileState[file.id]?.savedServiceRequiredDocumentId).length === 0 ? (
-          <p className="platform-empty-state compact">No unassigned documents.</p>
-        ) : (
-          files
-            .filter((file) => !fileState[file.id]?.savedServiceRequiredDocumentId)
-            .map((file) => renderFileReviewCard(file))
-        )}
+            {unassignedFiles.length === 0 ? (
+              <p className="platform-empty-state compact">No unassigned documents.</p>
+            ) : (
+              unassignedFiles.map((file) => renderFileReviewCard(file))
+            )}
+          </section>
+        ) : null}
+        {applicationStatus === "for_final_approval" ? (
+          <FinalApplicationApprovalForm applicationId={applicationId} initialNotes={adminNotes} />
+        ) : null}
+        {applicationStatus === "approved" ? (
+          <section className="platform-approved-notes-panel" aria-label="Application notes">
+            <div>
+              <span className="platform-kicker">Notes</span>
+              <h3>Application Notes</h3>
+            </div>
+            <p>{approvedNotes || "No notes added."}</p>
+          </section>
+        ) : null}
       </aside>
     </div>
   );

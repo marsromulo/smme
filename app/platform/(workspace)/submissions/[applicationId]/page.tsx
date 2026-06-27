@@ -40,7 +40,6 @@ export default async function PlatformSubmissionDetailPage({
             <ArrowLeft aria-hidden="true" size={17} />
             Back to Submissions
           </Link>
-          <span className="platform-kicker">{submission.serviceCode}</span>
           <h1>{submission.serviceName}</h1>
           <p>
             Last submitted by {submission.schoolName} on {formatSubmissionDate(submission.submittedAt)}.
@@ -58,7 +57,7 @@ export default async function PlatformSubmissionDetailPage({
         <article className="platform-section">
           <div className="platform-section-head compact">
             <div>
-              <span className="platform-kicker">Uploaded package</span>
+              <span className="platform-kicker">Documents</span>
               <h2>Submitted Documents ({uploadedFiles.length})</h2>
             </div>
           </div>
@@ -67,6 +66,9 @@ export default async function PlatformSubmissionDetailPage({
             <p className="platform-empty-state">No uploaded files are available for this submission.</p>
           ) : isAdmin ? (
             <SubmissionFileReviewPanel
+              adminNotes={submission.adminNotes}
+              applicationId={submission.id}
+              applicationStatus={submission.status}
               files={uploadedFiles.map((file) => ({
                 createdAt: file.created_at,
                 id: file.id,

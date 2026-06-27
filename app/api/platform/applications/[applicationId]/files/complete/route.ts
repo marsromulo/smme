@@ -8,7 +8,7 @@ import { cleanString, jsonAuthError, requirePlatformSchool } from "../../../help
 
 export const runtime = "nodejs";
 
-type ApplicationStatus = "new" | "in_progress" | "approved" | "rejected";
+type ApplicationStatus = "new" | "in_progress" | "for_final_approval" | "approved" | "rejected";
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 
 function parseFileIds(body: unknown): { fileIds?: string[]; replacesFileId?: string | null; error?: string } {
@@ -28,6 +28,10 @@ function parseFileIds(body: unknown): { fileIds?: string[]; replacesFileId?: str
 function normalizeApplicationStatus(value: string): ApplicationStatus {
   if (value === "approved") {
     return "approved";
+  }
+
+  if (value === "for_final_approval") {
+    return "for_final_approval";
   }
 
   if (value === "rejected") {
@@ -74,6 +78,10 @@ async function syncGroupedApplicationStatus({
     return;
   }
 
+  if (applications.some((item) => normalizeApplicationStatus(item.status) === "approved")) {
+    return;
+  }
+
   const applicationIds = applications.map((item) => item.id);
   const [{ data: requiredDocuments }, { data: files }] = await Promise.all([
     supabase.from("service_required_documents").select("id").eq("service_id", application.service_id),
@@ -103,7 +111,7 @@ async function syncGroupedApplicationStatus({
       );
     })
   ) {
-    nextStatus = "approved";
+    nextStatus = "for_final_approval";
   } else if (activeUploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
     nextStatus = "in_progress";
   }

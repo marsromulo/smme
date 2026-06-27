@@ -1,8 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
-  detailRow,
+  buildSmmeEmailTemplate,
   getPlatformUrl,
-  paragraph,
   sendSendGridEmail,
 } from "@/lib/sendgrid";
 import { createPendingSchoolAuthUser } from "./auth-users";
@@ -61,27 +60,25 @@ function buildAdminRegistrationEmail({
     .filter(Boolean)
     .join("\n");
   const actionButton = registrationLink
-    ? `<p style="margin:22px 0 0;"><a href="${registrationLink}" style="display:inline-block;padding:11px 16px;border-radius:6px;background:#0052d9;color:#ffffff;text-decoration:none;font-weight:700;">Open Registration</a></p>`
-    : "";
-  const html = `
-    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:24px;background:#ffffff;">
-      <h1 style="margin:0 0 16px;color:#071538;font-size:22px;">New School Registration Request</h1>
-      ${paragraph("Dear SMME Admin,")}
-      ${paragraph("A new school registration request was submitted.")}
-      <table style="width:100%;border-collapse:collapse;margin:18px 0;border:1px solid #dce5f2;background:#f8fbff;">
-        <tbody>
-          ${detailRow("School", schoolName)}
-          ${detailRow("Representative", representativeName)}
-          ${detailRow("Email", representativeEmail)}
-          ${contactNumber ? detailRow("Contact number", contactNumber) : ""}
-        </tbody>
-      </table>
-      ${actionButton}
-      <p style="margin:24px 0 0;color:#607089;font-size:12px;line-height:1.5;">
-        This is an automated notification from the SDO Baguio SMME Platform.
-      </p>
-    </div>
-  `;
+    ? {
+        href: registrationLink,
+        label: "Open Registration",
+      }
+    : null;
+  const html = buildSmmeEmailTemplate({
+    action: actionButton,
+    details: [
+      { label: "School", value: schoolName },
+      { label: "Representative", value: representativeName },
+      { label: "Email", value: representativeEmail },
+      ...(contactNumber ? [{ label: "Contact number", value: contactNumber }] : []),
+    ],
+    greeting: "Dear SMME Admin,",
+    intro: ["A new school registration request was submitted."],
+    status: "registration",
+    statusLabel: "New",
+    title: "New School Registration Request",
+  });
 
   return { html, subject, text };
 }

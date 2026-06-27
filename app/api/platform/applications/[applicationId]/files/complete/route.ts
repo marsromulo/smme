@@ -1,7 +1,6 @@
 import {
-  detailRow,
+  buildSmmeEmailTemplate,
   getPlatformUrl,
-  paragraph,
   sendSendGridEmail,
 } from "@/lib/sendgrid";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -119,15 +118,6 @@ async function syncGroupedApplicationStatus({
   }
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
 function getAdminNotificationEmail() {
   return (
     process.env.SMME_ADMIN_NOTIFICATION_EMAIL ??
@@ -176,36 +166,29 @@ function buildAdminUploadEmail({
     .join("\n");
 
   const actionButton = platformLink
-    ? `<p style="margin:22px 0 0;"><a href="${platformLink}" style="display:inline-block;padding:11px 16px;border-radius:6px;background:#0052d9;color:#ffffff;text-decoration:none;font-weight:700;">Open Submissions</a></p>`
-    : "";
-  const fileList = fileNames.map((fileName) => `<li>${escapeHtml(fileName)}</li>`).join("");
-
-  const html = `
-    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:24px;background:#ffffff;">
-      <h1 style="margin:0 0 16px;color:#071538;font-size:22px;">${uploadLabel}</h1>
-      ${paragraph("Dear SMME Admin,")}
-      ${paragraph(
-        isResubmission
-          ? "A school uploaded corrected document(s) for a requirement marked Resubmit."
-          : "A school uploaded document(s) for review.",
-      )}
-      <table style="width:100%;border-collapse:collapse;margin:18px 0;border:1px solid #dce5f2;background:#f8fbff;">
-        <tbody>
-          ${detailRow("School", schoolName)}
-          ${detailRow("Service", serviceName)}
-          ${detailRow("Requirement(s)", requirementText)}
-        </tbody>
-      </table>
-      <p style="margin:0 0 8px;color:#607089;font-weight:700;">Uploaded file(s)</p>
-      <ul style="margin:0;padding-left:20px;color:#17243a;font-weight:700;line-height:1.55;">
-        ${fileList}
-      </ul>
-      ${actionButton}
-      <p style="margin:24px 0 0;color:#607089;font-size:12px;line-height:1.5;">
-        This is an automated notification from the SDO Baguio SMME Platform.
-      </p>
-    </div>
-  `;
+    ? {
+        href: platformLink,
+        label: "Open Submissions",
+      }
+    : null;
+  const html = buildSmmeEmailTemplate({
+    action: actionButton,
+    details: [
+      { label: "School", value: schoolName },
+      { label: "Service", value: serviceName },
+      { label: "Requirement(s)", value: requirementText },
+    ],
+    fileNames,
+    greeting: "Dear SMME Admin,",
+    intro: [
+      isResubmission
+        ? "A school uploaded corrected document(s) for a requirement marked Resubmit."
+        : "A school uploaded document(s) for review.",
+    ],
+    status: "upload",
+    statusLabel: isResubmission ? "Resubmitted" : "Uploaded",
+    title: uploadLabel,
+  });
 
   return { html, subject, text };
 }

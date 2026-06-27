@@ -1,8 +1,7 @@
 import { getPlatformSession } from "@/lib/platform/auth";
 import {
-  detailRow,
+  buildSmmeEmailTemplate,
   getPlatformUrl,
-  paragraph,
   sendSendGridEmail,
 } from "@/lib/sendgrid";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -65,13 +64,12 @@ function reviewStatusSubject(status: ReviewStatus) {
   return `Document ${reviewStatusLabel(status).toLowerCase()}`;
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function reviewEmailTone(status: ReviewStatus) {
+  if (status === "approved" || status === "rejected" || status === "resubmit") {
+    return status;
+  }
+
+  return "info";
 }
 
 function buildDocumentReviewEmail({
@@ -92,6 +90,7 @@ function buildDocumentReviewEmail({
   status: ReviewStatus;
 }) {
   const statusLabel = reviewStatusLabel(status);
+  const statusTone = reviewEmailTone(status);
   const subject = `SMME ${reviewStatusSubject(status)}: ${requirementName ?? fileName}`;
   const actionText =
     status === "resubmit"
@@ -117,30 +116,26 @@ function buildDocumentReviewEmail({
     .join("\n");
 
   const actionButton = platformUrl
-    ? `<p style="margin:22px 0 0;"><a href="${platformUrl}/platform/submissions" style="display:inline-block;padding:11px 16px;border-radius:6px;background:#0052d9;color:#ffffff;text-decoration:none;font-weight:700;">Open SMME Platform</a></p>`
-    : "";
-
-  const html = `
-    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:24px;background:#ffffff;">
-      <h1 style="margin:0 0 16px;color:#071538;font-size:22px;">Document Review Update</h1>
-      ${paragraph(`Dear ${schoolName},`)}
-      ${paragraph("The SMME admin has reviewed one of your submitted documents.")}
-      <table style="width:100%;border-collapse:collapse;margin:18px 0;border:1px solid #dce5f2;background:#f8fbff;">
-        <tbody>
-          ${detailRow("Service", serviceName)}
-          ${detailRow("Requirement", requirementName ?? "Unassigned")}
-          ${detailRow("File", fileName)}
-          ${detailRow("Status", statusLabel)}
-          ${note ? detailRow("Note", note) : ""}
-        </tbody>
-      </table>
-      ${paragraph(actionText)}
-      ${actionButton}
-      <p style="margin:24px 0 0;color:#607089;font-size:12px;line-height:1.5;">
-        This is an automated notification from the SDO Baguio SMME Platform.
-      </p>
-    </div>
-  `;
+    ? {
+        href: `${platformUrl}/platform/submissions`,
+        label: status === "resubmit" ? "Upload Corrected Document" : "View Review Details",
+      }
+    : null;
+  const html = buildSmmeEmailTemplate({
+    action: actionButton,
+    details: [
+      { label: "Service", value: serviceName },
+      { label: "Requirement", value: requirementName ?? "Unassigned" },
+      { label: "File", value: fileName },
+      { label: "Status", value: statusLabel, tone: statusTone },
+      ...(note ? [{ label: "Note", value: note }] : []),
+    ],
+    greeting: `Dear ${schoolName},`,
+    intro: ["The SMME admin has reviewed one of your submitted documents.", actionText],
+    status: statusTone,
+    statusLabel,
+    title: "Document Review Update",
+  });
 
   return { html, subject, text };
 }
@@ -163,7 +158,7 @@ function buildRequiredDocumentReviewEmail({
   status: "approved" | "rejected";
 }) {
   const statusLabel = reviewStatusLabel(status);
-  const subject = `SMME required document ${status}: ${requirementName}`;
+  const subject = `SMME required document ${status}`;
   const actionText = "You may sign in to the SMME Platform to view the document review details.";
   const text = [
     `Dear ${schoolName},`,
@@ -184,34 +179,26 @@ function buildRequiredDocumentReviewEmail({
     .filter(Boolean)
     .join("\n");
   const actionButton = platformUrl
-    ? `<p style="margin:22px 0 0;"><a href="${platformUrl}/platform/submissions" style="display:inline-block;padding:11px 16px;border-radius:6px;background:#0052d9;color:#ffffff;text-decoration:none;font-weight:700;">Open SMME Platform</a></p>`
-    : "";
-  const fileList = fileNames.map((fileName) => `<li>${escapeHtml(fileName)}</li>`).join("");
-  const html = `
-    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:24px;background:#ffffff;">
-      <h1 style="margin:0 0 16px;color:#071538;font-size:22px;">Required Document ${statusLabel}</h1>
-      ${paragraph(`Dear ${schoolName},`)}
-      ${paragraph(`The SMME admin has marked a required document as ${statusLabel}.`)}
-      <table style="width:100%;border-collapse:collapse;margin:18px 0;border:1px solid #dce5f2;background:#f8fbff;">
-        <tbody>
-          ${detailRow("Service", serviceName)}
-          ${detailRow("Required document", requirementName)}
-          ${detailRow("Status", statusLabel)}
-          ${note ? detailRow("Note", note) : ""}
-        </tbody>
-      </table>
-      ${
-        fileNames.length > 0
-          ? `<p style="margin:0 0 8px;color:#607089;font-weight:700;">Reviewed file(s)</p><ul style="margin:0;padding-left:20px;color:#17243a;font-weight:700;line-height:1.55;">${fileList}</ul>`
-          : ""
+    ? {
+        href: `${platformUrl}/platform/submissions`,
+        label: "View Review Details",
       }
-      ${paragraph(actionText)}
-      ${actionButton}
-      <p style="margin:24px 0 0;color:#607089;font-size:12px;line-height:1.5;">
-        This is an automated notification from the SDO Baguio SMME Platform.
-      </p>
-    </div>
-  `;
+    : null;
+  const html = buildSmmeEmailTemplate({
+    action: actionButton,
+    details: [
+      { label: "Service", value: serviceName },
+      { label: "Required document", value: requirementName },
+      { label: "Status", value: statusLabel, tone: status },
+      ...(note ? [{ label: "Note", value: note }] : []),
+    ],
+    fileNames,
+    greeting: `Dear ${schoolName},`,
+    intro: [`The SMME admin has marked a required document as ${statusLabel}.`, actionText],
+    status,
+    statusLabel,
+    title: `Required Document ${statusLabel}`,
+  });
 
   return { html, subject, text };
 }

@@ -3866,13 +3866,13 @@ img {
 .platform-brand small {
   margin: 0 0 2px;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
 }
 
 .platform-brand strong {
   color: #ffffff;
-  font-size: 27px;
+  font-size: 23px;
   font-weight: 950;
   letter-spacing: 0;
   line-height: 0.98;
@@ -3882,7 +3882,7 @@ img {
   display: block;
   margin-top: 4px;
   color: #ffd45a;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -5654,11 +5654,11 @@ img {
   }
 
   .platform-brand strong {
-    font-size: 23px;
+    font-size: 20px;
   }
 
   .platform-brand b {
-    font-size: 14px;
+    font-size: 12px;
   }
 }
 

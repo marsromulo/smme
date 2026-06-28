@@ -143,7 +143,9 @@ function getSchoolDashboardStats({
       (submission) => normalizeSubmissionStatus(submission.status) === "approved",
     ).length,
     pendingServices: submissions.filter((submission) =>
-      ["new", "in_progress", "for_final_approval"].includes(normalizeSubmissionStatus(submission.status)),
+      ["new", "in_progress", "for_endorsement", "for_final_approval"].includes(
+        normalizeSubmissionStatus(submission.status),
+      ),
     ).length,
     resubmissionDocuments,
   };
@@ -279,7 +281,7 @@ async function getAdminStats(): Promise<AdminStat[]> {
     supabase
       .from("service_applications")
       .select("school_user_id, service_id")
-      .in("status", ["new", "in_progress", "for_final_approval"]),
+      .in("status", ["new", "in_progress", "for_endorsement", "for_final_approval"]),
     supabase
       .from("service_application_files")
       .select("id", { count: "exact", head: true })

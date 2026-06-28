@@ -8,7 +8,13 @@ import { cleanString, jsonAuthError, requirePlatformSchool } from "../../../help
 
 export const runtime = "nodejs";
 
-type ApplicationStatus = "new" | "in_progress" | "for_final_approval" | "approved" | "rejected";
+type ApplicationStatus =
+  | "new"
+  | "in_progress"
+  | "for_endorsement"
+  | "for_final_approval"
+  | "approved"
+  | "rejected";
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 
 function parseFileIds(body: unknown): { fileIds?: string[]; replacesFileId?: string | null; error?: string } {
@@ -32,6 +38,10 @@ function normalizeApplicationStatus(value: string): ApplicationStatus {
 
   if (value === "for_final_approval") {
     return "for_final_approval";
+  }
+
+  if (value === "for_endorsement") {
+    return "for_endorsement";
   }
 
   if (value === "rejected") {
@@ -111,7 +121,7 @@ async function syncGroupedApplicationStatus({
       );
     })
   ) {
-    nextStatus = "for_final_approval";
+    nextStatus = "for_endorsement";
   } else if (activeUploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
     nextStatus = "in_progress";
   }

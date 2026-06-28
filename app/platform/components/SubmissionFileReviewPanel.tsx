@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Download, Eye, FileText, Save } from "lucide-react";
 import {
   SubmissionFileHistoryPopover,
@@ -110,6 +111,7 @@ export function SubmissionFileReviewPanel({
   files: ReviewFile[];
   requiredDocuments: RequiredDocument[];
 }) {
+  const router = useRouter();
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const requirementCardRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -221,6 +223,7 @@ export function SubmissionFileReviewPanel({
         method: "PATCH",
       });
       const result = (await response.json().catch(() => ({}))) as {
+        applicationStatus?: string | null;
         error?: string;
         history?: {
           created_at: string;
@@ -255,6 +258,10 @@ export function SubmissionFileReviewPanel({
       if (previousSavedDocumentId !== nextSavedDocumentId && nextSavedDocumentId) {
         runAssignmentAnimation(fileId, nextSavedDocumentId);
         setExpandedRequirementId(nextSavedDocumentId);
+      }
+
+      if (result.applicationStatus && result.applicationStatus !== applicationStatus) {
+        router.refresh();
       }
 
       updateFileState(fileId, {

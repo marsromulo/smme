@@ -13,7 +13,13 @@ type ApplicationRow = {
   submitted_at: string;
 };
 
-export type SubmissionStatus = "new" | "in_progress" | "for_final_approval" | "approved" | "rejected";
+export type SubmissionStatus =
+  | "new"
+  | "in_progress"
+  | "for_endorsement"
+  | "for_final_approval"
+  | "approved"
+  | "rejected";
 export type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 export type RequiredDocumentStatus =
   | "not_assigned"
@@ -111,6 +117,10 @@ export function formatSubmissionStatus(value: string) {
     return "For Final Approval";
   }
 
+  if (normalizedValue === "for_endorsement") {
+    return "For endorsement";
+  }
+
   return normalizedValue
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -144,6 +154,10 @@ export function normalizeSubmissionStatus(value: string): SubmissionStatus {
 
   if (value === "for_final_approval") {
     return "for_final_approval";
+  }
+
+  if (value === "for_endorsement") {
+    return "for_endorsement";
   }
 
   if (value === "rejected" || value === "returned") {
@@ -234,6 +248,7 @@ export function deriveSubmissionStatus({
   if (
     latestStoredStatus === "approved" ||
     latestStoredStatus === "rejected" ||
+    latestStoredStatus === "for_endorsement" ||
     latestStoredStatus === "for_final_approval"
   ) {
     return latestStoredStatus;
@@ -258,7 +273,7 @@ export function deriveSubmissionStatus({
     requiredDocumentStatuses.length > 0 &&
     requiredDocumentStatuses.every((status) => status === "approved")
   ) {
-    return "for_final_approval";
+    return "for_endorsement";
   }
 
   if (activeUploadedFiles.some((file) => Boolean(file.service_required_document_id))) {

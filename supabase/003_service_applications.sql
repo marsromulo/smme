@@ -6,7 +6,7 @@ create table if not exists public.service_applications (
   school_id uuid references public.schools(id) on delete set null,
   service_id uuid not null references public.services(id) on delete restrict,
   status text not null default 'new'
-    check (status in ('new', 'in_progress', 'for_final_approval', 'approved', 'rejected')),
+    check (status in ('new', 'in_progress', 'for_endorsement', 'for_final_approval', 'approved', 'rejected')),
   submitted_at timestamptz not null default now(),
   reviewed_by uuid references auth.users(id),
   reviewed_at timestamptz,
@@ -21,6 +21,7 @@ alter table public.service_applications
 update public.service_applications
 set status = case
   when status = 'approved' then 'approved'
+  when status = 'for_endorsement' then 'for_endorsement'
   when status = 'for_final_approval' then 'for_final_approval'
   when status in ('rejected', 'returned') then 'rejected'
   else 'in_progress'
@@ -31,7 +32,7 @@ alter table public.service_applications
 
 alter table public.service_applications
   add constraint service_applications_status_check
-  check (status in ('new', 'in_progress', 'for_final_approval', 'approved', 'rejected'));
+  check (status in ('new', 'in_progress', 'for_endorsement', 'for_final_approval', 'approved', 'rejected'));
 
 create table if not exists public.service_application_files (
   id uuid primary key default gen_random_uuid(),

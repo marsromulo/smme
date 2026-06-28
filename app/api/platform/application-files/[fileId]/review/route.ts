@@ -4,7 +4,13 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
-type ApplicationStatus = "new" | "in_progress" | "for_final_approval" | "approved" | "rejected";
+type ApplicationStatus =
+  | "new"
+  | "in_progress"
+  | "for_endorsement"
+  | "for_final_approval"
+  | "approved"
+  | "rejected";
 
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -129,6 +135,10 @@ function normalizeApplicationStatus(value: string): ApplicationStatus {
     return "for_final_approval";
   }
 
+  if (value === "for_endorsement") {
+    return "for_endorsement";
+  }
+
   if (value === "rejected") {
     return "rejected";
   }
@@ -157,7 +167,7 @@ async function syncGroupedApplicationStatus({
     service_id: string;
   };
   supabase: ReturnType<typeof createSupabaseAdminClient>;
-}) {
+}): Promise<ApplicationStatus | null> {
   const { data: applications, error: applicationsError } = await supabase
     .from("service_applications")
     .select("id, status")
@@ -166,15 +176,15 @@ async function syncGroupedApplicationStatus({
 
   if (applicationsError || !applications) {
     console.error("Unable to load grouped applications for status sync:", applicationsError?.message);
-    return;
+    return null;
   }
 
   if (applications.some((item) => normalizeApplicationStatus(item.status) === "rejected")) {
-    return;
+    return "rejected";
   }
 
   if (applications.some((item) => normalizeApplicationStatus(item.status) === "approved")) {
-    return;
+    return "approved";
   }
 
   const applicationIds = applications.map((item) => item.id);
@@ -209,7 +219,7 @@ async function syncGroupedApplicationStatus({
       );
     })
   ) {
-    nextStatus = "for_final_approval";
+    nextStatus = "for_endorsement";
   } else if (activeUploadedFiles.some((uploadedFile) => Boolean(uploadedFile.service_required_document_id))) {
     nextStatus = "in_progress";
   }
@@ -221,7 +231,10 @@ async function syncGroupedApplicationStatus({
 
   if (updateStatusError) {
     console.error("Unable to sync grouped application status:", updateStatusError.message);
+    return null;
   }
+
+  return nextStatus;
 }
 
 export async function PATCH(
@@ -341,7 +354,7 @@ export async function PATCH(
       );
     }
 
-    await syncGroupedApplicationStatus({ application, supabase });
+    const applicationStatus = await syncGroupedApplicationStatus({ application, supabase });
 
     const statusChanged = file.review_status !== parsed.data.reviewStatus;
 
@@ -368,7 +381,7 @@ export async function PATCH(
       }
     }
 
-    return Response.json({ email: null, history: history ?? null, ok: true });
+    return Response.json({ applicationStatus, email: null, history: history ?? null, ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to update document review.";
     return Response.json({ error: message }, { status: 500 });

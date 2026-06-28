@@ -3310,6 +3310,7 @@ img {
 
 .platform-pill.for-validation,
 .platform-pill.under-review,
+.platform-pill.for-endorsement,
 .platform-pill.for-final-approval,
 .platform-pill.in-progress {
   background: #fff7e3;

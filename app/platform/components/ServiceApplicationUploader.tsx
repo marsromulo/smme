@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Trash2, UploadCloud, XCircle } from "lucide-react";
+import { CheckCircle2, FileText, Trash2, UploadCloud, XCircle } from "lucide-react";
 
 type UploadResponse = {
   uploads?: {
@@ -23,8 +23,15 @@ type CompleteUploadResponse = {
 };
 
 const maxFileSize = 25 * 1024 * 1024;
+const maxFileCount = 40;
 const defaultSuccessMessage =
-  "Application documents uploaded successfully. Your submitted document will be reviewed by the admin. Please visit your dashboard again to check for updates. You will also receive an email if the document you uploaded is approved.";
+  "Application documents uploaded successfully. Your submitted document will be reviewed by the admin. Please visit your dashboard again to check for updates. You will also receive an email if your application is approved.";
+
+type UploadedFileSummary = {
+  name: string;
+  size: number;
+  type: string;
+};
 
 function isAllowedFile(file: File) {
   return file.type === "application/pdf" || file.type.startsWith("image/");
@@ -82,6 +89,7 @@ export function ServiceApplicationUploader({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploadedCount, setUploadedCount] = useState(0);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileSummary[]>([]);
 
   const totalSize = useMemo(() => files.reduce((sum, file) => sum + file.size, 0), [files]);
 
@@ -89,24 +97,45 @@ export function ServiceApplicationUploader({
     setError(null);
     setMessage(null);
     setUploadedCount(0);
+    setUploadedFiles([]);
 
     const selectedFiles = Array.from(nextFiles ?? []);
+
+    if (selectedFiles.length === 0) {
+      return;
+    }
+
     const invalidFile = selectedFiles.find((file) => !isAllowedFile(file));
     const oversizedFile = selectedFiles.find((file) => file.size > maxFileSize);
 
     if (invalidFile) {
-      setFiles([]);
       setError(`${invalidFile.name} must be a PDF or image file.`);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
       return;
     }
 
     if (oversizedFile) {
-      setFiles([]);
       setError(`${oversizedFile.name} exceeds the 25 MB file limit.`);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
       return;
     }
 
-    setFiles(selectedFiles);
+    if (files.length + selectedFiles.length > maxFileCount) {
+      setError(`Upload up to ${maxFileCount} files at a time.`);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+      return;
+    }
+
+    setFiles((currentFiles) => [...currentFiles, ...selectedFiles]);
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   }
 
   function removeFile(fileIndex: number) {
@@ -117,6 +146,7 @@ export function ServiceApplicationUploader({
     setError(null);
     setMessage(null);
     setUploadedCount(0);
+    setUploadedFiles([]);
     setFiles((currentFiles) => currentFiles.filter((_, index) => index !== fileIndex));
 
     if (inputRef.current) {
@@ -133,8 +163,10 @@ export function ServiceApplicationUploader({
     setError(null);
     setMessage(null);
     setUploadedCount(0);
+    setUploadedFiles([]);
 
     try {
+      const filesToUpload = files;
       let uploadApplicationId = applicationId;
 
       if (!uploadApplicationId) {
@@ -149,7 +181,7 @@ export function ServiceApplicationUploader({
 
       const signResponse = await fetch(`/api/platform/applications/${uploadApplicationId}/files/sign`, {
         body: JSON.stringify({
-          files: files.map((file) => ({
+          files: filesToUpload.map((file) => ({
             name: file.name,
             size: file.size,
             type: file.type,
@@ -163,10 +195,14 @@ export function ServiceApplicationUploader({
       const uploads = signedUploads.uploads ?? [];
       const uploadedFileIds: string[] = [];
 
-      for (const upload of uploads) {
-        const file = files.find((selectedFile) => selectedFile.name === upload.name);
+      if (uploads.length !== filesToUpload.length) {
+        throw new Error("Unable to prepare every selected file for upload.");
+      }
 
-        if (!file) {
+      for (const [index, upload] of uploads.entries()) {
+        const file = filesToUpload[index];
+
+        if (!file || upload.name !== file.name) {
           throw new Error(`Unable to match signed upload for ${upload.name}.`);
         }
 
@@ -195,6 +231,13 @@ export function ServiceApplicationUploader({
       const completeResult = await readJson<CompleteUploadResponse>(completeResponse);
 
       setFiles([]);
+      setUploadedFiles(
+        filesToUpload.map((file) => ({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        })),
+      );
       if (inputRef.current) {
         inputRef.current.value = "";
       }
@@ -284,13 +327,35 @@ export function ServiceApplicationUploader({
         </p>
       ) : null}
 
-      {message ? <p className="platform-form-message success">{message}</p> : null}
-
       <div className="platform-upload-actions">
         <button className="platform-btn primary" disabled={files.length === 0 || isUploading} onClick={handleSubmit} type="button">
           {isUploading ? "Uploading..." : buttonLabel}
         </button>
       </div>
+
+      {message ? <p className="platform-form-message success">{message}</p> : null}
+
+      {uploadedFiles.length > 0 ? (
+        <div className="platform-selected-files platform-uploaded-files-summary" aria-live="polite">
+          <div className="platform-selected-files-head">
+            <strong>
+              Uploaded document{uploadedFiles.length === 1 ? "" : "s"}
+            </strong>
+            <span>
+              {uploadedFiles.length} file{uploadedFiles.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <ul>
+            {uploadedFiles.map((file, index) => (
+              <li key={`${file.name}-${file.size}-${index}`}>
+                <CheckCircle2 aria-hidden="true" size={16} />
+                <span>{file.name}</span>
+                <small>{formatFileSize(file.size)}</small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

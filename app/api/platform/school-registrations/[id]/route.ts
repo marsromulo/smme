@@ -112,11 +112,7 @@ export async function PATCH(
     };
 
     if (parsed.data.status === "approved") {
-      const authResult = await approveSchoolAuthUser(
-        supabase,
-        authProfile,
-        `${new URL(request.url).origin}/platform/login`,
-      );
+      const authResult = await approveSchoolAuthUser(supabase, authProfile);
 
       if (authResult.error || !authResult.user) {
         return Response.json(

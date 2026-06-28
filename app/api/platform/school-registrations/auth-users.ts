@@ -98,7 +98,6 @@ export async function createPendingSchoolAuthUser(
 export async function approveSchoolAuthUser(
   supabase: SupabaseAdminClient,
   profile: SchoolAuthProfile,
-  redirectTo: string,
 ) {
   const existing = await findAuthUserByEmail(supabase, profile.representativeEmail);
 
@@ -106,23 +105,14 @@ export async function approveSchoolAuthUser(
     return { error: existing.error };
   }
 
-  let user: User | null = existing.user ?? null;
+  const user: User | null = existing.user ?? null;
 
   if (!user) {
-    const invited = await supabase.auth.admin.inviteUserByEmail(profile.representativeEmail, {
-      data: schoolUserMetadata(profile),
-      redirectTo,
-    });
-
-    if (invited.error) {
-      return { error: invited.error };
-    }
-
-    user = invited.data.user;
-  }
-
-  if (!user) {
-    return { error: new Error("Unable to create school login account.") };
+    return {
+      error: new Error(
+        "School login account was not found. Ask the school to submit the registration form again so the account can be created without a Supabase invite email.",
+      ),
+    };
   }
 
   const updated = await supabase.auth.admin.updateUserById(user.id, {

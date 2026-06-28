@@ -1956,6 +1956,21 @@ img {
   color: currentColor;
 }
 
+.platform-uploaded-files-summary {
+  border-color: #b8e2cc;
+  background: #f7fffb;
+}
+
+.platform-uploaded-files-summary li {
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  border-color: #d8f1e3;
+  background: #fff;
+}
+
+.platform-uploaded-files-summary li svg {
+  color: #087443;
+}
+
 .platform-upload-status {
   margin: 0;
   color: #0052d9;

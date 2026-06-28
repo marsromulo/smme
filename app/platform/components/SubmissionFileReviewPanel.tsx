@@ -10,6 +10,7 @@ import { FinalApplicationApprovalForm } from "@/app/platform/components/FinalApp
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "resubmit" | "invalid";
 type RequirementStatus = "not_assigned" | "assigned" | "needs_review" | "resubmit" | "rejected" | "approved";
+type ReviewStatusSelectValue = ReviewStatus | "unassign";
 
 type ReviewFile = {
   createdAt: string;
@@ -412,13 +413,28 @@ export function SubmissionFileReviewPanel({
                     <span>Status</span>
                     <select
                       disabled={isApplicationApproved}
-                      value={current.reviewStatus}
-                      onChange={(event) =>
-                        updateFileState(file.id, {
-                          reviewStatus: event.target.value as ReviewStatus,
-                        })
+                      value={
+                        current.serviceRequiredDocumentId
+                          ? current.reviewStatus
+                          : "unassign"
                       }
+                      onChange={(event) => {
+                        const nextStatus = event.target.value as ReviewStatusSelectValue;
+
+                        if (nextStatus === "unassign") {
+                          updateFileState(file.id, {
+                            reviewStatus: "pending",
+                            serviceRequiredDocumentId: "",
+                          });
+                          return;
+                        }
+
+                        updateFileState(file.id, {
+                          reviewStatus: nextStatus,
+                        });
+                      }}
                     >
+                      <option value="unassign">Unassign</option>
                       <option value="pending">Needs review</option>
                       <option value="approved">Approved</option>
                       <option value="rejected">Rejected</option>

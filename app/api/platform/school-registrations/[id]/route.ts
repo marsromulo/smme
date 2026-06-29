@@ -25,7 +25,7 @@ function buildSchoolRegistrationApprovedEmail({
   const loginLink = platformUrl ? `${platformUrl}/platform/login` : null;
   const subject = "SMME school registration approved";
   const text = [
-    `Dear ${schoolName},`,
+    `Dear ${representativeName},`,
     "",
     "Your school registration has been approved.",
     "You can now sign in to the SMME Platform using the account details submitted during registration.",
@@ -46,17 +46,16 @@ function buildSchoolRegistrationApprovedEmail({
     details: [
       { label: "School", value: schoolName },
       { label: "Representative", value: representativeName },
-      { label: "Status", value: "Approved" },
+      { label: "Status", value: "Approved", tone: "approved" },
       ...(adminNotes ? [{ label: "Note", value: adminNotes }] : []),
     ],
-    greeting: `Dear ${schoolName},`,
-    hideTitleIcon: true,
+    greeting: `Dear ${representativeName},`,
     intro: [
       "Your school registration has been approved.",
       "You can now sign in to the SMME Platform using the account details submitted during registration.",
     ],
-    status: "registration",
-    statusLabel: "Registration",
+    status: "approved",
+    statusLabel: "Approved",
     title: "Registration Approved",
   });
 

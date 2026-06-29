@@ -392,7 +392,7 @@ export function SchoolSubmissionDocumentPanel({
         <div className="platform-unassigned-upload-panel">
           <div className="platform-section-head compact">
             <div>
-              <span className="platform-kicker">Upload package</span>
+              <span className="platform-kicker">Upload</span>
               <h2>Application Documents</h2>
             </div>
             <FileUp aria-hidden="true" size={22} />

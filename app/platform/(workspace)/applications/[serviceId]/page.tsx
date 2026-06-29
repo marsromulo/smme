@@ -97,18 +97,6 @@ export default async function ServiceApplicationPage({
       </section>
 
       <section className="platform-application-intake-grid">
-        <article className="platform-section platform-application-upload-panel">
-          <div className="platform-section-head compact">
-            <div className="platform-application-title-stack">
-              <span className="platform-kicker">Upload package</span>
-              <h2>Application Documents</h2>
-            </div>
-            <FileUp aria-hidden="true" size={24} />
-          </div>
-
-          <ServiceApplicationUploader serviceId={service.id} />
-        </article>
-
         <aside className="platform-section platform-required-documents-summary">
           <div className="platform-section-head compact">
             <div>
@@ -132,6 +120,18 @@ export default async function ServiceApplicationPage({
             </ol>
           )}
         </aside>
+
+        <article className="platform-section platform-application-upload-panel">
+          <div className="platform-section-head compact">
+            <div className="platform-application-title-stack">
+              <span className="platform-kicker">Upload</span>
+              <h2>Application Documents</h2>
+            </div>
+            <FileUp aria-hidden="true" size={24} />
+          </div>
+
+          <ServiceApplicationUploader serviceId={service.id} />
+        </article>
       </section>
     </main>
   );

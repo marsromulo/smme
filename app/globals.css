@@ -1961,14 +1961,119 @@ img {
   background: #f7fffb;
 }
 
+.platform-uploaded-files-summary-toggle {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.platform-uploaded-files-summary-toggle > span {
+  display: grid;
+  gap: 2px;
+}
+
+.platform-uploaded-files-summary-toggle strong {
+  color: #071538;
+  font-size: 14px;
+}
+
+.platform-uploaded-files-summary-toggle small {
+  color: #607089;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.platform-uploaded-files-summary-toggle svg,
+.platform-requirement-chevron svg,
+.platform-uploaded-review-toggle svg {
+  transition: transform 160ms ease;
+}
+
+.platform-uploaded-files-summary-toggle svg.open,
+.platform-requirement-chevron svg.open,
+.platform-uploaded-review-toggle svg.open {
+  transform: rotate(180deg);
+}
+
 .platform-uploaded-files-summary li {
   grid-template-columns: 18px minmax(0, 1fr) auto;
   border-color: #d8f1e3;
   background: #fff;
 }
 
+.platform-uploaded-files-summary li.with-assignment {
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+}
+
 .platform-uploaded-files-summary li svg {
   color: #087443;
+}
+
+.platform-uploaded-file-assignment .platform-btn svg {
+  color: currentColor;
+}
+
+.platform-uploaded-file-assignment {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.platform-uploaded-file-assignment label {
+  display: grid;
+  gap: 5px;
+}
+
+.platform-uploaded-file-assignment label > span {
+  color: #607089;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: normal;
+}
+
+.platform-uploaded-file-assignment select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #cfdcf0;
+  border-radius: 8px;
+  background: #fff;
+  color: #17243a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 0 10px;
+}
+
+.platform-uploaded-file-assignment .platform-btn {
+  min-height: 38px;
+  padding: 0 13px;
+}
+
+.platform-assignment-message {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.platform-assignment-message.success {
+  color: #087443;
+}
+
+.platform-assignment-message.error {
+  color: #b42318;
 }
 
 .platform-upload-status {
@@ -2023,6 +2128,107 @@ img {
 
 .platform-service-required-list svg {
   color: #087443;
+}
+
+.platform-service-required-list-assignable li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.platform-service-required-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 28px minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.platform-service-required-row > span {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #edf3fb;
+  color: #003087;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.platform-service-required-row em {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e7f8ef;
+  color: #087443;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.platform-service-required-list-assignable li.expanded {
+  border-color: #9ec5ff;
+  box-shadow: 0 10px 22px rgb(0 82 217 / 0.08);
+}
+
+.platform-service-required-assigned-files {
+  display: grid;
+  gap: 8px;
+  padding: 0 10px 10px 48px;
+}
+
+.platform-service-required-assigned-files > p {
+  margin: 0;
+  color: #607089;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.platform-required-assigned-file {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d8e6f6;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.platform-required-assigned-file > div:first-child {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.platform-required-assigned-file > div:first-child > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.platform-required-assigned-file strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.platform-required-assigned-file small {
+  color: #607089;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .platform-submission-detail-grid {

@@ -4,6 +4,7 @@ import {
   sendSendGridEmail,
 } from "@/lib/sendgrid";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { after } from "next/server";
 import { cleanString, jsonAuthError, requirePlatformSchool } from "../../../helpers";
 
 export const runtime = "nodejs";
@@ -263,12 +264,11 @@ export async function POST(
 
     const { data: completedFiles } = await supabase
       .from("service_application_files")
-      .select("id, original_name, service_required_document_id")
+      .select("id, original_name, service_required_document_id, mime_type, size_bytes")
       .eq("application_id", applicationId)
       .in("id", parsed.fileIds);
     const uploadedFiles = completedFiles ?? [];
     const assignedFiles = (completedFiles ?? []).filter((file) => file.service_required_document_id);
-    let emailResult: { reason?: string; sent?: boolean } | null = null;
 
     if (uploadedFiles.length > 0) {
       const requiredDocumentIds = Array.from(
@@ -364,7 +364,7 @@ export async function POST(
         console.error("Unable to create admin upload notification:", notificationError.message);
       }
 
-      try {
+      after(async () => {
         const emailMessage = buildAdminUploadEmail({
           fileNames,
           isResubmission,
@@ -374,34 +374,42 @@ export async function POST(
           serviceName,
         });
 
-        emailResult = await sendSendGridEmail({
-          html: emailMessage.html,
-          subject: emailMessage.subject,
-          text: emailMessage.text,
-          to: {
-            email: getAdminNotificationEmail(),
-            name: "SMME Admin",
-          },
-        });
+        try {
+          const emailResult = await sendSendGridEmail({
+            html: emailMessage.html,
+            subject: emailMessage.subject,
+            text: emailMessage.text,
+            to: {
+              email: getAdminNotificationEmail(),
+              name: "SMME Admin",
+            },
+          });
 
-        if (!emailResult.sent) {
-          console.warn("Admin upload email was not sent:", emailResult.reason ?? "Unknown email failure.");
+          if (!emailResult.sent) {
+            console.warn("Admin upload email was not sent:", emailResult.reason ?? "Unknown email failure.");
+          }
+        } catch (emailError) {
+          console.error(
+            "Unable to send admin upload email:",
+            emailError instanceof Error ? emailError.message : emailError,
+          );
         }
-      } catch (emailError) {
-        console.error(
-          "Unable to send admin upload email:",
-          emailError instanceof Error ? emailError.message : emailError,
-        );
-        emailResult = {
-          reason: emailError instanceof Error ? emailError.message : "Unable to send email.",
-          sent: false,
-        };
-      }
+      });
     }
 
     await syncGroupedApplicationStatus({ application, supabase });
 
-    return Response.json({ email: emailResult, ok: true });
+    return Response.json({
+      email: null,
+      files: uploadedFiles.map((file) => ({
+        id: file.id,
+        originalName: file.original_name,
+        serviceRequiredDocumentId: file.service_required_document_id,
+        size: file.size_bytes,
+        type: file.mime_type,
+      })),
+      ok: true,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to finalize uploads.";
     return Response.json({ error: message }, { status: 500 });

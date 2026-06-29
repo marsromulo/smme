@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CheckCircle2, FileUp, ListChecks, MailCheck } from "lucide-react";
+import { ArrowLeft, MailCheck } from "lucide-react";
+import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { ServiceApplicationUploader } from "@/app/platform/components/ServiceApplicationUploader";
+import { SchoolServiceApplicationIntake } from "@/app/platform/components/SchoolServiceApplicationIntake";
 
 type ServiceDetail = {
   id: string;
@@ -18,7 +19,21 @@ type RequiredDocument = {
   sort_order: number;
 };
 
-async function getServiceApplication(serviceId: string) {
+type ExistingApplicationFile = {
+  id: string;
+  name: string;
+  serviceRequiredDocumentId: string | null;
+  size: number;
+  type: string;
+};
+
+async function getServiceApplication({
+  serviceId,
+  userId,
+}: {
+  serviceId: string;
+  userId: string | null;
+}) {
   const supabase = createSupabaseAdminClient();
   const { data: service, error: serviceError } = await supabase
     .from("services")
@@ -42,8 +57,52 @@ async function getServiceApplication(serviceId: string) {
     throw new Error(documentsError.message);
   }
 
+  let applicationId: string | null = null;
+  let existingFiles: ExistingApplicationFile[] = [];
+
+  if (userId) {
+    const { data: applications, error: applicationsError } = await supabase
+      .from("service_applications")
+      .select("id, submitted_at, created_at")
+      .eq("service_id", serviceId)
+      .eq("school_user_id", userId)
+      .order("submitted_at", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    if (applicationsError) {
+      throw new Error(applicationsError.message);
+    }
+
+    const applicationIds = (applications ?? []).map((application) => application.id);
+    applicationId = applicationIds[0] ?? null;
+
+    if (applicationIds.length > 0) {
+      const { data: files, error: filesError } = await supabase
+        .from("service_application_files")
+        .select("id, original_name, service_required_document_id, mime_type, size_bytes, review_status")
+        .eq("upload_status", "uploaded")
+        .neq("review_status", "invalid")
+        .in("application_id", applicationIds)
+        .order("created_at", { ascending: true });
+
+      if (filesError) {
+        throw new Error(filesError.message);
+      }
+
+      existingFiles = (files ?? []).map((file) => ({
+        id: file.id,
+        name: file.original_name,
+        serviceRequiredDocumentId: file.service_required_document_id,
+        size: file.size_bytes,
+        type: file.mime_type,
+      }));
+    }
+  }
+
   return {
+    applicationId,
     documents: (documents ?? []) as RequiredDocument[],
+    existingFiles,
     service: service as ServiceDetail,
   };
 }
@@ -54,13 +113,14 @@ export default async function ServiceApplicationPage({
   params: Promise<{ serviceId: string }>;
 }) {
   const { serviceId } = await params;
-  const application = await getServiceApplication(serviceId);
+  const session = await getPlatformSession();
+  const application = await getServiceApplication({ serviceId, userId: session.userId });
 
   if (!application) {
     notFound();
   }
 
-  const { service, documents } = application;
+  const { applicationId, service, documents, existingFiles } = application;
 
   return (
     <main className="platform-page">
@@ -96,43 +156,12 @@ export default async function ServiceApplicationPage({
         </p>
       </section>
 
-      <section className="platform-application-intake-grid">
-        <aside className="platform-section platform-required-documents-summary">
-          <div className="platform-section-head compact">
-            <div>
-              <span className="platform-kicker">Checklist</span>
-              <h2>Required Documents ({documents.length})</h2>
-            </div>
-            <ListChecks aria-hidden="true" size={24} />
-          </div>
-
-          {documents.length === 0 ? (
-            <p className="platform-empty-state">No required documents configured for this service.</p>
-          ) : (
-            <ol className="platform-service-required-list">
-              {documents.map((document, index) => (
-                <li key={document.id}>
-                  <span>{index + 1}</span>
-                  <strong>{document.name}</strong>
-                  <CheckCircle2 aria-hidden="true" size={16} />
-                </li>
-              ))}
-            </ol>
-          )}
-        </aside>
-
-        <article className="platform-section platform-application-upload-panel">
-          <div className="platform-section-head compact">
-            <div className="platform-application-title-stack">
-              <span className="platform-kicker">Upload</span>
-              <h2>Application Documents</h2>
-            </div>
-            <FileUp aria-hidden="true" size={24} />
-          </div>
-
-          <ServiceApplicationUploader serviceId={service.id} />
-        </article>
-      </section>
+      <SchoolServiceApplicationIntake
+        applicationId={applicationId}
+        documents={documents}
+        initialFiles={existingFiles}
+        serviceId={service.id}
+      />
     </main>
   );
 }

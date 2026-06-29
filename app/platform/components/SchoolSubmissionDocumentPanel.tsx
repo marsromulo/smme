@@ -336,7 +336,11 @@ export function SchoolSubmissionDocumentPanel({
           const isExpanded = expandedRequirementId === document.id;
 
           return (
-            <article className="platform-requirement-review-card" key={document.id}>
+            <article
+              className="platform-requirement-review-card"
+              data-required-document-id={document.id}
+              key={document.id}
+            >
               <div className="platform-requirement-review-row">
                 <span>{index + 1}</span>
                 <button
@@ -399,6 +403,8 @@ export function SchoolSubmissionDocumentPanel({
           </div>
           <ServiceApplicationUploader
             applicationId={applicationId}
+            onAssignmentSaved={(_file, documentId) => setExpandedRequirementId(documentId)}
+            requiredDocuments={requiredDocuments}
             refreshOnComplete
             serviceId={serviceId}
             successMessage="Application documents uploaded successfully. Your submitted document will be reviewed by the admin. Please visit your dashboard again to check for updates. You will also receive an email if your application is approved."

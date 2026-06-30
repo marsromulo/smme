@@ -19,6 +19,7 @@ import {
   Wrench,
 } from "lucide-react";
 import type { PlatformRole } from "@/lib/platform/auth";
+import sgodLogo from "@/layout/sgod_logo.png";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const navItems = [
@@ -148,8 +149,8 @@ export function PlatformWorkspaceShell({
       <aside className="platform-sidebar" aria-label="Platform navigation">
         <Link className="platform-brand" href="/platform">
           <Image
-            src="/assets/logos/sdobc-smme-logo.png"
-            alt="SMME logo"
+            src={sgodLogo}
+            alt="SGOD logo"
             width={68}
             height={68}
             priority
@@ -192,7 +193,7 @@ export function PlatformWorkspaceShell({
         </nav>
         <div className="platform-sidebar-card">
           <strong>Tayo ang Baguio</strong>
-          <p>Integrity · Excellence · Service</p>
+          <p>Compassionate · Committed · Competent</p>
         </div>
       </aside>
 

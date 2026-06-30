@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 import {
-  BookOpenCheck,
   Eye,
   FileText,
-  GraduationCap,
   School,
   ShieldCheck,
   UserRoundPlus,
   UsersRound,
 } from "lucide-react";
+import sgodLogo from "@/layout/sgod_logo.png";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
@@ -107,10 +107,7 @@ export default function PlatformRegisterPage() {
     <main className="school-register-page">
       <section className="school-register-intro">
         <div className="school-register-brand">
-          <span>
-            <GraduationCap aria-hidden="true" size={44} />
-            <BookOpenCheck aria-hidden="true" size={54} />
-          </span>
+          <Image className="school-register-logo" src={sgodLogo} alt="SGOD logo" width={76} height={76} priority />
           <div>
             <strong>SMME</strong>
             <small>

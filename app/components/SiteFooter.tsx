@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import sgodLogo from "@/layout/sgod_logo.png";
 
 export function SiteFooter() {
   return (
@@ -8,10 +9,10 @@ export function SiteFooter() {
         <div>
           <Image
             className="footer-logo"
-            src="/assets/images/smme_footer_logo.png"
-            alt=""
+            src={sgodLogo}
+            alt="SGOD logo"
             width={86}
-            height={87}
+            height={86}
           />
           <h3>Schools Division of Baguio City</h3>
           <p>

@@ -6314,6 +6314,12 @@ img {
   color: #145fe3;
 }
 
+.school-register-logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+}
+
 .school-register-brand strong,
 .school-register-brand small {
   display: block;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import sgodLogo from "@/layout/sgod_logo.png";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -34,8 +35,8 @@ export function SiteHeader() {
         <div className="container header-inner">
           <Link className="brand" href="/" onClick={() => setIsOpen(false)}>
             <Image
-              src="/assets/logos/sdobc-smme-logo.png"
-              alt="SMME logo"
+              src={sgodLogo}
+              alt="SGOD logo"
               width={118}
               height={118}
               priority

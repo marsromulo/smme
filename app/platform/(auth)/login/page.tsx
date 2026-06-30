@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import {
-  BookOpenCheck,
   Building2,
   Eye,
   FileText,
-  GraduationCap,
   LockKeyhole,
   Mail,
   ShieldCheck,
@@ -16,6 +15,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import sgodLogo from "@/layout/sgod_logo.png";
 
 const features = [
   {
@@ -79,16 +79,13 @@ export default function PlatformLoginPage() {
     <main className="school-login-page">
       <section className="school-login-intro">
         <div className="school-register-brand">
-          <span>
-            <GraduationCap aria-hidden="true" size={44} />
-            <BookOpenCheck aria-hidden="true" size={54} />
-          </span>
+          <Image className="school-register-logo" src={sgodLogo} alt="SGOD logo" width={76} height={76} priority />
           <div>
             <strong>SMME</strong>
             <small>
-              School Monitoring &
+              School Management
               <br />
-              Management Ecosystem
+              Monitoring and Evaluation
             </small>
           </div>
         </div>

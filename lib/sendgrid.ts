@@ -38,6 +38,7 @@ type EmailTemplateOptions = {
 
 const defaultFromEmail = "admin@depedbaguio-sgod-smme.com";
 const defaultFromName = "SDO Baguio SMME";
+const platformUrl = "https://depedbaguio-sgod-smme.com";
 const defaultEmailLogoUrl = "https://depedbaguio-sgod-smme.com/assets/logos/sdobc-smme-logo-cutout.png";
 
 function getSendGridApiKey() {
@@ -45,19 +46,7 @@ function getSendGridApiKey() {
 }
 
 export function getPlatformUrl() {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  }
-
-  if (process.env.SITE_URL) {
-    return process.env.SITE_URL.replace(/\/$/, "");
-  }
-
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
-  }
-
-  return "";
+  return platformUrl;
 }
 
 export function escapeHtml(value: string) {

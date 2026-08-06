@@ -44,11 +44,11 @@ export default function Home() {
                 safe, and accountable basic education.
               </p>
               <div className="actions">
-                <Link className="btn primary" href="/services">
-                  Explore Services
+                <Link className="btn registration" href="/platform/register">
+                  Register Your School &rarr;
                 </Link>
-                <Link className="btn secondary" href="/platform">
-                  Launch M&E Platform &rarr;
+                <Link className="btn secondary" href="/services">
+                  Explore Services
                 </Link>
               </div>
             </div>

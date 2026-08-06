@@ -235,6 +235,20 @@ img {
   color: var(--blue);
 }
 
+.btn.registration {
+  padding-inline: 34px;
+  border-color: #d98500;
+  background: linear-gradient(135deg, #f59e0b, #e87500);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(218, 111, 0, 0.28);
+  font-size: 17px;
+}
+
+.btn.registration:hover {
+  border-color: #c66f00;
+  box-shadow: 0 16px 32px rgba(218, 111, 0, 0.36);
+}
+
 .btn.light {
   padding: 13px 18px;
   border: none;

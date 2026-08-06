@@ -42,7 +42,7 @@ const platformUrl = "https://depedbaguio-sgod-smme.com";
 const defaultEmailLogoUrl = "https://depedbaguio-sgod-smme.com/assets/logos/sdobc-smme-logo-cutout.png";
 
 function getSendGridApiKey() {
-  return process.env.SENDGRID_API_KEY ?? "";
+  return process.env.SENDGRID_API_KEY ?? process.env.SMTP_PASSWORD ?? "";
 }
 
 export function getPlatformUrl() {
@@ -347,7 +347,7 @@ export async function sendSendGridEmail(message: SendGridMessage) {
   const apiKey = getSendGridApiKey();
 
   if (!apiKey) {
-    return { reason: "SENDGRID_API_KEY is not configured.", sent: false };
+    return { reason: "SENDGRID_API_KEY or SMTP_PASSWORD is not configured.", sent: false };
   }
 
   const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
@@ -363,8 +363,8 @@ export async function sendSendGridEmail(message: SendGridMessage) {
         },
       ],
       from: {
-        email: process.env.SENDGRID_FROM_EMAIL ?? defaultFromEmail,
-        name: process.env.SENDGRID_FROM_NAME ?? defaultFromName,
+        email: process.env.SENDGRID_FROM_EMAIL ?? process.env.SMTP_FROM_EMAIL ?? defaultFromEmail,
+        name: process.env.SENDGRID_FROM_NAME ?? process.env.SMTP_FROM_NAME ?? defaultFromName,
       },
       personalizations: [
         {

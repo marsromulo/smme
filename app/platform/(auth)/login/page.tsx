@@ -171,7 +171,7 @@ export default function PlatformLoginPage() {
                 <input type="checkbox" />
                 <span>Remember me</span>
               </label>
-              <a href="#">Forgot Password?</a>
+              <Link href="/platform/forgot-password">Forgot Password?</Link>
             </div>
 
             {error ? <p className="school-login-error">{error}</p> : null}

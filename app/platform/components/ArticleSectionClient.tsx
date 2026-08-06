@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
-import { CalendarDays, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { Article, ArticleCategory } from "@/lib/articles";
 import { articleCategoryLabel, articleCategoryPath } from "@/lib/articles";
 
@@ -19,15 +19,6 @@ const emptyForm: ArticleForm = {
   id: "",
   title: "",
 };
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-PH", {
-    day: "numeric",
-    month: "long",
-    timeZone: "UTC",
-    year: "numeric",
-  }).format(new Date(`${value}T00:00:00Z`));
-}
 
 export function ArticleSectionClient({
   category,
@@ -173,22 +164,6 @@ export function ArticleSectionClient({
     }
   }
 
-  async function deleteArticle(article: Article) {
-    if (!window.confirm(`Delete “${article.title}” and all its images?`)) {
-      return;
-    }
-
-    const response = await fetch(`/api/platform/articles/${article.id}`, { method: "DELETE" });
-    const result = (await response.json()) as { error?: string };
-
-    if (!response.ok) {
-      setMessage(result.error ?? "Unable to delete article.");
-      return;
-    }
-
-    setArticles((current) => current.filter((item) => item.id !== article.id));
-  }
-
   async function deleteImage(imageId: string) {
     if (!form.id || !window.confirm("Remove this image from the article?")) {
       return;
@@ -294,30 +269,18 @@ export function ArticleSectionClient({
         {articles.length ? (
           articles.map((article) => (
             <article className="platform-panel article-platform-card" key={article.id}>
-              <div className="article-platform-card-head">
-                <div>
-                  <h2><Link href={`${basePath}/${article.id}`}>{article.title}</Link></h2>
-                  <time><CalendarDays aria-hidden="true" size={16} /> {formatDate(article.date)}</time>
-                </div>
-                {isAdmin ? (
-                  <div className="article-row-actions">
-                    <button type="button" onClick={() => openEditor(article)}><Pencil aria-hidden="true" size={17} /> Edit</button>
-                    <button className="danger" type="button" onClick={() => void deleteArticle(article)}><Trash2 aria-hidden="true" size={17} /> Delete</button>
-                  </div>
-                ) : null}
-              </div>
-              {article.content ? <p className="article-excerpt">{article.content}</p> : null}
-              {article.images.length ? (
-                <div className="article-image-grid">
-                  {article.images.slice(0, 3).map((image) => (
-                    <a href={image.url} target="_blank" rel="noreferrer" key={image.id}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={image.url} alt={image.name} />
-                    </a>
-                  ))}
+              <Link className="article-list-thumbnail" href={`${basePath}/${article.id}`}>
+                {article.images[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={article.images[0].url} alt={article.images[0].name} />
+                ) : <span aria-hidden="true"><ImagePlus size={25} /></span>}
+              </Link>
+              <h2><Link href={`${basePath}/${article.id}`}>{article.title}</Link></h2>
+              {isAdmin ? (
+                <div className="article-row-actions">
+                  <button type="button" onClick={() => openEditor(article)}><Pencil aria-hidden="true" size={17} /> Edit</button>
                 </div>
               ) : null}
-              <Link className="article-read-link" href={`${basePath}/${article.id}`}>View article &rarr;</Link>
             </article>
           ))
         ) : (

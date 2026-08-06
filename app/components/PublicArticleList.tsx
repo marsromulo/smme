@@ -1,16 +1,7 @@
 import Link from "next/link";
-import { CalendarDays } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import type { Article, ArticleCategory } from "@/lib/articles";
 import { articleCategoryPath } from "@/lib/articles";
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-PH", {
-    day: "numeric",
-    month: "long",
-    timeZone: "UTC",
-    year: "numeric",
-  }).format(new Date(`${value}T00:00:00Z`));
-}
 
 export function PublicArticleList({
   articles,
@@ -34,22 +25,13 @@ export function PublicArticleList({
     <section className="public-article-list">
       {articles.map((article) => (
         <article className="public-article-card" key={article.id}>
-          <header>
-            <h2><Link href={`${basePath}/${article.id}`}>{article.title}</Link></h2>
-            <time><CalendarDays aria-hidden="true" size={16} /> {formatDate(article.date)}</time>
-          </header>
-          {article.content ? <div className="article-content">{article.content}</div> : null}
-          {article.images.length ? (
-            <div className="article-image-grid detail">
-              {article.images.map((image) => (
-                <a href={image.url} target="_blank" rel="noreferrer" key={image.id} title="Open full image in a new tab">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={image.url} alt={image.name} />
-                </a>
-              ))}
-            </div>
-          ) : null}
-          <Link className="article-read-link" href={`${basePath}/${article.id}`}>View article &rarr;</Link>
+          <Link className="article-list-thumbnail" href={`${basePath}/${article.id}`}>
+            {article.images[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={article.images[0].url} alt={article.images[0].name} />
+            ) : <span aria-hidden="true"><ImageIcon size={27} /></span>}
+          </Link>
+          <h2><Link href={`${basePath}/${article.id}`}>{article.title}</Link></h2>
         </article>
       ))}
     </section>

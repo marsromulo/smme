@@ -7535,6 +7535,94 @@ img {
   color: #b42318;
 }
 
+.article-platform-card,
+.public-article-list .public-article-card {
+  display: grid;
+  min-height: 104px;
+  grid-template-columns: 116px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 12px;
+}
+
+.public-article-list .public-article-card {
+  grid-template-columns: 116px minmax(0, 1fr);
+}
+
+.article-platform-card h2,
+.public-article-list .public-article-card h2 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.article-list-thumbnail {
+  display: block;
+  overflow: hidden;
+  width: 116px;
+  aspect-ratio: 4 / 3;
+  border-radius: 7px;
+  background: #eaf2fc;
+}
+
+.article-list-thumbnail img,
+.article-list-thumbnail span {
+  width: 100%;
+  height: 100%;
+}
+
+.article-list-thumbnail img {
+  display: block;
+  object-fit: cover;
+}
+
+.article-list-thumbnail span {
+  display: grid;
+  place-items: center;
+  color: #6c88ad;
+}
+
+.article-delete-control {
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e8f3;
+}
+
+.article-delete-control button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 17px;
+  border: 1px solid #e5aaa5;
+  border-radius: 8px;
+  background: #fff5f4;
+  color: #b42318;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.article-delete-control button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.article-delete-control p {
+  margin: 10px 0 0;
+  color: #b42318;
+  font-size: 14px;
+}
+
+.news-card > div {
+  min-height: auto;
+  padding: 18px 20px 20px;
+}
+
+.news-card h3 {
+  margin: 0;
+}
+
 @media (max-width: 820px) {
   .article-form {
     grid-template-columns: 1fr;
@@ -7556,5 +7644,20 @@ img {
 
   .article-image-grid {
     grid-template-columns: 1fr;
+  }
+
+  .article-platform-card,
+  .public-article-list .public-article-card {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .article-list-thumbnail {
+    width: 82px;
+  }
+
+  .article-platform-card .article-row-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
   }
 }

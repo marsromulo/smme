@@ -191,13 +191,7 @@ export default async function Home() {
                   <img src={item.images[0].url} alt={item.images[0].name} />
                 ) : <div className="news-card-placeholder" aria-hidden="true" />}
                 <div>
-                  <time>
-                    <b>{new Intl.DateTimeFormat("en-PH", { month: "short", timeZone: "UTC" }).format(new Date(`${item.date}T00:00:00Z`))}</b>
-                    {new Date(`${item.date}T00:00:00Z`).getUTCDate()}
-                  </time>
-                  <h3>{item.title}</h3>
-                  {item.content ? <p>{item.content}</p> : null}
-                  <Link href={`/news/${item.id}`}>Read more &gt;</Link>
+                  <h3><Link href={`/news/${item.id}`}>{item.title}</Link></h3>
                 </div>
               </article>
             ))}

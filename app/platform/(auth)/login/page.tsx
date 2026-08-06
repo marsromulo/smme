@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   Building2,
   Eye,
@@ -42,11 +42,26 @@ const accessNotes = [
   { icon: FileText, title: "Audit & Compliance", text: "Track every action" },
 ];
 
+const rememberedEmailKey = "smme.remembered-email";
+const rememberLoginKey = "smme.remember-login";
+
 export default function PlatformLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [rememberLogin, setRememberLogin] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      const shouldRemember = window.localStorage.getItem(rememberLoginKey) === "true";
+      setRememberLogin(shouldRemember);
+
+      if (shouldRemember) {
+        setEmail(window.localStorage.getItem(rememberedEmailKey) ?? "");
+      }
+    });
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,6 +80,14 @@ export default function PlatformLoginPage() {
 
       if (signInError) {
         throw signInError;
+      }
+
+      if (rememberLogin) {
+        window.localStorage.setItem(rememberLoginKey, "true");
+        window.localStorage.setItem(rememberedEmailKey, email.trim().toLowerCase());
+      } else {
+        window.localStorage.removeItem(rememberLoginKey);
+        window.localStorage.removeItem(rememberedEmailKey);
       }
 
       router.push("/platform");
@@ -145,7 +168,9 @@ export default function PlatformLoginPage() {
               <div>
                 <Mail aria-hidden="true" size={22} />
                 <input
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="Enter your email address"
                   value={email}
                   required
@@ -161,14 +186,24 @@ export default function PlatformLoginPage() {
               <span>Password</span>
               <div>
                 <LockKeyhole aria-hidden="true" size={22} />
-                <input name="password" type="password" placeholder="Enter your password" required />
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  required
+                />
                 <Eye aria-hidden="true" size={22} />
               </div>
             </label>
 
             <div className="school-login-options">
               <label>
-                <input type="checkbox" />
+                <input
+                  type="checkbox"
+                  checked={rememberLogin}
+                  onChange={(event) => setRememberLogin(event.target.checked)}
+                />
                 <span>Remember me</span>
               </label>
               <Link href="/platform/forgot-password">Forgot Password?</Link>
@@ -181,15 +216,6 @@ export default function PlatformLoginPage() {
               {isSubmitting ? "Signing In..." : "Sign In"}
             </button>
           </form>
-
-          <div className="school-login-divider">
-            <span>or</span>
-          </div>
-
-          <button className="school-login-sso" type="button">
-            <ShieldCheck aria-hidden="true" size={23} />
-            Sign in with SSO
-          </button>
 
           <p className="school-login-register">
             Don&apos;t have an account? <Link href="/platform/register">Register your school</Link>

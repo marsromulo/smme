@@ -129,3 +129,23 @@ export async function getArticle(id: string, category?: ArticleCategory) {
   const issuances = await getArticles("issuances");
   return issuances.find((article) => article.id === id) ?? null;
 }
+
+export async function markArticleRead(articleId: string, userId: string) {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { error } = await supabase.from("article_reads").upsert(
+      {
+        article_id: articleId,
+        read_at: new Date().toISOString(),
+        user_id: userId,
+      },
+      { onConflict: "article_id,user_id" },
+    );
+
+    if (error) {
+      console.error("Unable to mark article as read:", error.message);
+    }
+  } catch (error) {
+    console.error("Unable to mark article as read:", error instanceof Error ? error.message : error);
+  }
+}

@@ -20,11 +20,23 @@ import {
   UserRound,
   Wrench,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { PlatformRole } from "@/lib/platform/auth";
 import sgodLogo from "@/layout/sgod_logo.png";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-const navItems = [
+type NavItem = {
+  adminOnly?: boolean;
+  articleCategory?: "issuances" | "news";
+  badge?: string;
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  neverActive?: boolean;
+  schoolOnly?: boolean;
+};
+
+const navItems: NavItem[] = [
   { href: "/platform", label: "Dashboard", icon: Home, badge: undefined },
   { href: "/platform/registrations", label: "Registrations", icon: UserCheck, badge: undefined, adminOnly: true },
   { href: "/platform/schools", label: "Schools", icon: Building2, badge: undefined, adminOnly: true },
@@ -34,8 +46,8 @@ const navItems = [
   { href: "/platform/news", label: "News & Updates", icon: Newspaper, badge: undefined, adminOnly: true },
   { href: "/platform/applications", label: "My Applications", icon: BriefcaseBusiness, badge: undefined, schoolOnly: true },
   { href: "/platform/submissions", label: "My Submissions", icon: FileBadge, badge: undefined, schoolOnly: true },
-  { href: "/platform/issuances", label: "Issuances & Documents", icon: Files, badge: undefined, schoolOnly: true },
-  { href: "/platform/news", label: "News & Updates", icon: Newspaper, badge: undefined, schoolOnly: true },
+  { href: "/platform/issuances", label: "Issuances & Documents", icon: Files, articleCategory: "issuances", schoolOnly: true },
+  { href: "/platform/news", label: "News & Updates", icon: Newspaper, articleCategory: "news", schoolOnly: true },
   { href: "/platform/notifications", label: "Notifications", icon: Bell, badge: undefined, neverActive: true },
 ];
 
@@ -61,6 +73,7 @@ export function PlatformWorkspaceShell({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [notificationCount, setNotificationCount] = useState<number | null>(null);
+  const [articleUnreadCounts, setArticleUnreadCounts] = useState({ issuances: 0, news: 0 });
   const notificationBadge = (notificationCount ?? 0) > 0 ? String(notificationCount) : undefined;
   const notificationHref = "/platform/notifications";
   const visibleNavItems = navItems.filter((item) => {
@@ -94,11 +107,25 @@ export function PlatformWorkspaceShell({
 
     queueMicrotask(async () => {
       try {
-        const response = await fetch("/api/platform/notifications/count");
-        const result = (await response.json()) as { count?: number };
+        const [notificationResponse, articleResponse] = await Promise.all([
+          fetch("/api/platform/notifications/count"),
+          isAdmin ? Promise.resolve(null) : fetch("/api/platform/articles/unread-counts"),
+        ]);
+        const result = (await notificationResponse.json()) as { count?: number };
 
-        if (isCurrent && response.ok) {
+        if (isCurrent && notificationResponse.ok) {
           setNotificationCount(result.count ?? 0);
+        }
+
+        if (isCurrent && articleResponse?.ok) {
+          const articleResult = (await articleResponse.json()) as {
+            issuances?: number;
+            news?: number;
+          };
+          setArticleUnreadCounts({
+            issuances: articleResult.issuances ?? 0,
+            news: articleResult.news ?? 0,
+          });
         }
       } catch {
         if (isCurrent) {
@@ -110,7 +137,7 @@ export function PlatformWorkspaceShell({
     return () => {
       isCurrent = false;
     };
-  }, [pathname, userId]);
+  }, [isAdmin, pathname, userId]);
 
   useEffect(() => {
     if (!isUserMenuOpen) {
@@ -171,6 +198,9 @@ export function PlatformWorkspaceShell({
         <nav className="platform-nav">
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
+            const articleBadgeCount = item.articleCategory
+              ? articleUnreadCounts[item.articleCategory]
+              : 0;
             const isActive =
               item.neverActive
                 ? false
@@ -186,7 +216,9 @@ export function PlatformWorkspaceShell({
               >
                 <Icon aria-hidden="true" size={19} />
                 <span>{item.label}</span>
-                {item.badge === "chevron" ? (
+                {articleBadgeCount > 0 ? (
+                  <b>{articleBadgeCount}</b>
+                ) : item.badge === "chevron" ? (
                   <ChevronDown className="platform-nav-chevron" aria-hidden="true" size={17} />
                 ) : item.label === "Notifications" && notificationBadge ? (
                   <b>{notificationBadge}</b>

@@ -4,6 +4,8 @@ Run `supabase/001_school_registration.sql` in the Supabase SQL editor or through
 
 Run `supabase/004_articles.sql` to enable managed Issuances & Documents and News & Updates articles with image records.
 
+Run `supabase/005_article_reads.sql` to enable per-school unread article badges.
+
 Required environment variables:
 
 ```env

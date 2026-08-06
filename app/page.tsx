@@ -1,34 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import { connection } from "next/server";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
 import { publicServices } from "./public-services";
+import { getArticles } from "@/lib/articles";
 
-const newsItems = [
-  {
-    image: "/assets/images/school_time.png",
-    month: "May",
-    day: "16",
-    title: "M&E Platform Enhancements",
-    text: "New features are now available to improve application and tracking experience.",
-  },
-  {
-    image: "/assets/images/TOSFI-Application-Deadlines.png",
-    month: "May",
-    day: "10",
-    title: "Reminder: TOSFI Application Deadlines",
-    text: "Submit your applications on or before the deadline to avoid delays.",
-  },
-  {
-    image: "/assets/images/Updated-Guidelines-Released.png",
-    month: "May",
-    day: "02",
-    title: "Updated Guidelines Released",
-    text: "New issuances and guidelines are now available for school stakeholders.",
-  },
-];
-
-export default function Home() {
+export default async function Home() {
+  await connection();
+  const newsItems = await getArticles("news", 3);
   return (
     <>
       <SiteHeader />
@@ -198,7 +178,7 @@ export default function Home() {
           </Link>
         </section>
 
-        <section className="news-section container">
+        {newsItems.length ? <section className="news-section container">
           <div className="news-head">
             <h2>News & Updates</h2>
             <Link href="/news">View all news &gt;</Link>
@@ -206,20 +186,23 @@ export default function Home() {
           <div className="news-grid">
             {newsItems.map((item) => (
               <article className="news-card" key={item.title}>
-                <Image src={item.image} alt="" width={420} height={190} />
+                {item.images[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.images[0].url} alt={item.images[0].name} />
+                ) : <div className="news-card-placeholder" aria-hidden="true" />}
                 <div>
                   <time>
-                    <b>{item.month}</b>
-                    {item.day}
+                    <b>{new Intl.DateTimeFormat("en-PH", { month: "short", timeZone: "UTC" }).format(new Date(`${item.date}T00:00:00Z`))}</b>
+                    {new Date(`${item.date}T00:00:00Z`).getUTCDate()}
                   </time>
                   <h3>{item.title}</h3>
-                  <p>{item.text}</p>
-                  <Link href="/news">Read more &gt;</Link>
+                  {item.content ? <p>{item.content}</p> : null}
+                  <Link href={`/news/${item.id}`}>Read more &gt;</Link>
                 </div>
               </article>
             ))}
           </div>
-        </section>
+        </section> : null}
       </main>
       <SiteFooter />
     </>

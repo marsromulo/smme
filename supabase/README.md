@@ -2,6 +2,8 @@
 
 Run `supabase/001_school_registration.sql` in the Supabase SQL editor or through your migration workflow.
 
+Run `supabase/004_articles.sql` to enable managed Issuances & Documents and News & Updates articles with image records.
+
 Required environment variables:
 
 ```env

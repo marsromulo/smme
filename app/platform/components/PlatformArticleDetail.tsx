@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import type { Article, ArticleCategory } from "@/lib/articles";
 import { articleCategoryLabel, articleCategoryPath } from "@/lib/articles";
-import { DeleteArticleButton } from "./DeleteArticleButton";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-PH", {
@@ -16,11 +15,9 @@ function formatDate(value: string) {
 export function PlatformArticleDetail({
   article,
   category,
-  isAdmin,
 }: {
   article: Article;
   category: ArticleCategory;
-  isAdmin: boolean;
 }) {
   return (
     <main className="platform-page article-detail-page">
@@ -43,13 +40,6 @@ export function PlatformArticleDetail({
               </a>
             ))}
           </div>
-        ) : null}
-        {isAdmin ? (
-          <DeleteArticleButton
-            articleId={article.id}
-            articleTitle={article.title}
-            returnPath={articleCategoryPath(category, true)}
-          />
         ) : null}
       </article>
     </main>

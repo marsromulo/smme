@@ -182,6 +182,31 @@ export function ArticleSectionClient({
     await reloadArticles();
   }
 
+  async function deleteArticle() {
+    if (!form.id || !window.confirm(`Delete “${form.title}” and all its images?`)) {
+      return;
+    }
+
+    setIsSaving(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/platform/articles/${form.id}`, { method: "DELETE" });
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to delete article.");
+      }
+
+      setArticles((current) => current.filter((article) => article.id !== form.id));
+      closeEditor();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to delete article.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="platform-page article-maintenance-page">
       <header className="platform-page-head">
@@ -256,10 +281,17 @@ export function ArticleSectionClient({
             {images.length ? <p className="article-selected-files article-form-wide">{images.map((image) => image.name).join(", ")}</p> : null}
             {message ? <p className="platform-form-message error article-form-wide">{message}</p> : null}
             <div className="article-form-actions article-form-wide">
-              <button type="button" className="platform-secondary-action" onClick={closeEditor}>Cancel</button>
-              <button type="submit" className="platform-primary-action" disabled={isSaving}>
-                <Save aria-hidden="true" size={18} /> {isSaving ? "Saving..." : "Save Article"}
-              </button>
+              {form.id ? (
+                <button type="button" className="article-delete-action" onClick={() => void deleteArticle()} disabled={isSaving}>
+                  <Trash2 aria-hidden="true" size={18} /> {isSaving ? "Working..." : "Delete"}
+                </button>
+              ) : <span />}
+              <div>
+                <button type="button" className="platform-secondary-action" onClick={closeEditor}>Cancel</button>
+                <button type="submit" className="platform-primary-action" disabled={isSaving}>
+                  <Save aria-hidden="true" size={18} /> {isSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
             </div>
           </form>
         </section>
@@ -269,12 +301,6 @@ export function ArticleSectionClient({
         {articles.length ? (
           articles.map((article) => (
             <article className="platform-panel article-platform-card" key={article.id}>
-              <Link className="article-list-thumbnail" href={`${basePath}/${article.id}`}>
-                {article.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={article.images[0].url} alt={article.images[0].name} />
-                ) : <span aria-hidden="true"><ImagePlus size={25} /></span>}
-              </Link>
               <h2><Link href={`${basePath}/${article.id}`}>{article.title}</Link></h2>
               {isAdmin ? (
                 <div className="article-row-actions">

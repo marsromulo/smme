@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
-import { ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { FileText, ImagePlus, Newspaper, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { Article, ArticleCategory } from "@/lib/articles";
 import { articleCategoryLabel, articleCategoryPath } from "@/lib/articles";
 
@@ -38,6 +38,7 @@ export function ArticleSectionClient({
   const [message, setMessage] = useState("");
   const label = articleCategoryLabel(category);
   const basePath = articleCategoryPath(category, true);
+  const ListingIcon = category === "issuances" ? FileText : Newspaper;
   const editingArticle = articles.find((article) => article.id === form.id);
 
   async function reloadArticles() {
@@ -301,6 +302,7 @@ export function ArticleSectionClient({
         {articles.length ? (
           articles.map((article) => (
             <article className="platform-panel article-platform-card" key={article.id}>
+              <span className="article-list-icon" aria-hidden="true"><ListingIcon size={22} /></span>
               <h2><Link href={`${basePath}/${article.id}`}>{article.title}</Link></h2>
               {isAdmin ? (
                 <div className="article-row-actions">

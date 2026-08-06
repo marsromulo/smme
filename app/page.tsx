@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { connection } from "next/server";
+import { Newspaper } from "lucide-react";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
 import { publicServices } from "./public-services";
@@ -186,10 +187,7 @@ export default async function Home() {
           <div className="news-grid">
             {newsItems.map((item) => (
               <article className="news-card" key={item.title}>
-                {item.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.images[0].url} alt={item.images[0].name} />
-                ) : <div className="news-card-placeholder" aria-hidden="true" />}
+                <span className="article-list-icon" aria-hidden="true"><Newspaper size={23} /></span>
                 <div>
                   <h3><Link href={`/news/${item.id}`}>{item.title}</Link></h3>
                 </div>

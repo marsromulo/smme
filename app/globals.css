@@ -7023,6 +7023,51 @@ img {
   opacity: 0.75;
 }
 
+.platform-login-loader {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(245, 249, 255, 0.92);
+  backdrop-filter: blur(6px);
+}
+
+.platform-login-loader > div {
+  min-width: min(360px, 100%);
+  padding: 34px 30px;
+  border: 1px solid #d4e2f4;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 47, 120, 0.18);
+  color: #08275d;
+  text-align: center;
+}
+
+.platform-login-loader svg {
+  color: #0866ef;
+  animation: platform-login-spin 0.85s linear infinite;
+}
+
+.platform-login-loader strong {
+  display: block;
+  margin-top: 14px;
+  font-size: 21px;
+}
+
+.platform-login-loader p {
+  margin: 7px 0 0;
+  color: #61708a;
+  font-size: 14px;
+}
+
+@keyframes platform-login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .school-login-divider {
   display: grid;
   grid-template-columns: 1fr auto 1fr;

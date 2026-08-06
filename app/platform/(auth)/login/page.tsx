@@ -8,6 +8,7 @@ import {
   Building2,
   Eye,
   FileText,
+  LoaderCircle,
   LockKeyhole,
   Mail,
   ShieldCheck,
@@ -70,7 +71,6 @@ export default function PlatformLoginPage() {
       router.refresh();
     } catch (signInError) {
       setError(signInError instanceof Error ? signInError.message : "Unable to sign in.");
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -214,6 +214,15 @@ export default function PlatformLoginPage() {
           })}
         </div>
       </section>
+      {isSubmitting ? (
+        <div className="platform-login-loader" role="status" aria-live="polite">
+          <div>
+            <LoaderCircle aria-hidden="true" size={46} />
+            <strong>Signing you in</strong>
+            <p>Please wait while we open your dashboard.</p>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

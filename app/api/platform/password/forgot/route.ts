@@ -2,8 +2,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   buildSmmeEmailTemplate,
   getPlatformUrl,
-  sendSendGridEmail,
-} from "@/lib/sendgrid";
+  sendSmtpEmail,
+} from "@/lib/email";
 
 const genericMessage =
   "If an account exists for that email address, a password reset link has been sent.";
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       "",
       "If you did not request this, you can safely ignore this email.",
     ].join("\n");
-    const sendResult = await sendSendGridEmail({
+    const sendResult = await sendSmtpEmail({
       html,
       subject: "Reset your SMME Platform password",
       text,

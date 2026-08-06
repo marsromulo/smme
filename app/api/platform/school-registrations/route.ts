@@ -2,8 +2,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   buildSmmeEmailTemplate,
   getPlatformUrl,
-  sendSendGridEmail,
-} from "@/lib/sendgrid";
+  sendSmtpEmail,
+} from "@/lib/email";
 import { createPendingSchoolAuthUser } from "./auth-users";
 import {
   parseSchoolRegistrationPayload,
@@ -22,6 +22,7 @@ function getAdminNotificationEmail() {
   return (
     process.env.SMME_ADMIN_NOTIFICATION_EMAIL ??
     process.env.SENDGRID_ADMIN_EMAIL ??
+    process.env.SMTP_FROM_EMAIL ??
     process.env.SENDGRID_FROM_EMAIL ??
     "admin@depedbaguio-sgod-smme.com"
   );
@@ -194,7 +195,7 @@ export async function POST(request: Request) {
         schoolName: parsed.data.schoolName,
       });
 
-      const emailResult = await sendSendGridEmail({
+      const emailResult = await sendSmtpEmail({
         html: emailMessage.html,
         subject: emailMessage.subject,
         text: emailMessage.text,

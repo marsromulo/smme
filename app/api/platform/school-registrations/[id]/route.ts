@@ -2,8 +2,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   buildSmmeEmailTemplate,
   getPlatformUrl,
-  sendSendGridEmail,
-} from "@/lib/sendgrid";
+  sendSmtpEmail,
+} from "@/lib/email";
 import { approveSchoolAuthUser, rejectSchoolAuthUser, setPendingSchoolAuthUser } from "../auth-users";
 import {
   parseRegistrationDecision,
@@ -253,7 +253,7 @@ export async function PATCH(
           representativeName: registration.representative_name,
           schoolName: registration.school_name,
         });
-        const emailResult = await sendSendGridEmail({
+        const emailResult = await sendSmtpEmail({
           html: emailMessage.html,
           subject: emailMessage.subject,
           text: emailMessage.text,

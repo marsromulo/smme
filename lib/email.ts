@@ -1,13 +1,15 @@
-type SendGridEmailAddress = {
+import nodemailer from "nodemailer";
+
+type SmtpEmailAddress = {
   email: string;
   name?: string;
 };
 
-type SendGridMessage = {
+type SmtpMessage = {
   html: string;
   subject: string;
   text: string;
-  to: SendGridEmailAddress;
+  to: SmtpEmailAddress;
 };
 
 type EmailTemplateStatus = "approved" | "rejected" | "resubmit" | "upload" | "registration" | "info";
@@ -40,10 +42,6 @@ const defaultFromEmail = "admin@depedbaguio-sgod-smme.com";
 const defaultFromName = "SDO Baguio SMME";
 const platformUrl = "https://depedbaguio-sgod-smme.com";
 const defaultEmailLogoUrl = "https://depedbaguio-sgod-smme.com/assets/logos/sdobc-smme-logo-cutout.png";
-
-function getSendGridApiKey() {
-  return process.env.SENDGRID_API_KEY ?? process.env.SMTP_PASSWORD ?? "";
-}
 
 export function getPlatformUrl() {
   return platformUrl;
@@ -233,6 +231,7 @@ export function buildSmmeEmailTemplate({
   const platformUrl = getPlatformUrl();
   const logoUrl =
     process.env.SMME_EMAIL_LOGO_URL ??
+    process.env.SMTP_LOGO_URL ??
     process.env.SENDGRID_LOGO_URL ??
     (platformUrl ? `${platformUrl}/assets/logos/sdobc-smme-logo-cutout.png` : defaultEmailLogoUrl);
   const logoHtml = logoUrl
@@ -343,47 +342,46 @@ export function buildSmmeEmailTemplate({
   `;
 }
 
-export async function sendSendGridEmail(message: SendGridMessage) {
-  const apiKey = getSendGridApiKey();
+export async function sendSmtpEmail(message: SmtpMessage) {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT ?? "587");
+  const user = process.env.SMTP_USER;
+  const password = process.env.SMTP_PASSWORD;
 
-  if (!apiKey) {
-    return { reason: "SENDGRID_API_KEY or SMTP_PASSWORD is not configured.", sent: false };
+  if (!host || !user || !password || !Number.isInteger(port) || port <= 0) {
+    return {
+      reason: "SMTP_HOST, SMTP_PORT, SMTP_USER, or SMTP_PASSWORD is not configured correctly.",
+      sent: false,
+    };
   }
 
-  const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    body: JSON.stringify({
-      content: [
-        {
-          type: "text/plain",
-          value: message.text,
-        },
-        {
-          type: "text/html",
-          value: message.html,
-        },
-      ],
-      from: {
-        email: process.env.SENDGRID_FROM_EMAIL ?? process.env.SMTP_FROM_EMAIL ?? defaultFromEmail,
-        name: process.env.SENDGRID_FROM_NAME ?? process.env.SMTP_FROM_NAME ?? defaultFromName,
-      },
-      personalizations: [
-        {
-          to: [message.to],
-        },
-      ],
-      subject: message.subject,
-    }),
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+  const transporter = nodemailer.createTransport({
+    auth: {
+      pass: password,
+      user,
     },
-    method: "POST",
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    host,
+    port,
+    requireTLS: port !== 465,
+    secure: port === 465,
+    socketTimeout: 20_000,
   });
 
-  if (!response.ok) {
-    const responseText = await response.text().catch(() => "");
-    throw new Error(`SendGrid email failed with status ${response.status}. ${responseText}`);
-  }
+  await transporter.sendMail({
+    from: {
+      address: process.env.SMTP_FROM_EMAIL ?? process.env.SENDGRID_FROM_EMAIL ?? defaultFromEmail,
+      name: process.env.SMTP_FROM_NAME ?? process.env.SENDGRID_FROM_NAME ?? defaultFromName,
+    },
+    html: message.html,
+    subject: message.subject,
+    text: message.text,
+    to: {
+      address: message.to.email,
+      name: message.to.name ?? "",
+    },
+  });
 
   return { sent: true };
 }

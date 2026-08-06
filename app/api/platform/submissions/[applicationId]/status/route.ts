@@ -2,8 +2,8 @@ import { getPlatformSession } from "@/lib/platform/auth";
 import {
   buildSmmeEmailTemplate,
   getPlatformUrl,
-  sendSendGridEmail,
-} from "@/lib/sendgrid";
+  sendSmtpEmail,
+} from "@/lib/email";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -268,7 +268,7 @@ export async function PATCH(
       });
 
       try {
-        emailResult = await sendSendGridEmail({
+        emailResult = await sendSmtpEmail({
           html: emailMessage.html,
           subject: emailMessage.subject,
           text: emailMessage.text,

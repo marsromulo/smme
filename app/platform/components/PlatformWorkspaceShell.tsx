@@ -74,7 +74,18 @@ export function PlatformWorkspaceShell({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [notificationCount, setNotificationCount] = useState<number | null>(null);
   const [articleUnreadCounts, setArticleUnreadCounts] = useState({ issuances: 0, news: 0 });
-  const notificationBadge = (notificationCount ?? 0) > 0 ? String(notificationCount) : undefined;
+  const notificationOnlyCount = notificationCount ?? 0;
+  const sidebarBadgeCounts = {
+    issuances: isAdmin ? 0 : articleUnreadCounts.issuances,
+    news: isAdmin ? 0 : articleUnreadCounts.news,
+    notifications: notificationOnlyCount,
+  };
+  const topBellCount =
+    sidebarBadgeCounts.notifications +
+    sidebarBadgeCounts.issuances +
+    sidebarBadgeCounts.news;
+  const notificationBadge = topBellCount > 0 ? String(topBellCount) : undefined;
+  const notificationMenuBadge = notificationOnlyCount > 0 ? String(notificationOnlyCount) : undefined;
   const notificationHref = "/platform/notifications";
   const visibleNavItems = navItems.filter((item) => {
     if (item.adminOnly && !isAdmin) {
@@ -106,32 +117,46 @@ export function PlatformWorkspaceShell({
     let isCurrent = true;
 
     queueMicrotask(async () => {
-      try {
-        const [notificationResponse, articleResponse] = await Promise.all([
-          fetch("/api/platform/notifications/count"),
-          isAdmin ? Promise.resolve(null) : fetch("/api/platform/articles/unread-counts"),
-        ]);
-        const result = (await notificationResponse.json()) as { count?: number };
+      const notificationRequest = (async () => {
+        try {
+          const response = await fetch("/api/platform/notifications/count");
+          const result = (await response.json()) as { count?: number };
 
-        if (isCurrent && notificationResponse.ok) {
-          setNotificationCount(result.count ?? 0);
+          if (isCurrent && response.ok) {
+            setNotificationCount(result.count ?? 0);
+          }
+        } catch {
+          if (isCurrent) {
+            setNotificationCount(null);
+          }
+        }
+      })();
+      const articleRequest = (async () => {
+        if (isAdmin) {
+          return;
         }
 
-        if (isCurrent && articleResponse?.ok) {
-          const articleResult = (await articleResponse.json()) as {
+        try {
+          const response = await fetch("/api/platform/articles/unread-counts");
+          const result = (await response.json()) as {
             issuances?: number;
             news?: number;
           };
-          setArticleUnreadCounts({
-            issuances: articleResult.issuances ?? 0,
-            news: articleResult.news ?? 0,
-          });
+
+          if (isCurrent && response.ok) {
+            setArticleUnreadCounts({
+              issuances: result.issuances ?? 0,
+              news: result.news ?? 0,
+            });
+          }
+        } catch {
+          if (isCurrent) {
+            setArticleUnreadCounts({ issuances: 0, news: 0 });
+          }
         }
-      } catch {
-        if (isCurrent) {
-          setNotificationCount(null);
-        }
-      }
+      })();
+
+      await Promise.allSettled([notificationRequest, articleRequest]);
     });
 
     return () => {
@@ -199,7 +224,7 @@ export function PlatformWorkspaceShell({
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const articleBadgeCount = item.articleCategory
-              ? articleUnreadCounts[item.articleCategory]
+              ? sidebarBadgeCounts[item.articleCategory]
               : 0;
             const isActive =
               item.neverActive
@@ -220,8 +245,8 @@ export function PlatformWorkspaceShell({
                   <b>{articleBadgeCount}</b>
                 ) : item.badge === "chevron" ? (
                   <ChevronDown className="platform-nav-chevron" aria-hidden="true" size={17} />
-                ) : item.label === "Notifications" && notificationBadge ? (
-                  <b>{notificationBadge}</b>
+                ) : item.label === "Notifications" && notificationMenuBadge ? (
+                  <b>{notificationMenuBadge}</b>
                 ) : item.badge ? (
                   <b>{item.badge}</b>
                 ) : null}
@@ -244,7 +269,11 @@ export function PlatformWorkspaceShell({
             <strong>{dashboardTitle}</strong>
           </div>
           <div className="platform-topbar-actions">
-            <Link className="platform-notification-link" href={notificationHref} aria-label="Notifications">
+            <Link
+              className="platform-notification-link"
+              href={notificationHref}
+              aria-label={`${topBellCount} total unread items`}
+            >
               <Bell aria-hidden="true" size={22} />
               {notificationBadge ? <span>{notificationBadge}</span> : null}
             </Link>

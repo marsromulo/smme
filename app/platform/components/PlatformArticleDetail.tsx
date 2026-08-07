@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays } from "lucide-react";
+import { ArrowLeft, CalendarDays, FileText } from "lucide-react";
 import type { Article, ArticleCategory } from "@/lib/articles";
 import { articleCategoryLabel, articleCategoryPath } from "@/lib/articles";
 
@@ -35,8 +35,16 @@ export function PlatformArticleDetail({
           <div className="article-image-grid detail">
             {article.images.map((image) => (
               <a href={image.url} target="_blank" rel="noreferrer" key={image.id} title="Open full image in a new tab">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image.url} alt={image.name} />
+                {image.type === "application/pdf" ? (
+                  <span className="article-pdf-tile">
+                    <FileText aria-hidden="true" size={42} />
+                    <strong>PDF</strong>
+                    <small>{image.name}</small>
+                  </span>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={image.url} alt={image.name} />
+                )}
               </a>
             ))}
           </div>

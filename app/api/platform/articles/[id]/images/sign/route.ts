@@ -5,8 +5,8 @@ import { requirePlatformAdmin } from "@/app/api/platform/school-registrations/he
 
 export const runtime = "nodejs";
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-const MAX_IMAGE_COUNT = 12;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_COUNT = 12;
 
 type IncomingImage = { name: string; size: number; type: string };
 
@@ -26,8 +26,8 @@ function parseImages(body: unknown) {
   const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
   const rawImages = Array.isArray(record.images) ? record.images : [];
 
-  if (!rawImages.length || rawImages.length > MAX_IMAGE_COUNT) {
-    return { error: `Select between 1 and ${MAX_IMAGE_COUNT} images.` };
+  if (!rawImages.length || rawImages.length > MAX_FILE_COUNT) {
+    return { error: `Select between 1 and ${MAX_FILE_COUNT} files.` };
   }
 
   const images: IncomingImage[] = rawImages.map((item) => {
@@ -40,11 +40,11 @@ function parseImages(body: unknown) {
   });
 
   for (const image of images) {
-    if (!image.name || !image.type.startsWith("image/")) {
-      return { error: "Only image files can be uploaded." };
+    if (!image.name || (!image.type.startsWith("image/") && image.type !== "application/pdf")) {
+      return { error: "Only image and PDF files can be uploaded." };
     }
 
-    if (!Number.isFinite(image.size) || image.size <= 0 || image.size > MAX_IMAGE_SIZE) {
+    if (!Number.isFinite(image.size) || image.size <= 0 || image.size > MAX_FILE_SIZE) {
       return { error: `${image.name} must be 10 MB or smaller.` };
     }
   }

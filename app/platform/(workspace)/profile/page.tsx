@@ -1,16 +1,7 @@
-import {
-  BookOpenCheck,
-  Building2,
-  IdCard,
-  Mail,
-  MapPin,
-  Phone,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
 import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { AdminProfileForm } from "../../components/AdminProfileForm";
+import { SchoolProfileForm } from "../../components/SchoolProfileForm";
 
 type SchoolProfile = {
   contact_number: string | null;
@@ -41,14 +32,6 @@ function readableNameFromEmail(email: string | null) {
     .split(/\s+/)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
-}
-
-function fieldValue(value: string | null | undefined) {
-  return value?.trim() || "Not provided";
-}
-
-function formatOfferings(offerings: string[] | null) {
-  return offerings?.length ? offerings.join(", ") : "Not provided";
 }
 
 async function getAdminDisplayName(userId: string | null, fallbackEmail: string | null, fallbackName: string | null) {
@@ -98,63 +81,6 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
   return (registrations?.[0] as SchoolProfile | undefined) ?? null;
 }
 
-function SchoolProfileDetails({ school }: { school: SchoolProfile }) {
-  return (
-    <div className="platform-registration-detail-list profile">
-      <div>
-        <Building2 aria-hidden="true" size={18} />
-        <span>School Name</span>
-        <strong>{school.school_name}</strong>
-      </div>
-      <div>
-        <IdCard aria-hidden="true" size={18} />
-        <span>School ID</span>
-        <strong>{fieldValue(school.school_id)}</strong>
-      </div>
-      <div>
-        <Building2 aria-hidden="true" size={18} />
-        <span>School Type</span>
-        <strong>{fieldValue(school.school_type)}</strong>
-      </div>
-      <div>
-        <MapPin aria-hidden="true" size={18} />
-        <span>District</span>
-        <strong>{fieldValue(school.school_district)}</strong>
-      </div>
-      <div>
-        <MapPin aria-hidden="true" size={18} />
-        <span>Address</span>
-        <strong>{fieldValue(school.school_address)}</strong>
-      </div>
-      <div>
-        <BookOpenCheck aria-hidden="true" size={18} />
-        <span>Offerings</span>
-        <strong>{formatOfferings(school.school_offerings)}</strong>
-      </div>
-      <div>
-        <UserRound aria-hidden="true" size={18} />
-        <span>Representative</span>
-        <strong>{school.representative_name}</strong>
-      </div>
-      <div>
-        <ShieldCheck aria-hidden="true" size={18} />
-        <span>Position</span>
-        <strong>{fieldValue(school.representative_position)}</strong>
-      </div>
-      <div>
-        <Mail aria-hidden="true" size={18} />
-        <span>Email</span>
-        <strong>{school.representative_email}</strong>
-      </div>
-      <div>
-        <Phone aria-hidden="true" size={18} />
-        <span>Contact Number</span>
-        <strong>{fieldValue(school.contact_number)}</strong>
-      </div>
-    </div>
-  );
-}
-
 export default async function PlatformProfilePage() {
   const session = await getPlatformSession();
   const isAdmin = session.role === "admin";
@@ -196,7 +122,7 @@ export default async function PlatformProfilePage() {
         <div>
           <span className="platform-kicker">Profile</span>
           <h1>{title}</h1>
-          <p>View the school registration information connected to your account.</p>
+          <p>Update the school and representative information connected to your account.</p>
         </div>
       </section>
 
@@ -209,7 +135,20 @@ export default async function PlatformProfilePage() {
             </div>
           </div>
           {school ? (
-            <SchoolProfileDetails school={school} />
+            <SchoolProfileForm
+              initialValue={{
+                contactNumber: school.contact_number ?? "",
+                representativeEmail: school.representative_email,
+                representativeName: school.representative_name,
+                representativePosition: school.representative_position ?? "",
+                schoolAddress: school.school_address ?? "",
+                schoolDistrict: school.school_district ?? "",
+                schoolId: school.school_id ?? "",
+                schoolName: school.school_name,
+                schoolOfferings: school.school_offerings ?? [],
+                schoolType: school.school_type ?? "",
+              }}
+            />
           ) : (
             <p className="platform-document-empty">No school profile is connected to this account yet.</p>
           )}

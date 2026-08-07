@@ -259,8 +259,15 @@ export function ArticleSectionClient({
                 <div className="article-image-grid admin">
                   {editingArticle.images.map((image) => (
                     <div className="article-image-tile" key={image.id}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={image.url} alt={image.name} />
+                      {image.type === "application/pdf" ? (
+                        <a className="article-pdf-tile" href={image.url} target="_blank" rel="noreferrer">
+                          <FileText aria-hidden="true" size={34} />
+                          <span>{image.name}</span>
+                        </a>
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={image.url} alt={image.name} />
+                      )}
                       <button type="button" onClick={() => void deleteImage(image.id)} aria-label={`Remove ${image.name}`}>
                         <Trash2 aria-hidden="true" size={16} />
                       </button>
@@ -271,10 +278,10 @@ export function ArticleSectionClient({
             ) : null}
             <label className="article-upload-field article-form-wide">
               <ImagePlus aria-hidden="true" size={25} />
-              <span>Add Images <small>Up to 12 images, 10 MB each</small></span>
+              <span>Add Images or PDFs <small>Up to 12 files, 10 MB each</small></span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 multiple
                 onChange={(event) => setImages(Array.from(event.target.files ?? []))}
               />

@@ -24,10 +24,11 @@ export function SiteHeader() {
       <div className="topbar">
         <div className="container topbar-inner">
           <span>Department of Education - Cordillera Administrative Region</span>
-          <nav aria-label="Agency links">
-            <a href="#">DepEd PH</a>
-            <a href="#">DepEd CAR</a>
-            <Link href="/contact">Contact Us</Link>
+          <nav aria-label="Portal access">
+            <Link href="/platform/login">Login to Portal</Link>
+            <Link className="topbar-register-link" href="/platform/register">
+              Register Your School
+            </Link>
           </nav>
         </div>
       </div>

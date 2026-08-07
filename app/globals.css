@@ -64,6 +64,15 @@ img {
   opacity: 0.95;
 }
 
+.topbar a.topbar-register-link {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #f59e0b;
+  color: #07183d;
+  font-weight: 700;
+  opacity: 1;
+}
+
 .site-header {
   position: sticky;
   top: 0;

@@ -4708,89 +4708,9 @@ img {
   outline: 0;
 }
 
-.platform-profile-form textarea {
-  width: 100%;
-  padding: 12px 13px;
-  border: 1px solid #cdd9eb;
-  border-radius: 8px;
-  background: #fff;
-  color: #071538;
-  font: inherit;
-  outline: 0;
-  resize: vertical;
-}
-
 .platform-profile-form input:focus {
   border-color: #0a55d4;
   box-shadow: 0 0 0 3px rgba(10, 85, 212, 0.12);
-}
-
-.platform-profile-form textarea:focus {
-  border-color: #0a55d4;
-  box-shadow: 0 0 0 3px rgba(10, 85, 212, 0.12);
-}
-
-.platform-profile-form.school {
-  max-width: 820px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.platform-profile-form.school .wide {
-  grid-column: 1 / -1;
-}
-
-.platform-profile-form.school input[readonly] {
-  cursor: not-allowed;
-  background: #edf2f8;
-  color: #5f6e83;
-}
-
-.platform-profile-form.school label small {
-  color: #6e7c91;
-  font-size: 12px;
-}
-
-.platform-profile-form.school fieldset {
-  margin: 0;
-  padding: 16px;
-  border: 1px solid #d6e1ef;
-  border-radius: 8px;
-}
-
-.platform-profile-form.school legend {
-  padding: 0 7px;
-  color: #003087;
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.platform-profile-offerings {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 22px;
-}
-
-.platform-profile-offerings label {
-  display: inline-flex;
-  align-items: center;
-  grid-template-columns: auto 1fr;
-  gap: 8px;
-}
-
-.platform-profile-offerings input {
-  width: 18px;
-  min-height: 18px;
-}
-
-@media (max-width: 760px) {
-  .platform-profile-form.school {
-    grid-template-columns: 1fr;
-  }
-
-  .platform-profile-form.school .wide {
-    grid-column: auto;
-  }
 }
 
 .platform-contact-dashboard {

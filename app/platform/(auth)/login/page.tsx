@@ -18,24 +18,6 @@ import {
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import sgodLogo from "@/layout/sgod_logo.png";
 
-const features = [
-  {
-    icon: ShieldCheck,
-    title: "Secure & Trusted",
-    text: "Enterprise-grade security to keep your data safe and confidential.",
-  },
-  {
-    icon: FileText,
-    title: "Efficient & Transparent",
-    text: "Real-time tracking of submissions, reviews, and approvals.",
-  },
-  {
-    icon: UsersRound,
-    title: "Built for Education",
-    text: "Designed for Schools, School Contacts, and Administrators.",
-  },
-];
-
 const accessNotes = [
   { icon: ShieldCheck, title: "Secure Access", text: "Your data is protected" },
   { icon: UsersRound, title: "Role-Based Access", text: "Access what you need" },
@@ -126,24 +108,6 @@ export default function PlatformLoginPage() {
             SMME helps Schools and Administrators streamline permit submissions, track
             requirements, and ensure compliance in one secure platform.
           </p>
-        </div>
-
-        <div className="school-register-features">
-          {features.map((feature) => {
-            const Icon = feature.icon;
-
-            return (
-              <div key={feature.title}>
-                <span>
-                  <Icon aria-hidden="true" size={26} />
-                </span>
-                <div>
-                  <strong>{feature.title}</strong>
-                  <p>{feature.text}</p>
-                </div>
-              </div>
-            );
-          })}
         </div>
 
         <div className="school-register-photo-card school-login-photo-card">

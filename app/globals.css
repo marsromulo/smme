@@ -6596,7 +6596,7 @@ img {
 
 .school-register-curriculum-options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -7729,4 +7729,15 @@ img {
     grid-column: 1 / -1;
     justify-content: flex-end;
   }
+}
+
+.school-status-details {
+  display: grid;
+  gap: 20px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.school-status-details dd {
+  overflow-wrap: anywhere;
 }

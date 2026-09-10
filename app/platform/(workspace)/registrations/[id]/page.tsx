@@ -5,7 +5,10 @@ import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { RegistrationDecisionForm } from "../../../components/RegistrationDecisionForm";
 
+import { SchoolStatusDetails } from "../../../components/SchoolStatusDetails";
+
 type RegistrationDetail = {
+  school_statuses?: import("@/lib/school-status").SchoolStatuses;
   id: string;
   school_name: string;
   school_id: string | null;
@@ -162,6 +165,7 @@ export default async function RegistrationDetailPage({
               <strong>{registration.contact_number ?? "Not provided"}</strong>
             </div>
           </div>
+          <SchoolStatusDetails value={registration.school_statuses} />
         </article>
 
         <aside className="platform-section">

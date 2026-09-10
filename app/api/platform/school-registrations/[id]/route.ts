@@ -162,6 +162,7 @@ export async function PATCH(
       const schoolRecord = {
         school_registration_request_id: registration.id,
         slug: slugifySchoolName(registration.school_name, registration.id),
+        school_statuses: registration.school_statuses ?? {},
         school_name: registration.school_name,
         school_id: registration.school_id ?? null,
         school_type: registration.school_type ?? null,

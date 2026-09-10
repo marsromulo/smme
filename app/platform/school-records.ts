@@ -11,6 +11,7 @@ type SchoolRecordRow = {
   school_district: string | null;
   school_address: string | null;
   school_offerings: string[] | null;
+  school_statuses?: import("@/lib/school-status").SchoolStatuses;
   representative_name: string;
   representative_email: string;
   contact_number: string | null;
@@ -26,6 +27,7 @@ type ApprovedRegistrationRow = {
   school_district: string | null;
   school_address: string | null;
   school_offerings: string[] | null;
+  school_statuses?: import("@/lib/school-status").SchoolStatuses;
   representative_name: string;
   representative_email: string;
   contact_number: string | null;
@@ -64,6 +66,7 @@ export function schoolRecordToSchool(record: SchoolRecordRow): School {
 
   return {
     slug: record.slug,
+    schoolStatuses: record.school_statuses,
     name: record.school_name,
     schoolId: record.school_id ?? `SMME-${record.id.slice(0, 8).toUpperCase()}`,
     type: record.school_type ?? "Registered School",
@@ -87,6 +90,7 @@ export function approvedRegistrationToSchool(registration: ApprovedRegistrationR
 
   return {
     slug: slugifySchoolName(registration.school_name, registration.id),
+    schoolStatuses: registration.school_statuses,
     name: registration.school_name,
     schoolId: registration.school_id ?? `SMME-${registration.id.slice(0, 8).toUpperCase()}`,
     type: registration.school_type ?? "Registered School",
@@ -110,14 +114,14 @@ export async function getApprovedSchoolRecords() {
   const { data: schoolRecordsData } = await supabase
     .from("schools")
     .select(
-      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, representative_name, representative_email, contact_number, status, created_at",
+      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_email, contact_number, status, created_at",
     )
     .order("created_at", { ascending: false });
 
   const { data: approvedRegistrations, error: approvedRegistrationsError } = await supabase
     .from("school_registration_requests")
     .select(
-      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, representative_name, representative_email, contact_number, created_at",
+      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_email, contact_number, created_at",
     )
     .eq("status", "approved")
     .order("created_at", { ascending: false });
@@ -147,7 +151,7 @@ export async function getApprovedSchoolRecordBySlug(slug: string) {
   const { data } = await supabase
     .from("schools")
     .select(
-      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, representative_name, representative_email, contact_number, status, created_at",
+      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_email, contact_number, status, created_at",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -159,7 +163,7 @@ export async function getApprovedSchoolRecordBySlug(slug: string) {
   const { data: approvedRegistrations, error: approvedRegistrationsError } = await supabase
     .from("school_registration_requests")
     .select(
-      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, representative_name, representative_email, contact_number, created_at",
+      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_email, contact_number, created_at",
     )
     .eq("status", "approved");
 

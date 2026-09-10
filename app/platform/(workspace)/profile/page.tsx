@@ -12,7 +12,10 @@ import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { AdminProfileForm } from "../../components/AdminProfileForm";
 
+import { SchoolStatusDetails } from "../../components/SchoolStatusDetails";
+
 type SchoolProfile = {
+  school_statuses?: import("@/lib/school-status").SchoolStatuses;
   contact_number: string | null;
   representative_email: string;
   representative_name: string;
@@ -75,7 +78,7 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
   const { data: schools } = await supabase
     .from("schools")
     .select(
-      "school_name, school_id, school_type, school_district, school_address, school_offerings, representative_name, representative_position, representative_email, contact_number, status",
+      "school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
     )
     .eq("representative_email", email)
     .order("created_at", { ascending: false })
@@ -88,7 +91,7 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
   const { data: registrations } = await supabase
     .from("school_registration_requests")
     .select(
-      "school_name, school_id, school_type, school_district, school_address, school_offerings, representative_name, representative_position, representative_email, contact_number, status",
+      "school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
     )
     .eq("representative_email", email)
     .eq("status", "approved")
@@ -209,7 +212,10 @@ export default async function PlatformProfilePage() {
             </div>
           </div>
           {school ? (
-            <SchoolProfileDetails school={school} />
+            <>
+              <SchoolProfileDetails school={school} />
+              <SchoolStatusDetails value={school.school_statuses} />
+            </>
           ) : (
             <p className="platform-document-empty">No school profile is connected to this account yet.</p>
           )}

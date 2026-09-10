@@ -15,6 +15,8 @@ import {
 import { getSchool, schools } from "../../../data";
 import { getApprovedSchoolRecordBySlug } from "../../../school-records";
 
+import { SchoolStatusDetails } from "../../../components/SchoolStatusDetails";
+
 export function generateStaticParams() {
   return schools.map((school) => ({ slug: school.slug }));
 }
@@ -140,6 +142,8 @@ export default async function PlatformSchoolDetailsPage({
           </div>
         </article>
       </section>
+
+      <SchoolStatusDetails value={school.schoolStatuses} />
 
       <section className="platform-section">
         <div className="platform-section-head">

@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import sgodLogo from "@/layout/sgod_logo.png";
 
+import { SchoolStatusFields } from "../../components/SchoolStatusFields";
+import type { SchoolStatuses } from "@/lib/school-status";
+
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
 const features = [
@@ -34,11 +37,12 @@ const features = [
 ];
 
 const defaultOfferings: string[] = [];
-const curriculumOfferings = ["Elementary", "Junior High School", "Senior High School"];
+const curriculumOfferings = ["Kindergarten", "Elementary", "Junior High School", "Senior High School"];
 
 export default function PlatformRegisterPage() {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState("");
+  const [schoolStatuses, setSchoolStatuses] = useState<SchoolStatuses>({});
   const [offerings, setOfferings] = useState(defaultOfferings);
 
   function toggleOffering(selectedOffering: string) {
@@ -77,6 +81,7 @@ export default function PlatformRegisterPage() {
       contactNumber: String(formData.get("contactNumber") ?? ""),
       password,
       schoolOfferings: offerings,
+      schoolStatuses,
     };
 
     try {
@@ -95,6 +100,7 @@ export default function PlatformRegisterPage() {
 
       form.reset();
       setOfferings(defaultOfferings);
+      setSchoolStatuses({});
       setSubmitState("success");
       setMessage("Registration request submitted. The admin has been notified for approval.");
     } catch (error) {
@@ -209,6 +215,8 @@ export default function PlatformRegisterPage() {
                 ))}
               </div>
             </fieldset>
+
+            <SchoolStatusFields value={schoolStatuses} onChange={setSchoolStatuses} />
 
             <fieldset>
               <legend>School Contact Information</legend>

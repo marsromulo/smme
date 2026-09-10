@@ -1,5 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import { parseSchoolStatuses, type SchoolStatuses } from "@/lib/school-status";
+
 export type SchoolRegistrationPayload = {
   schoolName: string;
   schoolId?: string;
@@ -7,6 +9,7 @@ export type SchoolRegistrationPayload = {
   schoolDistrict?: string;
   schoolAddress?: string;
   schoolOfferings: string[];
+  schoolStatuses: SchoolStatuses;
   representativeName: string;
   representativePosition?: string;
   representativeEmail: string;
@@ -79,8 +82,16 @@ export function parseSchoolRegistrationPayload(body: unknown): {
     return { error: "Password must be at least 8 characters." };
   }
 
+  let schoolStatuses: SchoolStatuses;
+  try {
+    schoolStatuses = parseSchoolStatuses(record.schoolStatuses);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Invalid school statuses." };
+  }
+
   return {
     data: {
+      schoolStatuses,
       schoolName,
       schoolId: schoolId || undefined,
       schoolType: schoolType || undefined,

@@ -7,9 +7,9 @@ export function SchoolStatusFields({ value, onChange }: { value: SchoolStatuses;
     const entry = value[section.key] ?? { status: "", details: {} };
     return (
       <fieldset key={section.key}>
-        <legend>{section.title}</legend>
+        <legend>{section.title} *</legend>
         <label className="school-register-wide">
-          <span>Status *</span>
+          <span>Status (required)</span>
           <select aria-label={section.title} required value={entry.status} onChange={(event) => onChange({ ...value, [section.key]: { status: event.target.value, details: {} } })}>
             <option value="">Select status</option>
             {section.options.map((option) => <option key={option}>{option}</option>)}

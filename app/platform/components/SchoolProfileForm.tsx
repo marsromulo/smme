@@ -53,8 +53,8 @@ export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
     <form className="school-register-form" onSubmit={save} onChange={() => { setMessage(""); setError(""); }}>
       <fieldset disabled={saving}>
         <legend>School Information</legend>
-        <label><span>School Name</span><input value={school.school_name} readOnly /></label>
-        <label><span>Email Address</span><input value={school.representative_email} readOnly /></label>
+        <label><span>School Name</span><input value={school.school_name} disabled className="school-profile-locked-field" /></label>
+        <label><span>Email Address</span><input value={school.representative_email} disabled className="school-profile-locked-field" /></label>
         <label className="school-register-wide"><span>Registrant Type *</span>
           <select required value={registrantType} onChange={(event) => setRegistrantType(event.target.value)}>
             <option value="">Select registrant type</option>

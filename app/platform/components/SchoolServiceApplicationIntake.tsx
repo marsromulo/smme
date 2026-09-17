@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useRef, useState } from "react";
+import { type CSSProperties, type FormEvent, useState } from "react";
 import { Check, CheckCircle2, FileText, FileUp, ListChecks } from "lucide-react";
 import {
   ServiceApplicationUploader,
@@ -61,20 +61,46 @@ export function SchoolServiceApplicationIntake({
   initialCalendar?: SchoolCalendar | null;
   serviceId: string;
 }) {
-  const savedApplicationId = useRef(applicationId);
+  const [savedApplicationId, setSavedApplicationId] = useState(applicationId);
+  const [savedCalendar, setSavedCalendar] = useState(initialCalendar ?? null);
   const [startDate, setStartDate] = useState(initialCalendar?.startDate ?? "");
   const [endDate, setEndDate] = useState(initialCalendar?.endDate ?? "");
   const [schoolDays, setSchoolDays] = useState(String(initialCalendar?.schoolDays ?? ""));
-  async function saveCalendar() {
-    const schoolCalendar = parseSchoolCalendar({ startDate, endDate, schoolDays: Number(schoolDays) });
-    const response = await fetch("/api/platform/applications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ serviceId, applicationId: savedApplicationId.current, schoolCalendar }),
-    });
-    const result = await readJson<{ applicationId: string }>(response);
-    savedApplicationId.current = result.applicationId;
-    return result.applicationId;
+  const [savingCalendar, setSavingCalendar] = useState(false);
+  const [calendarError, setCalendarError] = useState("");
+  const [calendarSaved, setCalendarSaved] = useState(false);
+  const calendarChanged = !savedCalendar || startDate !== savedCalendar.startDate ||
+    endDate !== savedCalendar.endDate || Number(schoolDays) !== savedCalendar.schoolDays;
+
+  async function saveCalendar(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (savingCalendar) return;
+    setSavingCalendar(true);
+    setCalendarError("");
+    setCalendarSaved(false);
+    try {
+      const schoolCalendar = parseSchoolCalendar({ startDate, endDate, schoolDays: Number(schoolDays) });
+      const response = await fetch("/api/platform/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId, applicationId: savedApplicationId, schoolCalendar }),
+      });
+      const result = await readJson<{ applicationId: string }>(response);
+      setSavedApplicationId(result.applicationId);
+      setSavedCalendar(schoolCalendar);
+      setCalendarSaved(true);
+    } catch (error) {
+      setCalendarError(error instanceof Error ? error.message : "Unable to save school calendar details.");
+    } finally {
+      setSavingCalendar(false);
+    }
+  }
+
+  async function requireSavedCalendar() {
+    if (!savedApplicationId || !savedCalendar) {
+      throw new Error("Save the School Calendar Details before uploading documents.");
+    }
+    return savedApplicationId;
   }
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedApplicationFileAssignment[]>(initialFiles);
@@ -222,12 +248,17 @@ export function SchoolServiceApplicationIntake({
       {isCalendar ? (
         <section className="platform-section school-calendar-fields">
           <div className="platform-section-head compact"><h2>School Calendar Details</h2></div>
-          <div className="school-register-form">
-            <label><span>School Year Start Date *</span><input aria-required="true" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label>
-            <label><span>School Year End Date *</span><input aria-required="true" type="date" min={startDate || undefined} value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
-            <label><span>Total Number of School Days *</span><input aria-required="true" type="number" min="1" step="1" value={schoolDays} onChange={(event) => setSchoolDays(event.target.value)} /></label>
-          </div>
-          <p>These details are saved when you submit your documents.</p>
+          <form className="school-register-form" onSubmit={saveCalendar}>
+            <label><span>School Year Start Date *</span><input required disabled={savingCalendar} type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label>
+            <label><span>School Year End Date *</span><input required disabled={savingCalendar} type="date" min={startDate || undefined} value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
+            <label><span>Total Number of School Days *</span><input required disabled={savingCalendar} type="number" min="1" step="1" value={schoolDays} onChange={(event) => setSchoolDays(event.target.value)} /></label>
+            <button className="platform-btn primary" type="submit" disabled={savingCalendar}>
+              {savingCalendar ? "Saving..." : "Save"}
+            </button>
+            {calendarError ? <p role="alert" className="platform-assignment-message error">{calendarError}</p> : null}
+            {calendarSaved && !calendarChanged ? <p role="status" className="platform-assignment-message success">School calendar details saved.</p> : null}
+            {calendarChanged ? <p>Save your school year details here. Submit Document uploads documents only.</p> : null}
+          </form>
         </section>
       ) : null}
       {transferAnimation ? (
@@ -367,8 +398,8 @@ export function SchoolServiceApplicationIntake({
         </div>
 
         <ServiceApplicationUploader
-          applicationId={applicationId ?? undefined}
-          beforeUpload={isCalendar ? saveCalendar : undefined}
+          applicationId={savedApplicationId ?? undefined}
+          beforeUpload={isCalendar ? requireSavedCalendar : undefined}
           assignmentValues={assignmentValues}
           onAssignmentSaved={handleAssignmentSaved}
           onUploadedFilesReady={handleUploadedFilesReady}

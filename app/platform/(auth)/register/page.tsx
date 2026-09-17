@@ -194,6 +194,17 @@ export default function PlatformRegisterPage() {
                   <option value="representative">Representative</option>
                 </select>
               </label>
+              {registrantType === "representative" ? (
+                <label className="school-register-wide">
+                  <span>Representative Name *</span>
+                  <input
+                    name="representativeName"
+                    type="text"
+                    placeholder="Enter representative name"
+                    required
+                  />
+                </label>
+              ) : null}
               {registrantType ? (
                 <label className="school-register-wide">
                   <span>School Owner Name *</span>
@@ -203,11 +214,11 @@ export default function PlatformRegisterPage() {
               {registrantType === "representative" ? (
                 <>
                   <label className="school-register-wide">
-                    <span>Home Address *</span>
+                    <span>Owner Home Address *</span>
                     <input name="ownerHomeAddress" required maxLength={1000} />
                   </label>
                   <label className="school-register-wide">
-                    <span>Contact Number *</span>
+                    <span>Owner Contact Number *</span>
                     <input name="ownerContactNumber" type="tel" required maxLength={50} />
                   </label>
                 </>
@@ -252,15 +263,6 @@ export default function PlatformRegisterPage() {
 
             <fieldset>
               <legend>School Contact Information</legend>
-              {registrantType !== "owner" ? <label>
-                <span>Representative Full Name *</span>
-                <input
-                  name="representativeName"
-                  type="text"
-                  placeholder="Enter your full name"
-                  required
-                />
-              </label> : null}
               <label>
                 <span>Position / Designation *</span>
                 <input

@@ -10,12 +10,13 @@ import {
   Mail,
   MapPin,
   ShieldAlert,
-  UserRound,
 } from "lucide-react";
 import { getSchool, schools } from "../../../data";
 import { getApprovedSchoolRecordBySlug } from "../../../school-records";
 
 import { SchoolStatusDetails } from "../../../components/SchoolStatusDetails";
+
+import { SchoolOwnerDetails } from "@/app/platform/components/SchoolOwnerDetails";
 
 export function generateStaticParams() {
   return schools.map((school) => ({ slug: school.slug }));
@@ -50,9 +51,7 @@ export default async function PlatformSchoolDetailsPage({
 
       <section className="platform-detail-hero">
         <div>
-          <span className="platform-kicker">{school.schoolId}</span>
           <h1>{school.name}</h1>
-          <p>{school.type}</p>
           <div className="platform-detail-actions">
             {school.documents[0] ? (
               <Link className="platform-btn primary" href={`/platform/documents/${school.documents[0].id}`}>
@@ -105,19 +104,13 @@ export default async function PlatformSchoolDetailsPage({
             </div>
             <div>
               <dt>
-                <UserRound aria-hidden="true" size={17} />
-                Contact Name
-              </dt>
-              <dd>{school.principal}</dd>
-            </div>
-            <div>
-              <dt>
                 <Mail aria-hidden="true" size={17} />
                 Contact
               </dt>
               <dd>{school.contact}</dd>
             </div>
           </dl>
+          <SchoolOwnerDetails school={school.ownerDetails ?? { representative_name: school.principal }} />
         </article>
 
         <article className="platform-section">

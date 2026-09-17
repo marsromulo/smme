@@ -1,11 +1,13 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import { Check, CheckCircle2, FileText, FileUp, ListChecks } from "lucide-react";
 import {
   ServiceApplicationUploader,
   type UploadedApplicationFileAssignment,
 } from "@/app/platform/components/ServiceApplicationUploader";
+
+import { parseSchoolCalendar, type SchoolCalendar } from "@/lib/school-calendar";
 
 type RequiredDocument = {
   id: string;
@@ -48,13 +50,33 @@ export function SchoolServiceApplicationIntake({
   applicationId,
   documents,
   initialFiles = [],
+  isCalendar = false,
+  initialCalendar,
   serviceId,
 }: {
   applicationId: string | null;
   documents: RequiredDocument[];
   initialFiles?: UploadedApplicationFileAssignment[];
+  isCalendar?: boolean;
+  initialCalendar?: SchoolCalendar | null;
   serviceId: string;
 }) {
+  const savedApplicationId = useRef(applicationId);
+  const [startDate, setStartDate] = useState(initialCalendar?.startDate ?? "");
+  const [endDate, setEndDate] = useState(initialCalendar?.endDate ?? "");
+  const [schoolDays, setSchoolDays] = useState(String(initialCalendar?.schoolDays ?? ""));
+  async function saveCalendar() {
+    const schoolCalendar = parseSchoolCalendar({ startDate, endDate, schoolDays: Number(schoolDays) });
+    const response = await fetch("/api/platform/applications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ serviceId, applicationId: savedApplicationId.current, schoolCalendar }),
+    });
+    const result = await readJson<{ applicationId: string }>(response);
+    savedApplicationId.current = result.applicationId;
+    return result.applicationId;
+  }
+
   const [uploadedFiles, setUploadedFiles] = useState<UploadedApplicationFileAssignment[]>(initialFiles);
   const [assignmentValues, setAssignmentValues] = useState<Record<string, string | null>>(
     Object.fromEntries(initialFiles.map((file) => [file.id, file.serviceRequiredDocumentId ?? ""])),
@@ -197,6 +219,17 @@ export function SchoolServiceApplicationIntake({
 
   return (
     <section className="platform-application-intake-grid">
+      {isCalendar ? (
+        <section className="platform-section school-calendar-fields">
+          <div className="platform-section-head compact"><h2>School Calendar Details</h2></div>
+          <div className="school-register-form">
+            <label><span>School Year Start Date *</span><input aria-required="true" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label>
+            <label><span>School Year End Date *</span><input aria-required="true" type="date" min={startDate || undefined} value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
+            <label><span>Total Number of School Days *</span><input aria-required="true" type="number" min="1" step="1" value={schoolDays} onChange={(event) => setSchoolDays(event.target.value)} /></label>
+          </div>
+          <p>These details are saved when you submit your documents.</p>
+        </section>
+      ) : null}
       {transferAnimation ? (
         <span
           aria-hidden="true"
@@ -335,6 +368,7 @@ export function SchoolServiceApplicationIntake({
 
         <ServiceApplicationUploader
           applicationId={applicationId ?? undefined}
+          beforeUpload={isCalendar ? saveCalendar : undefined}
           assignmentValues={assignmentValues}
           onAssignmentSaved={handleAssignmentSaved}
           onUploadedFilesReady={handleUploadedFilesReady}

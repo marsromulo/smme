@@ -86,6 +86,7 @@ async function readJson<T>(response: Response): Promise<T> {
 export function ServiceApplicationUploader({
   assignmentValues,
   applicationId,
+  beforeUpload,
   buttonLabel = "Submit Document",
   compact = false,
   onAssignmentSaved,
@@ -101,6 +102,7 @@ export function ServiceApplicationUploader({
 }: {
   assignmentValues?: Record<string, string | null>;
   applicationId?: string;
+  beforeUpload?: () => Promise<string>;
   buttonLabel?: string;
   compact?: boolean;
   onAssignmentSaved?: (
@@ -216,7 +218,7 @@ export function ServiceApplicationUploader({
 
     try {
       const filesToUpload = files;
-      let uploadApplicationId = applicationId;
+      let uploadApplicationId = beforeUpload ? await beforeUpload() : applicationId;
 
       if (!uploadApplicationId) {
         const applicationResponse = await fetch("/api/platform/applications", {

@@ -1,12 +1,10 @@
 import {
   BookOpenCheck,
   Building2,
-  IdCard,
   Mail,
   MapPin,
   Phone,
   ShieldCheck,
-  UserRound,
 } from "lucide-react";
 import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -14,7 +12,9 @@ import { AdminProfileForm } from "../../components/AdminProfileForm";
 
 import { SchoolStatusDetails } from "../../components/SchoolStatusDetails";
 
-type SchoolProfile = {
+import { SchoolOwnerDetails, type SchoolOwnerRecord } from "@/app/platform/components/SchoolOwnerDetails";
+
+type SchoolProfile = SchoolOwnerRecord & {
   school_statuses?: import("@/lib/school-status").SchoolStatuses;
   contact_number: string | null;
   representative_email: string;
@@ -78,7 +78,7 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
   const { data: schools } = await supabase
     .from("schools")
     .select(
-      "school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
+      "school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
     )
     .eq("representative_email", email)
     .order("created_at", { ascending: false })
@@ -91,7 +91,7 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
   const { data: registrations } = await supabase
     .from("school_registration_requests")
     .select(
-      "school_name, school_id, school_type, school_district, school_address, school_offerings, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
+      "school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
     )
     .eq("representative_email", email)
     .eq("status", "approved")
@@ -110,16 +110,6 @@ function SchoolProfileDetails({ school }: { school: SchoolProfile }) {
         <strong>{school.school_name}</strong>
       </div>
       <div>
-        <IdCard aria-hidden="true" size={18} />
-        <span>School ID</span>
-        <strong>{fieldValue(school.school_id)}</strong>
-      </div>
-      <div>
-        <Building2 aria-hidden="true" size={18} />
-        <span>School Type</span>
-        <strong>{fieldValue(school.school_type)}</strong>
-      </div>
-      <div>
         <MapPin aria-hidden="true" size={18} />
         <span>District</span>
         <strong>{fieldValue(school.school_district)}</strong>
@@ -135,11 +125,6 @@ function SchoolProfileDetails({ school }: { school: SchoolProfile }) {
         <strong>{formatOfferings(school.school_offerings)}</strong>
       </div>
       <div>
-        <UserRound aria-hidden="true" size={18} />
-        <span>Representative</span>
-        <strong>{school.representative_name}</strong>
-      </div>
-      <div>
         <ShieldCheck aria-hidden="true" size={18} />
         <span>Position</span>
         <strong>{fieldValue(school.representative_position)}</strong>
@@ -151,7 +136,7 @@ function SchoolProfileDetails({ school }: { school: SchoolProfile }) {
       </div>
       <div>
         <Phone aria-hidden="true" size={18} />
-        <span>Contact Number</span>
+        <span>Registrant Contact Number</span>
         <strong>{fieldValue(school.contact_number)}</strong>
       </div>
     </div>
@@ -214,6 +199,7 @@ export default async function PlatformProfilePage() {
           {school ? (
             <>
               <SchoolProfileDetails school={school} />
+              <SchoolOwnerDetails school={school} />
               <SchoolStatusDetails value={school.school_statuses} />
             </>
           ) : (

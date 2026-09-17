@@ -1,6 +1,8 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { cleanString, jsonAuthError, requirePlatformSchool } from "./helpers";
 
+import { isSchoolCalendarService, parseSchoolCalendar } from "@/lib/school-calendar";
+
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
@@ -28,13 +30,34 @@ export async function POST(request: Request) {
     const supabase = createSupabaseAdminClient();
     const { data: service, error: serviceError } = await supabase
       .from("services")
-      .select("id")
+      .select("id, code, name")
       .eq("id", serviceId)
       .eq("status", "active")
       .single();
 
     if (serviceError || !service) {
       return Response.json({ error: "Service is not available for applications." }, { status: 404 });
+    }
+
+    const record = body as Record<string, unknown>;
+    let calendar = null;
+    if (isSchoolCalendarService(service)) {
+      try {
+        calendar = parseSchoolCalendar(record.schoolCalendar);
+      } catch (error) {
+        return Response.json({ error: error instanceof Error ? error.message : "Invalid school calendar." }, { status: 400 });
+      }
+    }
+    const existingId = cleanString(record.applicationId);
+    if (existingId) {
+      if (!calendar) return Response.json({ error: "Calendar details are required." }, { status: 400 });
+      const { data: updated, error } = await supabase.from("service_applications")
+        .update({ school_calendar: calendar })
+        .eq("id", existingId).eq("school_user_id", auth.userId).eq("service_id", serviceId)
+        .select("id").maybeSingle();
+      if (error) return Response.json({ error: error.message }, { status: 500 });
+      if (!updated) return Response.json({ error: "Application not found." }, { status: 404 });
+      return Response.json({ applicationId: updated.id });
     }
 
     const { data: school } = await supabase
@@ -50,6 +73,7 @@ export async function POST(request: Request) {
         school_id: school?.id ?? null,
         school_user_id: auth.userId,
         service_id: serviceId,
+        school_calendar: calendar,
       })
       .select("id")
       .single();

@@ -40,6 +40,7 @@ const defaultOfferings: string[] = [];
 const curriculumOfferings = ["Kindergarten", "Elementary", "Junior High School", "Senior High School"];
 
 export default function PlatformRegisterPage() {
+  const [registrantType, setRegistrantType] = useState("");
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState("");
   const [schoolStatuses, setSchoolStatuses] = useState<SchoolStatuses>({});
@@ -73,6 +74,10 @@ export default function PlatformRegisterPage() {
 
     const payload = {
       schoolName: String(formData.get("schoolName") ?? ""),
+      registrantType,
+      ownerName: String(formData.get("ownerName") ?? ""),
+      ownerHomeAddress: String(formData.get("ownerHomeAddress") ?? ""),
+      ownerContactNumber: String(formData.get("ownerContactNumber") ?? ""),
       schoolDistrict: String(formData.get("schoolDistrict") ?? ""),
       schoolAddress: String(formData.get("schoolAddress") ?? ""),
       representativeName: String(formData.get("representativeName") ?? ""),
@@ -100,6 +105,7 @@ export default function PlatformRegisterPage() {
 
       form.reset();
       setOfferings(defaultOfferings);
+      setRegistrantType("");
       setSchoolStatuses({});
       setSubmitState("success");
       setMessage("Registration request submitted. The admin has been notified for approval.");
@@ -181,6 +187,32 @@ export default function PlatformRegisterPage() {
                 <input name="schoolName" type="text" placeholder="Enter school name" required />
               </label>
               <label className="school-register-wide">
+                <span>Registrant Type *</span>
+                <select required value={registrantType} onChange={(event) => setRegistrantType(event.target.value)}>
+                  <option value="">Select registrant type</option>
+                  <option value="owner">School Owner</option>
+                  <option value="representative">Representative</option>
+                </select>
+              </label>
+              {registrantType ? (
+                <label className="school-register-wide">
+                  <span>School Owner Name *</span>
+                  <input name="ownerName" required maxLength={200} />
+                </label>
+              ) : null}
+              {registrantType === "representative" ? (
+                <>
+                  <label className="school-register-wide">
+                    <span>Home Address *</span>
+                    <input name="ownerHomeAddress" required maxLength={1000} />
+                  </label>
+                  <label className="school-register-wide">
+                    <span>Contact Number *</span>
+                    <input name="ownerContactNumber" type="tel" required maxLength={50} />
+                  </label>
+                </>
+              ) : null}
+              <label className="school-register-wide">
                 <span>District *</span>
                 <input
                   name="schoolDistrict"
@@ -220,15 +252,15 @@ export default function PlatformRegisterPage() {
 
             <fieldset>
               <legend>School Contact Information</legend>
-              <label>
-                <span>Full Name *</span>
+              {registrantType !== "owner" ? <label>
+                <span>Representative Full Name *</span>
                 <input
                   name="representativeName"
                   type="text"
                   placeholder="Enter your full name"
                   required
                 />
-              </label>
+              </label> : null}
               <label>
                 <span>Position / Designation *</span>
                 <input

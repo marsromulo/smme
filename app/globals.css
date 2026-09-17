@@ -7741,3 +7741,7 @@ img {
 .school-status-details dd {
   overflow-wrap: anywhere;
 }
+
+.school-calendar-fields {
+  grid-column: 1 / -1;
+}

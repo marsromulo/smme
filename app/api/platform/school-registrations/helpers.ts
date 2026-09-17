@@ -3,6 +3,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseSchoolStatuses, type SchoolStatuses } from "@/lib/school-status";
 
 export type SchoolRegistrationPayload = {
+  registrantType: "owner" | "representative";
+  ownerName: string;
+  ownerHomeAddress: string;
+  ownerContactNumber: string;
   schoolName: string;
   schoolId?: string;
   schoolType?: string;
@@ -60,7 +64,15 @@ export function parseSchoolRegistrationPayload(body: unknown): {
   const schoolDistrict = cleanString(record.schoolDistrict);
   const schoolAddress = cleanString(record.schoolAddress);
   const schoolOfferings = cleanStringList(record.schoolOfferings);
-  const representativeName = cleanString(record.representativeName);
+  const registrantType = cleanString(record.registrantType);
+  const ownerName = cleanString(record.ownerName);
+  const ownerHomeAddress = registrantType === "representative" ? cleanString(record.ownerHomeAddress) : "";
+  const ownerContactNumber = registrantType === "representative" ? cleanString(record.ownerContactNumber) : "";
+  if (registrantType !== "owner" && registrantType !== "representative") return { error: "Select a registrant type." };
+  if (!ownerName || ownerName.length > 200) return { error: "School owner name is required (maximum 200 characters)." };
+  if (registrantType === "representative" && (!ownerHomeAddress || !ownerContactNumber)) return { error: "School owner home address and contact number are required." };
+  if (ownerHomeAddress.length > 1000 || ownerContactNumber.length > 50) return { error: "School owner contact details are too long." };
+  const representativeName = registrantType === "owner" ? ownerName : cleanString(record.representativeName);
   const representativePosition = cleanString(record.representativePosition);
   const representativeEmail = cleanString(record.representativeEmail).toLowerCase();
   const contactNumber = cleanString(record.contactNumber || record.mobileNumber);
@@ -91,6 +103,10 @@ export function parseSchoolRegistrationPayload(body: unknown): {
 
   return {
     data: {
+      registrantType,
+      ownerName,
+      ownerHomeAddress,
+      ownerContactNumber,
       schoolStatuses,
       schoolName,
       schoolId: schoolId || undefined,

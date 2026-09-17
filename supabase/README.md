@@ -6,6 +6,10 @@ Run `supabase/004_articles.sql` to enable managed Issuances & Documents and News
 
 Run `supabase/005_article_reads.sql` to enable per-school unread article badges.
 
+Run `supabase/006_school_statuses.sql` for registration participation statuses.
+
+Run `supabase/007_registrant_calendar.sql` for registrant type, school owner details, and School Calendar application details before deploying the updated app. Existing records remain valid with unknown details left empty.
+
 Required environment variables:
 
 ```env

@@ -5,6 +5,8 @@ import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { SchoolServiceApplicationIntake } from "@/app/platform/components/SchoolServiceApplicationIntake";
 
+import { isSchoolCalendarService, type SchoolCalendar } from "@/lib/school-calendar";
+
 type ServiceDetail = {
   id: string;
   code: string;
@@ -57,13 +59,14 @@ async function getServiceApplication({
     throw new Error(documentsError.message);
   }
 
+  let schoolCalendar: SchoolCalendar | null = null;
   let applicationId: string | null = null;
   let existingFiles: ExistingApplicationFile[] = [];
 
   if (userId) {
     const { data: applications, error: applicationsError } = await supabase
       .from("service_applications")
-      .select("id, submitted_at, created_at")
+      .select("id, submitted_at, created_at, school_calendar")
       .eq("service_id", serviceId)
       .eq("school_user_id", userId)
       .order("submitted_at", { ascending: false })
@@ -75,6 +78,7 @@ async function getServiceApplication({
 
     const applicationIds = (applications ?? []).map((application) => application.id);
     applicationId = applicationIds[0] ?? null;
+    schoolCalendar = applications?.[0]?.school_calendar as SchoolCalendar | null;
 
     if (applicationIds.length > 0) {
       const { data: files, error: filesError } = await supabase
@@ -101,6 +105,7 @@ async function getServiceApplication({
 
   return {
     applicationId,
+    schoolCalendar,
     documents: (documents ?? []) as RequiredDocument[],
     existingFiles,
     service: service as ServiceDetail,
@@ -161,6 +166,8 @@ export default async function ServiceApplicationPage({
         documents={documents}
         initialFiles={existingFiles}
         serviceId={service.id}
+        isCalendar={isSchoolCalendarService(service)}
+        initialCalendar={application.schoolCalendar}
       />
     </main>
   );

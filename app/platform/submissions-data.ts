@@ -3,6 +3,7 @@ import type { PlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type ApplicationRow = {
+  school_calendar: import("@/lib/school-calendar").SchoolCalendar | null;
   admin_notes: string | null;
   created_at: string;
   id: string;
@@ -89,6 +90,7 @@ export type SubmissionListItem = {
 };
 
 export type SubmissionDetail = SubmissionListItem & {
+  schoolCalendar: import("@/lib/school-calendar").SchoolCalendar | null;
   adminNotes: string | null;
   files: SubmissionFileRow[];
   requiredDocuments: SubmissionRequiredDocument[];
@@ -448,7 +450,7 @@ export async function getSubmissionList(session: PlatformSession): Promise<Submi
   const supabase = createSupabaseAdminClient();
   let query = supabase
     .from("service_applications")
-    .select("id, school_user_id, school_id, service_id, status, submitted_at, admin_notes, created_at")
+    .select("id, school_user_id, school_id, service_id, status, submitted_at, admin_notes, created_at, school_calendar")
     .order("submitted_at", { ascending: false });
 
   if (session.role === "school") {
@@ -504,7 +506,7 @@ export async function getSubmissionDetail({
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("service_applications")
-    .select("id, school_user_id, school_id, service_id, status, submitted_at, admin_notes, created_at")
+    .select("id, school_user_id, school_id, service_id, status, submitted_at, admin_notes, created_at, school_calendar")
     .eq("id", applicationId)
     .single();
 
@@ -521,7 +523,7 @@ export async function getSubmissionDetail({
   let detailApplications = [application];
   const { data: serviceApplications, error: serviceApplicationsError } = await supabase
     .from("service_applications")
-    .select("id, school_user_id, school_id, service_id, status, submitted_at, admin_notes, created_at")
+    .select("id, school_user_id, school_id, service_id, status, submitted_at, admin_notes, created_at, school_calendar")
     .eq("school_user_id", application.school_user_id)
     .eq("service_id", application.service_id)
     .order("submitted_at", { ascending: false });
@@ -547,6 +549,7 @@ export async function getSubmissionDetail({
 
   return {
     ...listItem,
+    schoolCalendar: application.school_calendar,
     adminNotes: application.admin_notes,
     files: related.files.sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),

@@ -7,7 +7,9 @@ import { RegistrationDecisionForm } from "../../../components/RegistrationDecisi
 
 import { SchoolStatusDetails } from "../../../components/SchoolStatusDetails";
 
-type RegistrationDetail = {
+import { SchoolOwnerDetails, type SchoolOwnerRecord } from "@/app/platform/components/SchoolOwnerDetails";
+
+type RegistrationDetail = SchoolOwnerRecord & {
   school_statuses?: import("@/lib/school-status").SchoolStatuses;
   id: string;
   school_name: string;
@@ -165,6 +167,7 @@ export default async function RegistrationDetailPage({
               <strong>{registration.contact_number ?? "Not provided"}</strong>
             </div>
           </div>
+          <SchoolOwnerDetails school={registration} />
           <SchoolStatusDetails value={registration.school_statuses} />
         </article>
 

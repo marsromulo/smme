@@ -53,6 +53,17 @@ export default async function PlatformSubmissionDetailPage({
         ) : null}
       </section>
 
+      {submission.schoolCalendar ? (
+        <section className="platform-section">
+          <div className="platform-section-head compact"><h2>School Calendar Details</h2></div>
+          <dl className="platform-detail-list">
+            <div><dt>School Year Start Date</dt><dd>{submission.schoolCalendar.startDate}</dd></div>
+            <div><dt>School Year End Date</dt><dd>{submission.schoolCalendar.endDate}</dd></div>
+            <div><dt>Total Number of School Days</dt><dd>{submission.schoolCalendar.schoolDays}</dd></div>
+          </dl>
+        </section>
+      ) : null}
+
       <section className="platform-submission-detail-single">
         <article className="platform-section">
           <div className="platform-section-head compact">

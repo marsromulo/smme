@@ -27,6 +27,7 @@ export type PlatformDocument = {
 };
 
 export type School = {
+  ownerDetails?: import("./components/SchoolOwnerDetails").SchoolOwnerRecord;
   schoolStatuses?: import("@/lib/school-status").SchoolStatuses;
   slug: string;
   name: string;

@@ -116,14 +116,14 @@ export async function getApprovedSchoolRecords() {
   const { data: schoolRecordsData } = await supabase
     .from("schools")
     .select(
-      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, status, created_at",
+      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, home_address, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, status, created_at",
     )
     .order("created_at", { ascending: false });
 
   const { data: approvedRegistrations, error: approvedRegistrationsError } = await supabase
     .from("school_registration_requests")
     .select(
-      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, created_at",
+      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, home_address, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, created_at",
     )
     .eq("status", "approved")
     .order("created_at", { ascending: false });
@@ -153,7 +153,7 @@ export async function getApprovedSchoolRecordBySlug(slug: string) {
   const { data } = await supabase
     .from("schools")
     .select(
-      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, status, created_at",
+      "id, school_registration_request_id, slug, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, home_address, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, status, created_at",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -165,7 +165,7 @@ export async function getApprovedSchoolRecordBySlug(slug: string) {
   const { data: approvedRegistrations, error: approvedRegistrationsError } = await supabase
     .from("school_registration_requests")
     .select(
-      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, created_at",
+      "id, school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, home_address, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_email, contact_number, created_at",
     )
     .eq("status", "approved");
 

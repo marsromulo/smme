@@ -76,8 +76,7 @@ export default function PlatformRegisterPage() {
       schoolName: String(formData.get("schoolName") ?? ""),
       registrantType,
       ownerName: String(formData.get("ownerName") ?? ""),
-      ownerHomeAddress: String(formData.get("ownerHomeAddress") ?? ""),
-      ownerContactNumber: String(formData.get("ownerContactNumber") ?? ""),
+      homeAddress: String(formData.get("homeAddress") ?? ""),
       schoolDistrict: String(formData.get("schoolDistrict") ?? ""),
       schoolAddress: String(formData.get("schoolAddress") ?? ""),
       representativeName: String(formData.get("representativeName") ?? ""),
@@ -205,21 +204,21 @@ export default function PlatformRegisterPage() {
                   />
                 </label>
               ) : null}
-              {registrantType ? (
+              {registrantType === "owner" ? (
                 <label className="school-register-wide">
                   <span>School Owner Name *</span>
                   <input name="ownerName" required maxLength={200} />
                 </label>
               ) : null}
-              {registrantType === "representative" ? (
+              {registrantType ? (
                 <>
                   <label className="school-register-wide">
-                    <span>Owner Home Address *</span>
-                    <input name="ownerHomeAddress" required maxLength={1000} />
+                    <span>Home Address *</span>
+                    <input name="homeAddress" required maxLength={1000} />
                   </label>
                   <label className="school-register-wide">
-                    <span>Owner Contact Number *</span>
-                    <input name="ownerContactNumber" type="tel" required maxLength={50} />
+                    <span>Contact Number *</span>
+                    <input name="contactNumber" type="tel" required maxLength={50} />
                   </label>
                 </>
               ) : null}
@@ -280,10 +279,6 @@ export default function PlatformRegisterPage() {
                   placeholder="Enter your official email"
                   required
                 />
-              </label>
-              <label>
-                <span>Mobile Number *</span>
-                <input name="contactNumber" type="tel" placeholder="09XX XXX XXXX" required />
               </label>
             </fieldset>
 

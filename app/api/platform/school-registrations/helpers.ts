@@ -1,3 +1,4 @@
+import { parseRegistrant } from "@/lib/school-profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { parseSchoolStatuses, type SchoolStatuses } from "@/lib/school-status";
@@ -5,8 +6,7 @@ import { parseSchoolStatuses, type SchoolStatuses } from "@/lib/school-status";
 export type SchoolRegistrationPayload = {
   registrantType: "owner" | "representative";
   ownerName: string;
-  ownerHomeAddress: string;
-  ownerContactNumber: string;
+  homeAddress: string;
   schoolName: string;
   schoolId?: string;
   schoolType?: string;
@@ -64,18 +64,15 @@ export function parseSchoolRegistrationPayload(body: unknown): {
   const schoolDistrict = cleanString(record.schoolDistrict);
   const schoolAddress = cleanString(record.schoolAddress);
   const schoolOfferings = cleanStringList(record.schoolOfferings);
-  const registrantType = cleanString(record.registrantType);
-  const ownerName = cleanString(record.ownerName);
-  const ownerHomeAddress = registrantType === "representative" ? cleanString(record.ownerHomeAddress) : "";
-  const ownerContactNumber = registrantType === "representative" ? cleanString(record.ownerContactNumber) : "";
-  if (registrantType !== "owner" && registrantType !== "representative") return { error: "Select a registrant type." };
-  if (!ownerName || ownerName.length > 200) return { error: "School owner name is required (maximum 200 characters)." };
-  if (registrantType === "representative" && (!ownerHomeAddress || !ownerContactNumber)) return { error: "School owner home address and contact number are required." };
-  if (ownerHomeAddress.length > 1000 || ownerContactNumber.length > 50) return { error: "School owner contact details are too long." };
-  const representativeName = registrantType === "owner" ? ownerName : cleanString(record.representativeName);
+  let registrant: ReturnType<typeof parseRegistrant>;
+  try {
+    registrant = parseRegistrant(record);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Invalid registrant details." };
+  }
+  const { registrantType, ownerName, representativeName, homeAddress, contactNumber } = registrant;
   const representativePosition = cleanString(record.representativePosition);
   const representativeEmail = cleanString(record.representativeEmail).toLowerCase();
-  const contactNumber = cleanString(record.contactNumber || record.mobileNumber);
   const password = cleanString(record.password);
 
   if (!schoolName) {
@@ -105,8 +102,7 @@ export function parseSchoolRegistrationPayload(body: unknown): {
     data: {
       registrantType,
       ownerName,
-      ownerHomeAddress,
-      ownerContactNumber,
+      homeAddress,
       schoolStatuses,
       schoolName,
       schoolId: schoolId || undefined,

@@ -2,11 +2,11 @@
 
 import { schoolStatusSections, type SchoolStatuses } from "@/lib/school-status";
 
-export function SchoolStatusFields({ value, onChange }: { value: SchoolStatuses; onChange: (value: SchoolStatuses) => void }) {
+export function SchoolStatusFields({ value, onChange, disabled = false }: { value: SchoolStatuses; onChange: (value: SchoolStatuses) => void; disabled?: boolean }) {
   return schoolStatusSections.map((section) => {
     const entry = value[section.key] ?? { status: "", details: {} };
     return (
-      <fieldset key={section.key}>
+      <fieldset key={section.key} disabled={disabled}>
         <legend>{section.title} *</legend>
         <label className="school-register-wide">
           <span>Status (required)</span>

@@ -10,6 +10,8 @@ Run `supabase/006_school_statuses.sql` for registration participation statuses.
 
 Run `supabase/007_registrant_calendar.sql` for registrant type, school owner details, and School Calendar application details before deploying the updated app. Existing records remain valid with unknown details left empty.
 
+Run `supabase/008_school_profile_editing.sql` for shared registrant home addresses and school profile editing. It keeps linked school and registration records in sync when a school saves its profile.
+
 Required environment variables:
 
 ```env

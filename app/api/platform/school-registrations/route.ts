@@ -12,7 +12,7 @@ import {
 
 function registrationDatabaseErrorMessage(message: string) {
   if (message.includes("schema cache") && message.includes("school_registration_requests")) {
-    return "School registration database columns are not available yet. Run supabase/001_school_registration.sql and supabase/006_school_statuses.sql, then supabase/007_registrant_calendar.sql in Supabase, then retry.";
+    return "School registration database columns are not available yet. Run supabase/001_school_registration.sql and supabase/006_school_statuses.sql, then supabase/007_registrant_calendar.sql and supabase/008_school_profile_editing.sql in Supabase, then retry.";
   }
 
   return message;
@@ -150,9 +150,8 @@ export async function POST(request: Request) {
       .from("school_registration_requests")
       .insert({
         registrant_type: parsed.data.registrantType,
-        owner_name: parsed.data.ownerName,
-        owner_home_address: parsed.data.ownerHomeAddress || null,
-        owner_contact_number: parsed.data.ownerContactNumber || null,
+        owner_name: parsed.data.ownerName || null,
+        home_address: parsed.data.homeAddress,
         school_name: parsed.data.schoolName,
         school_id: parsed.data.schoolId ?? null,
         school_type: parsed.data.schoolType ?? null,

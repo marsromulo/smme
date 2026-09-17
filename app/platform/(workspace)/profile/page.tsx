@@ -1,41 +1,9 @@
-import {
-  BookOpenCheck,
-  Building2,
-  Mail,
-  MapPin,
-  Phone,
-  ShieldCheck,
-} from "lucide-react";
 import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { AdminProfileForm } from "../../components/AdminProfileForm";
 
-import { SchoolStatusDetails } from "../../components/SchoolStatusDetails";
-
-import { SchoolOwnerDetails, type SchoolOwnerRecord } from "@/app/platform/components/SchoolOwnerDetails";
-
-type SchoolProfile = SchoolOwnerRecord & {
-  school_statuses?: import("@/lib/school-status").SchoolStatuses;
-  contact_number: string | null;
-  representative_email: string;
-  representative_name: string;
-  representative_position: string | null;
-  school_address: string | null;
-  school_district: string | null;
-  school_id: string | null;
-  school_name: string;
-  school_offerings: string[] | null;
-  school_type: string | null;
-  status: string;
-};
-
-function fieldValue(value: string | null | undefined) {
-  return value?.trim() || "Not provided";
-}
-
-function formatOfferings(offerings: string[] | null) {
-  return offerings?.length ? offerings.join(", ") : "Not provided";
-}
+import { SchoolProfileForm } from "../../components/SchoolProfileForm";
+import type { SchoolProfile } from "@/lib/school-profile";
 
 function readableNameFromEmail(email: string | null) {
   if (!email) {
@@ -78,7 +46,7 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
   const { data: schools } = await supabase
     .from("schools")
     .select(
-      "school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
+      "school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, home_address, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
     )
     .eq("representative_email", email)
     .order("created_at", { ascending: false })
@@ -91,7 +59,7 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
   const { data: registrations } = await supabase
     .from("school_registration_requests")
     .select(
-      "school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
+      "school_name, school_id, school_type, school_district, school_address, school_offerings, registrant_type, home_address, owner_name, owner_home_address, owner_contact_number, school_statuses, representative_name, representative_position, representative_email, contact_number, status",
     )
     .eq("representative_email", email)
     .eq("status", "approved")
@@ -99,48 +67,6 @@ async function getSchoolProfile(email: string | null): Promise<SchoolProfile | n
     .limit(1);
 
   return (registrations?.[0] as SchoolProfile | undefined) ?? null;
-}
-
-function SchoolProfileDetails({ school }: { school: SchoolProfile }) {
-  return (
-    <div className="platform-registration-detail-list profile">
-      <div>
-        <Building2 aria-hidden="true" size={18} />
-        <span>School Name</span>
-        <strong>{school.school_name}</strong>
-      </div>
-      <div>
-        <MapPin aria-hidden="true" size={18} />
-        <span>District</span>
-        <strong>{fieldValue(school.school_district)}</strong>
-      </div>
-      <div>
-        <MapPin aria-hidden="true" size={18} />
-        <span>Address</span>
-        <strong>{fieldValue(school.school_address)}</strong>
-      </div>
-      <div>
-        <BookOpenCheck aria-hidden="true" size={18} />
-        <span>Offerings</span>
-        <strong>{formatOfferings(school.school_offerings)}</strong>
-      </div>
-      <div>
-        <ShieldCheck aria-hidden="true" size={18} />
-        <span>Position</span>
-        <strong>{fieldValue(school.representative_position)}</strong>
-      </div>
-      <div>
-        <Mail aria-hidden="true" size={18} />
-        <span>Email</span>
-        <strong>{school.representative_email}</strong>
-      </div>
-      <div>
-        <Phone aria-hidden="true" size={18} />
-        <span>Registrant Contact Number</span>
-        <strong>{fieldValue(school.contact_number)}</strong>
-      </div>
-    </div>
-  );
 }
 
 export default async function PlatformProfilePage() {
@@ -184,7 +110,7 @@ export default async function PlatformProfilePage() {
         <div>
           <span className="platform-kicker">Profile</span>
           <h1>{title}</h1>
-          <p>View the school registration information connected to your account.</p>
+          <p>Update your school profile. School name and email address cannot be changed.</p>
         </div>
       </section>
 
@@ -197,11 +123,7 @@ export default async function PlatformProfilePage() {
             </div>
           </div>
           {school ? (
-            <>
-              <SchoolProfileDetails school={school} />
-              <SchoolOwnerDetails school={school} />
-              <SchoolStatusDetails value={school.school_statuses} />
-            </>
+            <SchoolProfileForm school={school} />
           ) : (
             <p className="platform-document-empty">No school profile is connected to this account yet.</p>
           )}

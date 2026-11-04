@@ -12,6 +12,8 @@ Run `supabase/007_registrant_calendar.sql` for registrant type, school owner det
 
 Run `supabase/008_school_profile_editing.sql` for shared registrant home addresses and school profile editing. It keeps linked school and registration records in sync when a school saves its profile.
 
+Run `supabase/009_senior_high_recognition.sql` to rename the SHS service to Senior High Recognition Application and replace its checklist with eight title-case requirements. Existing applications and uploads are retained; uploads linked to removed requirements become unassigned.
+
 Required environment variables:
 
 ```env

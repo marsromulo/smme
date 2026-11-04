@@ -36,8 +36,8 @@ export const publicServices = [
   },
   {
     icon: "/assets/icons/shs.svg",
-    title: "Senior High School Permit Application",
-    text: "Apply for authority to offer Senior High School programs and tracks.",
+    title: "Senior High Recognition Application",
+    text: "Apply for recognition of Senior High School programs and tracks.",
   },
   {
     icon: "/assets/icons/school-calendar.svg",

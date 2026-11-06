@@ -1,3 +1,4 @@
+import { readSchoolStatusForm } from "@/lib/school-status-uploads";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   buildSmmeEmailTemplate,
@@ -112,11 +113,13 @@ export async function GET() {
 
 export async function POST(request: Request) {
   let body: unknown;
+  let submission;
 
   try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid JSON body." }, { status: 400 });
+    submission = await readSchoolStatusForm(request);
+    body = submission.body;
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Invalid registration form." }, { status: 400 });
   }
 
   const parsed = parseSchoolRegistrationPayload(body);
@@ -144,6 +147,13 @@ export async function POST(request: Request) {
         { error: authResult.error?.message ?? "Unable to create school login account." },
         { status: 500 },
       );
+    }
+
+    try {
+      await submission.upload();
+    } catch (error) {
+      await supabase.auth.admin.deleteUser(authResult.data.user.id).catch(() => null);
+      throw error;
     }
 
     const { data: registration, error: insertError } = await supabase

@@ -20,6 +20,18 @@ export function SchoolStatusFields({ value, onChange, disabled = false, sections
             value: entry.details[field.key] ?? "",
             onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => onChange({ ...value, [section.key]: { ...entry, details: { ...entry.details, [field.key]: event.target.value } } }),
           };
+          if (field.type === "file") {
+            return (
+              <div key={`${section.key}:${entry.status}:${field.key}`} className="school-register-wide">
+                <label>
+                  <span>{field.label} *</span>
+                  <input type="file" name={`${section.key}:${field.key}`} accept="application/pdf,image/jpeg,image/png" required={!entry.details[field.key]} />
+                </label>
+                <small>PDF, JPG, or PNG. Maximum 1 MB.</small>
+                {entry.details[field.key] ? <p><a href={`/api/platform/status-documents?key=${encodeURIComponent(entry.details[field.key])}`} target="_blank" rel="noreferrer">View uploaded copy</a> — choose a file to replace it.</p> : null}
+              </div>
+            );
+          }
           return (
             <label key={field.key}>
               <span>{field.label}</span>

@@ -78,13 +78,11 @@ export default function PlatformRegisterPage() {
       schoolStatuses,
     };
 
+    formData.set("payload", JSON.stringify(payload));
     try {
       const response = await fetch("/api/platform/school-registrations", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formData,
       });
       const result = (await response.json()) as { error?: string };
 

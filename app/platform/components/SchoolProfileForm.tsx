@@ -23,10 +23,7 @@ export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
     setError("");
     setMessage("");
     try {
-      const response = await fetch("/api/platform/profile/school", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      data.set("payload", JSON.stringify({
           registrantType,
           ownerName: data.get("ownerName") ?? "",
           representativeName: data.get("representativeName") ?? "",
@@ -37,10 +34,14 @@ export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
           representativePosition: data.get("representativePosition"),
           schoolOfferings: offerings,
           schoolStatuses: statuses,
-        }),
+        }));
+      const response = await fetch("/api/platform/profile/school", {
+        method: "PATCH",
+        body: data,
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Unable to save profile.");
+      setStatuses(result.schoolStatuses ?? statuses);
       setMessage("School profile saved.");
       router.refresh();
     } catch (error) {

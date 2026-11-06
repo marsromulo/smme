@@ -72,3 +72,7 @@ export async function deleteR2Object({ key }: { key: string }) {
 
   await getR2Client().send(command);
 }
+
+export async function putR2Object({ key, contentType, body }: { key: string; contentType: string; body: Buffer }) {
+  await getR2Client().send(new PutObjectCommand({ Bucket: getR2BucketName(), Key: key, ContentType: contentType, Body: body }));
+}

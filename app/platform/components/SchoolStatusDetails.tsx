@@ -13,7 +13,7 @@ export function SchoolStatusDetails({ value }: { value?: SchoolStatuses | null }
             <dl className="platform-detail-list">
               <div><dt>Status</dt><dd>{entry?.status || "Not provided"}</dd></div>
               {(section.details[entry?.status ?? ""] ?? []).map((field) => (
-                <div key={field.key}><dt>{field.label}</dt><dd>{entry?.details?.[field.key] || "Not provided"}</dd></div>
+                <div key={field.key}><dt>{field.label}</dt><dd>{field.type === "file" && entry?.details?.[field.key] ? <a href={`/api/platform/status-documents?key=${encodeURIComponent(entry.details[field.key])}`} target="_blank" rel="noreferrer">View uploaded copy</a> : entry?.details?.[field.key] || "Not provided"}</dd></div>
               ))}
             </dl>
           </section>

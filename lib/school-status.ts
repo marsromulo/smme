@@ -3,7 +3,7 @@ export const curriculumOfferings = ["Kindergarten", "Elementary", "Junior High S
 export type StatusField = {
   key: string;
   label: string;
-  type?: "date" | "number";
+  type?: "date" | "number" | "file";
   options?: readonly string[];
   placeholder?: string;
 };
@@ -21,6 +21,7 @@ export const schoolStatusSections: readonly StatusSection[] = [
     options: ["With Permit", "With Recognition", "Pending Application", "For Renewal", "Expired", "Suspended", "Revoked/Cancelled", "No Permit/Recognition"],
     details: {
       "With Permit": [
+        { key: "approvedPermit", label: "Copy of Approved Permit", type: "file" },
         { key: "permitStatus", label: "Permit Status", options: ["Valid", "Expired", "Pending", "Suspended", "Revoked"] },
         { key: "permitNumber", label: "Permit Number" },
         { key: "dateIssued", label: "Date Issued", type: "date" },
@@ -31,6 +32,7 @@ export const schoolStatusSections: readonly StatusSection[] = [
         { key: "latestPermit", label: "Latest Permit/Recognition Issued" },
       ],
       "With Recognition": [
+        { key: "approvedRecognition", label: "Copy of Approved Recognition", type: "file" },
         { key: "recognitionNumber", label: "Recognition Number / Government Recognition No." },
         { key: "recognitionDate", label: "Date of Recognition", type: "date" },
         { key: "schoolYear", label: "School Year Granted/Effective" },

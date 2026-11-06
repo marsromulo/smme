@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import sgodLogo from "@/layout/sgod_logo.png";
 
+import { CurriculumFields } from "../../components/CurriculumFields";
 import { SchoolStatusFields } from "../../components/SchoolStatusFields";
 import type { SchoolStatuses } from "@/lib/school-status";
 
@@ -37,7 +38,6 @@ const features = [
 ];
 
 const defaultOfferings: string[] = [];
-const curriculumOfferings = ["Kindergarten", "Elementary", "Junior High School", "Senior High School"];
 
 export default function PlatformRegisterPage() {
   const [registrantType, setRegistrantType] = useState("");
@@ -45,16 +45,6 @@ export default function PlatformRegisterPage() {
   const [message, setMessage] = useState("");
   const [schoolStatuses, setSchoolStatuses] = useState<SchoolStatuses>({});
   const [offerings, setOfferings] = useState(defaultOfferings);
-
-  function toggleOffering(selectedOffering: string) {
-    setOfferings((current) => {
-      if (current.includes(selectedOffering)) {
-        return current.filter((offering) => offering !== selectedOffering);
-      }
-
-      return [...current, selectedOffering];
-    });
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -242,21 +232,7 @@ export default function PlatformRegisterPage() {
               </label>
             </fieldset>
 
-            <fieldset>
-              <legend>Curriculum Offerings</legend>
-              <div className="school-register-curriculum-options school-register-wide">
-                {curriculumOfferings.map((offering) => (
-                  <label key={offering} className="school-register-checkbox-option">
-                    <input
-                      type="checkbox"
-                      checked={offerings.includes(offering)}
-                      onChange={() => toggleOffering(offering)}
-                    />
-                    <span>{offering}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            <CurriculumFields offerings={offerings} onOfferingsChange={setOfferings} statuses={schoolStatuses} onStatusesChange={setSchoolStatuses} disabled={submitState === "submitting"} />
 
             <SchoolStatusFields value={schoolStatuses} onChange={setSchoolStatuses} />
 

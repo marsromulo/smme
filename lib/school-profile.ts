@@ -1,6 +1,6 @@
-import { parseSchoolStatuses, type SchoolStatuses } from "./school-status";
+import { curriculumOfferings, parseSchoolStatuses, type SchoolStatuses } from "./school-status";
 
-export const curriculumOfferings = ["Kindergarten", "Elementary", "Junior High School", "Senior High School"];
+export { curriculumOfferings } from "./school-status";
 
 export type SchoolProfile = {
   registrant_type?: string | null;
@@ -59,6 +59,6 @@ export function parseSchoolProfileUpdate(body: unknown) {
     school_address: requiredText(record.schoolAddress, "School address", 1000),
     representative_position: requiredText(record.representativePosition, "Position / Designation", 200),
     school_offerings: [...new Set(record.schoolOfferings as string[])],
-    school_statuses: parseSchoolStatuses(record.schoolStatuses),
+    school_statuses: parseSchoolStatuses(record.schoolStatuses, record.schoolOfferings as string[]),
   };
 }

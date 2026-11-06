@@ -2,7 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { curriculumOfferings, type SchoolProfile } from "@/lib/school-profile";
+import type { SchoolProfile } from "@/lib/school-profile";
+import { CurriculumFields } from "./CurriculumFields";
 import { SchoolStatusFields } from "./SchoolStatusFields";
 
 export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
@@ -53,8 +54,7 @@ export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
     <form className="school-register-form" onSubmit={save} onChange={() => { setMessage(""); setError(""); }}>
       <fieldset disabled={saving}>
         <legend>School Information</legend>
-        <label><span>School Name</span><input value={school.school_name} disabled className="school-profile-locked-field" /></label>
-        <label><span>Email Address</span><input value={school.representative_email} disabled className="school-profile-locked-field" /></label>
+        <label className="school-register-wide"><span>School Name</span><input value={school.school_name} disabled className="school-profile-locked-field" /></label>
         <label className="school-register-wide"><span>Registrant Type *</span>
           <select required value={registrantType} onChange={(event) => setRegistrantType(event.target.value)}>
             <option value="">Select registrant type</option>
@@ -67,22 +67,22 @@ export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
           <input name={registrantType === "owner" ? "ownerName" : "representativeName"} required maxLength={200}
             defaultValue={registrantType === "owner" ? school.owner_name ?? "" : school.registrant_type === "owner" ? "" : school.representative_name} />
         </label> : null}
-        <label><span>Home Address *</span><input name="homeAddress" defaultValue={school.home_address ?? ""} required maxLength={1000} /></label>
-        <label><span>Contact Number *</span><input name="contactNumber" type="tel" defaultValue={school.contact_number ?? ""} required maxLength={50} /></label>
-        <label><span>District *</span><input name="schoolDistrict" defaultValue={school.school_district ?? ""} required maxLength={200} /></label>
-        <label><span>School Address *</span><input name="schoolAddress" defaultValue={school.school_address ?? ""} required maxLength={1000} /></label>
-        <label><span>Position / Designation *</span><input name="representativePosition" defaultValue={school.representative_position ?? ""} required maxLength={200} /></label>
+        {registrantType ? (
+          <>
+            <label className="school-register-wide"><span>Home Address *</span><input name="homeAddress" defaultValue={school.home_address ?? ""} required maxLength={1000} /></label>
+            <label className="school-register-wide"><span>Contact Number *</span><input name="contactNumber" type="tel" defaultValue={school.contact_number ?? ""} required maxLength={50} /></label>
+          </>
+        ) : null}
+        <label className="school-register-wide"><span>District *</span><input name="schoolDistrict" defaultValue={school.school_district ?? ""} placeholder="Enter district" required maxLength={200} /></label>
+        <label className="school-register-wide"><span>School Address *</span><input name="schoolAddress" defaultValue={school.school_address ?? ""} placeholder="Enter complete school address" required maxLength={1000} /></label>
       </fieldset>
-      <fieldset disabled={saving}>
-        <legend>Curriculum Offerings</legend>
-        <div className="school-register-curriculum-options school-register-wide">
-          {curriculumOfferings.map((offering) => <label className="school-register-checkbox-option" key={offering}>
-            <input type="checkbox" checked={offerings.includes(offering)} onChange={(event) => setOfferings(event.target.checked ? [...offerings, offering] : offerings.filter((item) => item !== offering))} />
-            <span>{offering}</span>
-          </label>)}
-        </div>
-      </fieldset>
+      <CurriculumFields offerings={offerings} onOfferingsChange={setOfferings} statuses={statuses} onStatusesChange={setStatuses} disabled={saving} />
       <SchoolStatusFields value={statuses} onChange={setStatuses} disabled={saving} />
+      <fieldset disabled={saving}>
+        <legend>School Contact Information</legend>
+        <label><span>Position / Designation *</span><input name="representativePosition" defaultValue={school.representative_position ?? ""} placeholder="Enter your position" required maxLength={200} /></label>
+        <label><span>Email Address</span><input type="email" value={school.representative_email} disabled className="school-profile-locked-field" /></label>
+      </fieldset>
       {error ? <p role="alert" className="platform-assignment-message error">{error}</p> : null}
       {message ? <p role="status" className="platform-assignment-message success">{message}</p> : null}
       <button className="platform-btn primary" type="submit" disabled={saving}>{saving ? "Saving..." : "Save Profile"}</button>

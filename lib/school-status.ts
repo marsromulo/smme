@@ -1,3 +1,5 @@
+export const curriculumOfferings = ["Kindergarten", "Elementary", "Junior High School", "Senior High School"];
+
 export type StatusField = {
   key: string;
   label: string;
@@ -70,13 +72,20 @@ export const schoolStatusSections: readonly StatusSection[] = [
   },
 ];
 
-export function parseSchoolStatuses(value: unknown): SchoolStatuses {
+export function governmentSection(offering: string): StatusSection {
+  return { ...schoolStatusSections[0], key: `government:${offering}`, title: `Government Recognition Status — ${offering}` };
+}
+
+export function parseSchoolStatuses(value: unknown, offerings: string[]): SchoolStatuses {
+  if (offerings.some((offering) => !curriculumOfferings.includes(offering))) {
+    throw new Error("Select valid curriculum offerings.");
+  }
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error("School participation statuses are required.");
   }
   const input = value as Record<string, unknown>;
   const result: SchoolStatuses = {};
-  for (const section of schoolStatusSections) {
+  for (const section of [...offerings.map(governmentSection), ...schoolStatusSections.filter((section) => section.key !== "government")]) {
     const entry = input[section.key] as { status?: unknown; details?: unknown } | undefined;
     if (!entry || typeof entry.status !== "string" || !section.options.includes(entry.status)) {
       throw new Error(`Select a valid ${section.title}.`);

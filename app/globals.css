@@ -6596,7 +6596,7 @@ img {
 
 .school-register-curriculum-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
@@ -7753,4 +7753,9 @@ img {
   -webkit-text-fill-color: #687386;
   cursor: not-allowed;
   opacity: 1;
+}
+
+.school-register-curriculum-row > fieldset {
+  margin-top: 16px;
+  margin-bottom: 12px;
 }

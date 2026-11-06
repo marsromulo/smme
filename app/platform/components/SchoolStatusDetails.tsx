@@ -1,9 +1,11 @@
-import { schoolStatusSections, type SchoolStatuses } from "@/lib/school-status";
+import { curriculumOfferings, governmentSection, schoolStatusSections, type SchoolStatuses } from "@/lib/school-status";
 
 export function SchoolStatusDetails({ value }: { value?: SchoolStatuses | null }) {
+  const curriculumSections = curriculumOfferings.map(governmentSection).filter((section) => value?.[section.key]);
+  const sections = [...curriculumSections, ...schoolStatusSections.filter((section) => section.key !== "government" || (curriculumSections.length === 0 && value?.government))];
   return (
     <div className="school-status-details">
-      {schoolStatusSections.map((section) => {
+      {sections.map((section) => {
         const entry = value?.[section.key];
         return (
           <section className="platform-section" key={section.key}>

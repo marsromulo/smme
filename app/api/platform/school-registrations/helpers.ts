@@ -93,7 +93,7 @@ export function parseSchoolRegistrationPayload(body: unknown): {
 
   let schoolStatuses: SchoolStatuses;
   try {
-    schoolStatuses = parseSchoolStatuses(record.schoolStatuses);
+    schoolStatuses = parseSchoolStatuses(record.schoolStatuses, schoolOfferings);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Invalid school statuses." };
   }

@@ -1,13 +1,13 @@
 "use client";
 
-import { schoolStatusSections, type SchoolStatuses } from "@/lib/school-status";
+import { schoolStatusSections, type StatusSection, type SchoolStatuses } from "@/lib/school-status";
 
-export function SchoolStatusFields({ value, onChange, disabled = false }: { value: SchoolStatuses; onChange: (value: SchoolStatuses) => void; disabled?: boolean }) {
-  return schoolStatusSections.map((section) => {
+export function SchoolStatusFields({ value, onChange, disabled = false, sections = schoolStatusSections.filter((section) => section.key !== "government"), curriculum }: { value: SchoolStatuses; onChange: (value: SchoolStatuses) => void; disabled?: boolean; sections?: readonly StatusSection[]; curriculum?: string }) {
+  return sections.map((section) => {
     const entry = value[section.key] ?? { status: "", details: {} };
     return (
       <fieldset key={section.key} disabled={disabled}>
-        <legend>{section.title} *</legend>
+        <legend>{curriculum ? "Government Recognition Status" : section.title} *</legend>
         <label className="school-register-wide">
           <span>Status (required)</span>
           <select aria-label={section.title} required value={entry.status} onChange={(event) => onChange({ ...value, [section.key]: { status: event.target.value, details: {} } })}>

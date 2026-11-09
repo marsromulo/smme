@@ -14,6 +14,7 @@ import {
 import sgodLogo from "@/layout/sgod_logo.png";
 
 import { CurriculumFields } from "../../components/CurriculumFields";
+import { prepareSchoolForm, readSchoolFormResponse, schoolFormErrorMessage } from "@/lib/school-form-client";
 import { SchoolStatusFields } from "../../components/SchoolStatusFields";
 import type { SchoolStatuses } from "@/lib/school-status";
 
@@ -48,6 +49,7 @@ export default function PlatformRegisterPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitState === "submitting") return;
     setSubmitState("submitting");
     setMessage("");
 
@@ -82,13 +84,9 @@ export default function PlatformRegisterPage() {
     try {
       const response = await fetch("/api/platform/school-registrations", {
         method: "POST",
-        body: formData,
+        body: prepareSchoolForm(formData),
       });
-      const result = (await response.json()) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(result.error ?? "Unable to submit registration.");
-      }
+      await readSchoolFormResponse(response);
 
       form.reset();
       setOfferings(defaultOfferings);
@@ -98,7 +96,7 @@ export default function PlatformRegisterPage() {
       setMessage("Registration request submitted. The admin has been notified for approval.");
     } catch (error) {
       setSubmitState("error");
-      setMessage(error instanceof Error ? error.message : "Unable to submit registration.");
+      setMessage(schoolFormErrorMessage(error));
     }
   }
 

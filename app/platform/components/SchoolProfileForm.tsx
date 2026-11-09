@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { SchoolProfile } from "@/lib/school-profile";
 import { CurriculumFields } from "./CurriculumFields";
+import { prepareSchoolForm, readSchoolFormResponse, schoolFormErrorMessage } from "@/lib/school-form-client";
 import { SchoolStatusFields } from "./SchoolStatusFields";
 
 export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
@@ -37,15 +38,14 @@ export function SchoolProfileForm({ school }: { school: SchoolProfile }) {
         }));
       const response = await fetch("/api/platform/profile/school", {
         method: "PATCH",
-        body: data,
+        body: prepareSchoolForm(data),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Unable to save profile.");
+      const result = await readSchoolFormResponse(response);
       setStatuses(result.schoolStatuses ?? statuses);
       setMessage("School profile saved.");
       router.refresh();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Unable to save profile.");
+      setError(schoolFormErrorMessage(error));
     } finally {
       setSaving(false);
     }

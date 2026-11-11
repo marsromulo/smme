@@ -260,25 +260,6 @@ export function SchoolServiceApplicationIntake({
             {calendarSaved && !calendarChanged ? <p role="status" className="platform-assignment-message success">School calendar details saved.</p> : null}
             {calendarChanged ? <p>Save your school year details here. Submit Document uploads documents only.</p> : null}
           </form>
-          <div className="platform-section-head compact"><h3>Upload Document — School Calendar Schedule</h3></div>
-          {calendarDocument ? (
-            <>
-              <ServiceApplicationUploader
-                applicationId={savedApplicationId ?? undefined}
-                beforeUpload={requireSavedCalendar}
-                serviceId={serviceId}
-                serviceRequiredDocumentId={calendarDocument.id}
-                acceptedMimeTypes={["application/pdf", "image/jpeg", "image/png"]}
-                buttonLabel="Upload School Calendar"
-                uploadHint="Upload your school calendar schedule as PDF, JPG, or PNG. Maximum 25 MB per file. Save the calendar details above before uploading."
-                successMessage="School calendar schedule uploaded and sent for admin review."
-                onUploadedFilesReady={handleUploadedFilesReady}
-              />
-              {uploadedFiles.filter((file) => file.serviceRequiredDocumentId === calendarDocument.id).map((file) => (
-                <p key={file.id}><a href={`/api/platform/application-files/${file.id}/download`} target="_blank" rel="noreferrer">{file.name}</a></p>
-              ))}
-            </>
-          ) : <p role="alert">The School Calendar document requirement is missing. Please contact the administrator to configure it.</p>}
         </section>
       ) : null}
       {transferAnimation ? (
@@ -412,7 +393,7 @@ export function SchoolServiceApplicationIntake({
         <div className="platform-section-head compact">
           <div className="platform-application-title-stack">
             <span className="platform-kicker">Upload</span>
-            <h2>Application Documents</h2>
+            <h2>Upload Document</h2>
           </div>
           <FileUp aria-hidden="true" size={24} />
         </div>
@@ -420,6 +401,8 @@ export function SchoolServiceApplicationIntake({
         <ServiceApplicationUploader
           applicationId={savedApplicationId ?? undefined}
           beforeUpload={isCalendar ? requireSavedCalendar : undefined}
+          acceptedMimeTypes={isCalendar ? ["application/pdf", "image/jpeg", "image/png"] : undefined}
+          serviceRequiredDocumentId={isCalendar ? calendarDocument?.id : undefined}
           assignmentValues={assignmentValues}
           onAssignmentSaved={handleAssignmentSaved}
           onUploadedFilesReady={handleUploadedFilesReady}

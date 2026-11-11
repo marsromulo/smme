@@ -31,6 +31,8 @@ export default async function PlatformSubmissionDetailPage({
   const submission = await getSubmissionDetail({ applicationId, session });
   const uploadedFiles = submission.files.filter((file) => file.upload_status === "uploaded");
   const isAdmin = session.role === "admin";
+  const calendarRequirement = submission.requiredDocuments.find((document) => document.name.trim().toLowerCase() === "school calendar");
+  const calendarFiles = uploadedFiles.filter((file) => calendarRequirement && file.service_required_document_id === calendarRequirement.id && file.review_status !== "invalid");
 
   return (
     <main className="platform-page">
@@ -60,6 +62,12 @@ export default async function PlatformSubmissionDetailPage({
             <div><dt>School Year Start Date</dt><dd>{submission.schoolCalendar.startDate}</dd></div>
             <div><dt>School Year End Date</dt><dd>{submission.schoolCalendar.endDate}</dd></div>
             <div><dt>Total Number of School Days</dt><dd>{submission.schoolCalendar.schoolDays}</dd></div>
+            <div><dt>School Calendar Schedule</dt><dd>
+              {calendarFiles.length ? calendarFiles.map((file) => <p key={file.id}>
+                <a href={`/api/platform/application-files/${file.id}/download`} target="_blank" rel="noreferrer">{file.original_name}</a>
+                {" · "}<a href={`/api/platform/application-files/${file.id}/download?disposition=attachment`}>Download</a>
+              </p>) : "No school calendar schedule uploaded yet."}
+            </dd></div>
           </dl>
         </section>
       ) : null}

@@ -1,3 +1,4 @@
+import { isSchoolCalendarService } from "@/lib/school-calendar";
 import { randomUUID } from "crypto";
 import { createR2PutSignedUrl } from "@/lib/r2";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -114,6 +115,13 @@ export async function POST(
 
     if (applicationError || !application) {
       return Response.json({ error: "Application was not found." }, { status: 404 });
+    }
+
+    const { data: service, error: serviceError } = await supabase.from("services")
+      .select("code, name").eq("id", application.service_id).single();
+    if (serviceError || !service) return Response.json({ error: "Service was not found." }, { status: 404 });
+    if (isSchoolCalendarService(service) && parsed.files.some((file) => !["application/pdf", "image/jpeg", "image/png"].includes(file.type))) {
+      return Response.json({ error: "School calendar documents must be PDF, JPG, or PNG files." }, { status: 400 });
     }
 
     if (parsed.serviceRequiredDocumentId) {

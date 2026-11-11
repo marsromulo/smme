@@ -89,6 +89,7 @@ export function ServiceApplicationUploader({
   applicationId,
   beforeUpload,
   buttonLabel = "Submit Document",
+  acceptedMimeTypes,
   compact = false,
   onAssignmentSaved,
   onUploadComplete,
@@ -105,6 +106,7 @@ export function ServiceApplicationUploader({
   applicationId?: string;
   beforeUpload?: () => Promise<string>;
   buttonLabel?: string;
+  acceptedMimeTypes?: string[];
   compact?: boolean;
   onAssignmentSaved?: (
     file: UploadedApplicationFileAssignment,
@@ -154,11 +156,11 @@ export function ServiceApplicationUploader({
       return;
     }
 
-    const invalidFile = selectedFiles.find((file) => !isAllowedFile(file));
+    const invalidFile = selectedFiles.find((file) => !(acceptedMimeTypes ? acceptedMimeTypes.includes(file.type) : isAllowedFile(file)));
     const oversizedFile = selectedFiles.find((file) => file.size > maxFileSize);
 
     if (invalidFile) {
-      setError(`${invalidFile.name} must be a PDF or image file.`);
+      setError(`${invalidFile.name} must be ${acceptedMimeTypes ? "a PDF, JPG, or PNG file" : "a PDF or image file"}.`);
       if (inputRef.current) {
         inputRef.current.value = "";
       }
@@ -418,7 +420,7 @@ export function ServiceApplicationUploader({
 
       <label className="platform-service-upload-zone">
         <input
-          accept="application/pdf,image/*"
+          accept={acceptedMimeTypes?.join(",") ?? "application/pdf,image/*"}
           disabled={isUploading}
           multiple
           name="applicationFiles"
@@ -434,7 +436,7 @@ export function ServiceApplicationUploader({
         <span>
           <UploadCloud aria-hidden="true" size={34} />
         </span>
-        <strong>Upload PDF and image files</strong>
+        <strong>{acceptedMimeTypes ? "Upload PDF, JPG, or PNG files" : "Upload PDF and image files"}</strong>
         <small>{uploadHint}</small>
       </label>
 

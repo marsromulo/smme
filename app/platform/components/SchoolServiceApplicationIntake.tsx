@@ -61,6 +61,7 @@ export function SchoolServiceApplicationIntake({
   initialCalendar?: SchoolCalendar | null;
   serviceId: string;
 }) {
+  const calendarDocument = documents.find((document) => document.name.trim().toLowerCase() === "school calendar");
   const [savedApplicationId, setSavedApplicationId] = useState(applicationId);
   const [savedCalendar, setSavedCalendar] = useState(initialCalendar ?? null);
   const [startDate, setStartDate] = useState(initialCalendar?.startDate ?? "");
@@ -97,7 +98,7 @@ export function SchoolServiceApplicationIntake({
   }
 
   async function requireSavedCalendar() {
-    if (!savedApplicationId || !savedCalendar) {
+    if (!savedApplicationId || !savedCalendar || calendarChanged) {
       throw new Error("Save the School Calendar Details before uploading documents.");
     }
     return savedApplicationId;
@@ -259,6 +260,25 @@ export function SchoolServiceApplicationIntake({
             {calendarSaved && !calendarChanged ? <p role="status" className="platform-assignment-message success">School calendar details saved.</p> : null}
             {calendarChanged ? <p>Save your school year details here. Submit Document uploads documents only.</p> : null}
           </form>
+          <div className="platform-section-head compact"><h3>Upload Document — School Calendar Schedule</h3></div>
+          {calendarDocument ? (
+            <>
+              <ServiceApplicationUploader
+                applicationId={savedApplicationId ?? undefined}
+                beforeUpload={requireSavedCalendar}
+                serviceId={serviceId}
+                serviceRequiredDocumentId={calendarDocument.id}
+                acceptedMimeTypes={["application/pdf", "image/jpeg", "image/png"]}
+                buttonLabel="Upload School Calendar"
+                uploadHint="Upload your school calendar schedule as PDF, JPG, or PNG. Maximum 25 MB per file. Save the calendar details above before uploading."
+                successMessage="School calendar schedule uploaded and sent for admin review."
+                onUploadedFilesReady={handleUploadedFilesReady}
+              />
+              {uploadedFiles.filter((file) => file.serviceRequiredDocumentId === calendarDocument.id).map((file) => (
+                <p key={file.id}><a href={`/api/platform/application-files/${file.id}/download`} target="_blank" rel="noreferrer">{file.name}</a></p>
+              ))}
+            </>
+          ) : <p role="alert">The School Calendar document requirement is missing. Please contact the administrator to configure it.</p>}
         </section>
       ) : null}
       {transferAnimation ? (

@@ -1,3 +1,5 @@
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { schoolAccessAllowed } from "./school-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type PlatformRole = "admin" | "school";
@@ -23,8 +25,15 @@ export async function getPlatformSession(): Promise<PlatformSession> {
       };
     }
 
-    const metadata = data.claims.user_metadata;
-    const role = data.claims.app_metadata?.role === "admin" ? "admin" : "school";
+    // Read current server-managed metadata: an existing JWT may predate deactivation.
+    const { data: current, error: currentError } = await createSupabaseAdminClient().auth.admin.getUserById(data.claims.sub);
+    if (currentError || !current.user) throw new Error("Session unavailable");
+    const user = current.user;
+    if (user.app_metadata.role !== "admin" && !schoolAccessAllowed(user.app_metadata, user.banned_until)) {
+      throw new Error("School account is inactive or awaiting approval");
+    }
+    const metadata = user.user_metadata;
+    const role = user.app_metadata?.role === "admin" ? "admin" : "school";
     const name =
       typeof metadata?.name === "string"
         ? metadata.name

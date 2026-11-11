@@ -1,3 +1,7 @@
+import { getPlatformSession } from "@/lib/platform/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { findAuthUserByEmail } from "@/app/api/platform/school-registrations/auth-users";
+import { SchoolAccountAccess } from "@/app/platform/components/SchoolAccountAccess";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -41,6 +45,11 @@ export default async function PlatformSchoolDetailsPage({
   if (!school) {
     notFound();
   }
+
+  const session = await getPlatformSession();
+  const account = session.role === "admin" && session.userId
+    ? await findAuthUserByEmail(createSupabaseAdminClient(), school.contact)
+    : null;
 
   return (
     <main className="platform-page">
@@ -135,6 +144,10 @@ export default async function PlatformSchoolDetailsPage({
           </div>
         </article>
       </section>
+
+      {account && "user" in account && account.user?.app_metadata.role === "school" ? (
+        <SchoolAccountAccess userId={account.user.id} initialActive={account.user.app_metadata.account_active !== false} />
+      ) : null}
 
       <SchoolStatusDetails value={school.schoolStatuses} />
 

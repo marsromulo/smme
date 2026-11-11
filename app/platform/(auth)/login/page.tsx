@@ -16,6 +16,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { schoolAccessAllowed } from "@/lib/platform/school-access";
 import sgodLogo from "@/layout/sgod_logo.png";
 
 const accessNotes = [
@@ -55,13 +56,19 @@ export default function PlatformLoginPage() {
 
     try {
       const supabase = createSupabaseBrowserClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
       if (signInError) {
+        if (signInError.code === "user_banned") throw new Error("Your school account is inactive or awaiting approval. Please contact the administrator.");
         throw signInError;
+      }
+
+      if (signInData.user?.app_metadata.role !== "admin" && !schoolAccessAllowed(signInData.user?.app_metadata ?? {})) {
+        await supabase.auth.signOut();
+        throw new Error("Your school account is inactive or awaiting approval. Please contact the administrator.");
       }
 
       if (rememberLogin) {

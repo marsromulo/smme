@@ -120,7 +120,7 @@ export async function approveSchoolAuthUser(
       ...metadataRecord(user.app_metadata),
       ...schoolAppMetadata(profile, "approved"),
     },
-    ban_duration: "none",
+    ban_duration: user.app_metadata.account_active === false ? pendingSchoolBanDuration : "none",
     email_confirm: true,
     user_metadata: {
       ...metadataRecord(user.user_metadata),

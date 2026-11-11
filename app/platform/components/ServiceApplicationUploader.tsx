@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, useMemo, useRef, useState } from "react";
+import { uploadApplicationDocument } from "@/lib/application-upload-client";
 import { useRouter } from "next/navigation";
 import { Check, CheckCircle2, ChevronDown, FileText, Trash2, UploadCloud, XCircle } from "lucide-react";
 
@@ -257,15 +258,7 @@ export function ServiceApplicationUploader({
           throw new Error(`Unable to match signed upload for ${upload.name}.`);
         }
 
-        const uploadResponse = await fetch(upload.uploadUrl, {
-          body: file,
-          headers: { "Content-Type": file.type },
-          method: "PUT",
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error(`Unable to upload ${file.name}.`);
-        }
+        await uploadApplicationDocument(file, upload);
 
         uploadedFileIds.push(upload.fileId);
         setUploadedCount(uploadedFileIds.length);

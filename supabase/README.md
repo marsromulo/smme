@@ -23,3 +23,5 @@ SUPABASE_SECRET_KEY=
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` is supported as a legacy fallback for `SUPABASE_SECRET_KEY`.
+
+Run `supabase/010_school_account_access.sql` for Active/Inactive school account controls. It checks current account metadata for database access, blocking already-issued school sessions after deactivation. Administrators manage access from Schools → school details → School Account Access. Activation does not approve pending registrations.

@@ -46,12 +46,16 @@ function notificationReferenceLabel(item: NotificationRow) {
 
 const pageSize = 50;
 
-async function getNotifications(userId: string, role: "admin" | "school", requestedPage: number) {
+async function getNotifications(userId: string, role: "admin" | "school", requestedPage: number, search: string) {
   const supabase = createSupabaseAdminClient();
   const table = role === "admin" ? "admin_notifications" : "school_notifications";
+  // Quote the filter value so punctuation in school names stays literal.
+  const pattern = `%${search.replace(/[\\%_]/g, "\\$&")}%`;
+  const searchFilter = `title.ilike.${JSON.stringify(pattern)},body.ilike.${JSON.stringify(pattern)}`;
   function countQuery(unreadOnly = false) {
     let query = supabase.from(table).select("id", { count: "exact", head: true });
     if (role === "school") query = query.eq("recipient_user_id", userId);
+    if (search) query = query.or(searchFilter);
     if (unreadOnly) query = query.eq("is_read", false);
     return query;
   }
@@ -67,6 +71,7 @@ async function getNotifications(userId: string, role: "admin" | "school", reques
     "id, type, title, body, created_at, is_read, reference_type, reference_id, link_href, school_registration_request_id",
   );
   if (role === "school") query = query.eq("recipient_user_id", userId);
+  if (search) query = query.or(searchFilter);
   const { data, error } = await query.order("created_at", { ascending: false })
     .order("id", { ascending: false }).range(start, start + pageSize - 1);
   if (error) throw new Error(error.message);
@@ -74,14 +79,16 @@ async function getNotifications(userId: string, role: "admin" | "school", reques
 }
 
 export default async function PlatformNotificationsPage({ searchParams }: {
-  searchParams: Promise<{ page?: string | string[] }>;
+  searchParams: Promise<{ page?: string | string[]; q?: string | string[] }>;
 }) {
   const session = await getPlatformSession();
   if (!session.userId) redirect("/platform/login");
   const params = await searchParams;
+  const search = typeof params.q === "string" ? params.q.trim().slice(0, 200) : "";
+  const pageHref = (page: number) => `/platform/notifications?${new URLSearchParams({ ...(search ? { q: search } : {}), page: String(page) })}`;
   const rawPage = typeof params.page === "string" && /^\d+$/.test(params.page) ? Number(params.page) : 1;
   const requestedPage = Number.isSafeInteger(rawPage) && rawPage > 0 ? rawPage : 1;
-  const { notifications, total, unreadCount, page, pageCount, start } = await getNotifications(session.userId, session.role, requestedPage);
+  const { notifications, total, unreadCount, page, pageCount, start } = await getNotifications(session.userId, session.role, requestedPage, search);
 
   return (
     <main className="platform-page">
@@ -97,22 +104,31 @@ export default async function PlatformNotificationsPage({ searchParams }: {
         <div className="platform-section-head">
           <div>
             <span className="platform-kicker">Inbox</span>
-            <h2>{total.toLocaleString()} Notifications</h2>
+            <h2>{total.toLocaleString()} {search ? "Matching Notifications" : "Notifications"}</h2>
           </div>
           <span className="platform-pill new">{unreadCount} unread</span>
         </div>
+
+        <form action="/platform/notifications" method="get" role="search" className="platform-notification-search">
+          <label htmlFor="notification-search">Search by school or service name</label>
+          <div>
+            <input id="notification-search" name="q" type="search" defaultValue={search} key={search} maxLength={200} placeholder="Enter a school or service name" />
+            <button type="submit" className="platform-btn primary">Search</button>
+            {search ? <Link className="platform-table-action" href="/platform/notifications">Clear</Link> : null}
+          </div>
+        </form>
 
         {total > 0 ? (
           <nav className="platform-notification-pagination" aria-label="Notification pages">
             <span>Showing {start + 1}–{start + notifications.length} of {total.toLocaleString()} · Page {page} of {pageCount}</span>
             <div>
               {page > 1 ? <>
-                <Link className="platform-table-action" href="/platform/notifications?page=1">First</Link>
-                <Link className="platform-table-action" href={`/platform/notifications?page=${page - 1}`}>Previous</Link>
+                <Link className="platform-table-action" href={pageHref(1)}>First</Link>
+                <Link className="platform-table-action" href={pageHref(page - 1)}>Previous</Link>
               </> : null}
               {page < pageCount ? <>
-                <Link className="platform-table-action" href={`/platform/notifications?page=${page + 1}`}>Next</Link>
-                <Link className="platform-table-action" href={`/platform/notifications?page=${pageCount}`}>Last</Link>
+                <Link className="platform-table-action" href={pageHref(page + 1)}>Next</Link>
+                <Link className="platform-table-action" href={pageHref(pageCount)}>Last</Link>
               </> : null}
             </div>
           </nav>
@@ -121,7 +137,7 @@ export default async function PlatformNotificationsPage({ searchParams }: {
         {notifications.length === 0 ? (
           <div className="platform-empty-state">
             <Bell aria-hidden="true" size={28} />
-            <p>No notifications yet.</p>
+            <p>{search ? `No notifications found for “${search}”. Try another school or service name.` : "No notifications yet."}</p>
           </div>
         ) : (
           <div className="platform-table-wrap">

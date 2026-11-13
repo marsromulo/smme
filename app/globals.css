@@ -7774,3 +7774,8 @@ img {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.platform-notification-search { margin-bottom: 20px; }
+.platform-notification-search label { display: block; margin-bottom: 8px; font-weight: 700; }
+.platform-notification-search > div { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.platform-notification-search input { flex: 1 1 260px; min-width: 0; padding: 12px; border: 1px solid #cdddf4; border-radius: 7px; }

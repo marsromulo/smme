@@ -1,19 +1,19 @@
+import { getSchoolApplications } from "@/app/platform/school-applications";
+import { SchoolApplicationsPanel } from "@/app/platform/components/SchoolApplicationsPanel";
 import { getPlatformSession } from "@/lib/platform/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { findAuthUserByEmail } from "@/app/api/platform/school-registrations/auth-users";
 import { SchoolAccountAccess } from "@/app/platform/components/SchoolAccountAccess";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft,
-  ArrowRight,
   Building2,
   CheckCircle2,
   Clock3,
   FileText,
   Mail,
   MapPin,
-  ShieldAlert,
 } from "lucide-react";
 import { getSchool, schools } from "../../../data";
 import { getApprovedSchoolRecordBySlug } from "../../../school-records";
@@ -31,6 +31,9 @@ export default async function PlatformSchoolDetailsPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const session = await getPlatformSession();
+  if (!session.userId) redirect("/platform/login");
+  if (session.role !== "admin") notFound();
   const { slug } = await params;
   let school = getSchool(slug);
 
@@ -46,7 +49,7 @@ export default async function PlatformSchoolDetailsPage({
     notFound();
   }
 
-  const session = await getPlatformSession();
+  const applications = await getSchoolApplications(school.contact);
   const account = session.role === "admin" && session.userId
     ? await findAuthUserByEmail(createSupabaseAdminClient(), school.contact)
     : null;
@@ -62,18 +65,10 @@ export default async function PlatformSchoolDetailsPage({
         <div>
           <h1>{school.name}</h1>
           <div className="platform-detail-actions">
-            {school.documents[0] ? (
-              <Link className="platform-btn primary" href={`/platform/documents/${school.documents[0].id}`}>
-                <FileText aria-hidden="true" size={18} />
-                Review Documents
-              </Link>
-            ) : (
-              <span className="platform-btn primary disabled">
-                <FileText aria-hidden="true" size={18} />
-                Review Documents
-              </span>
-            )}
-            <Link className="platform-btn secondary" href="/platform/applications">
+            <Link className="platform-btn primary" href="#school-documents">
+              <FileText aria-hidden="true" size={18} />Review Documents
+            </Link>
+            <Link className="platform-btn secondary" href={`/platform/schools/${slug}/applications`}>
               <Clock3 aria-hidden="true" size={18} />
               View Applications
             </Link>
@@ -151,49 +146,7 @@ export default async function PlatformSchoolDetailsPage({
 
       <SchoolStatusDetails value={school.schoolStatuses} />
 
-      <section className="platform-section">
-        <div className="platform-section-head">
-          <div>
-            <span className="platform-kicker">Documents</span>
-            <h2>Reviewed and Submitted Files</h2>
-          </div>
-          <span className={`platform-pill ${school.status.toLowerCase().replaceAll(" ", "-")}`}>
-            {school.status === "Needs action" ? (
-              <ShieldAlert aria-hidden="true" size={14} />
-            ) : (
-              <CheckCircle2 aria-hidden="true" size={14} />
-            )}
-            {school.status}
-          </span>
-        </div>
-        <div className="platform-document-list">
-          {school.documents.length > 0 ? (
-            school.documents.map((document) => (
-              <Link
-                className="platform-document-row"
-                href={`/platform/documents/${document.id}`}
-                key={document.id}
-              >
-                <span className="platform-document-icon">
-                  <FileText aria-hidden="true" size={21} />
-                </span>
-                <div>
-                  <strong>{document.title}</strong>
-                  <small>
-                    {document.type} · Submitted {document.submitted}
-                  </small>
-                </div>
-                <span className={`platform-pill ${document.status.toLowerCase().replaceAll(" ", "-")}`}>
-                  {document.status}
-                </span>
-                <ArrowRight aria-hidden="true" size={17} />
-              </Link>
-            ))
-          ) : (
-            <p className="platform-empty-state">No reviewed documents yet.</p>
-          )}
-        </div>
-      </section>
+      <SchoolApplicationsPanel applications={applications} />
     </main>
   );
 }

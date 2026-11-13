@@ -7779,3 +7779,19 @@ img {
 .platform-notification-search label { display: block; margin-bottom: 8px; font-weight: 700; }
 .platform-notification-search > div { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .platform-notification-search input { flex: 1 1 260px; min-width: 0; padding: 12px; border: 1px solid #cdddf4; border-radius: 7px; }
+
+.school-document-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
+  width: max-content;
+}
+
+.school-document-actions .platform-table-action {
+  min-height: 28px;
+  padding: 4px 7px;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}

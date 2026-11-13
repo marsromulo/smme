@@ -30,9 +30,11 @@ export function SchoolApplicationsPanel({ applications }: { applications: Applic
             <td>{file.review_status === "invalid" ? "Replaced / Invalid" : file.review_status.replaceAll("_", " ")}</td>
             <td>{formatSubmissionDate(file.uploaded_at ?? file.created_at)}</td>
             <td>
-              <a className="platform-table-action" href={`/api/platform/application-files/${file.id}/download`} target="_blank" rel="noreferrer">View</a>{" "}
-              <a className="platform-table-action" href={`/api/platform/application-files/${file.id}/download?disposition=attachment`}>Download</a>{" "}
+              <div className="school-document-actions">
+              <a className="platform-table-action" href={`/api/platform/application-files/${file.id}/download`} target="_blank" rel="noreferrer">View</a>
+              <a className="platform-table-action" href={`/api/platform/application-files/${file.id}/download?disposition=attachment`}>Download</a>
               <Link className="platform-table-action" href={`/platform/submissions/${application.id}`}>Review</Link>
+              </div>
             </td>
           </tr>)}</tbody>
         </table></div>
